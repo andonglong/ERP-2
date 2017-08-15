@@ -1,0 +1,46 @@
+<template lang="html">
+  <div class="address-container">
+   <el-table ref='multipleTable' :data='AddressTableData' border tooltip-effect='dark' style='width: 100%'>
+          <el-table-column type='selection' width='55'></el-table-column>
+          <el-table-column type='index' align='center' label='序号' width='66'></el-table-column>
+          <el-table-column label='省' width='120'>
+            <template scope='scope'>{{ scope.row.provincename }}</template>
+          </el-table-column>
+          <el-table-column prop='cityname' label='市' width='120'>
+          </el-table-column>
+          <el-table-column prop='countyname' label='县' show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column prop='address' label='详细地址' show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column prop='contactid' label='联系人' show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column prop='tel' label='固定电话' show-overflow-tooltip>
+          </el-table-column>
+           <el-table-column prop='mobile' label='移动电话' show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column prop='email' label='电子邮箱' show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column prop='address' label='默认收货地址' show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column prop='address' label='启用' show-overflow-tooltip>
+          </el-table-column>
+        </el-table>
+  </div>
+</template>
+
+<script>
+export default {
+  props: {
+    AddressTableData: {
+      type: Array
+    }
+  },
+	data() {
+		return { }
+	},
+  filters: { }
+}
+</script>
+
+<style lang="stylus">
+</style>

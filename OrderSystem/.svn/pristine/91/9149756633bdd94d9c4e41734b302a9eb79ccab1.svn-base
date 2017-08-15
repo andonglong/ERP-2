@@ -1,0 +1,23 @@
+import Vue from 'vue'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)
+
+const state = {
+    productDetail: {
+         tabs: 'first',
+         record: {}
+    }
+}
+
+
+const mutations ={
+    getProductDetailRecord(state,val){
+        state.productDetail.record = 1
+    }
+}
+
+export default new Vuex.Store ({
+    state,
+    mutations
+})

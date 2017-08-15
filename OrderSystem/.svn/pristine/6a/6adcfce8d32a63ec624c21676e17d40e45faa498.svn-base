@@ -1,0 +1,125 @@
+import $http from "./http.js"
+
+const userBase = "/cloudfactory/erp/user/"
+const user = {
+  //登录
+  login(data) {
+    return $http.get(userBase + "login", data)
+  },
+  //退出
+  logout() {
+    return $http.get(userBase + "logout")
+  },
+  //修改密码
+  changePassword(data) {
+    return $http.post(userBase + "changePassword", data)
+  },
+  //添加用户
+  //{ username: "",mobilenumber: "","technology[0]": "", "technology[1]": "" }
+  adduser(data) {
+    return $http.post(userBase + "adduser", data)
+  },
+  //修改用户
+  //{ userid:"", username: "",mobilenumber: "","technology[0]": "", "technology[1]": "" }
+  edituser(data) {
+    return $http.post(userBase + "edituser", data)
+  },
+  //获取用户详情
+  getuserbyid(data) {
+    return $http.post(userBase + "getuserbyid", data)
+  },
+  //删除用户
+  //{ useid:'' }
+  delbyuserid(data) {
+    return $http.post(userBase + "delbyuserid", data)
+  },
+  //用户列表
+  //{ sortBy:"userid",pageindex:1,pageSize=15,keyword="159" }
+  query(data) {
+    console.log("我是查询")
+    return $http.get(userBase + "query", data)
+  }
+
+
+}
+
+const orderBase = "/cloudfactory/erp/order/"
+const order = {
+		//获取订单列表
+    getorders(data){
+      return  $http.post(orderBase + "getorders",data)
+    },
+    //更新订单
+    upodateorders(data){
+      return  $http.post(orderBase + "upodateorders",data)
+    },
+    //订单导入
+    uploadordersfile(data){
+      return  $http.post(orderBase + "uploadordersfile",data)
+    },
+    //订单关闭
+   	updateorderforstatus(data){
+      return  $http.post(orderBase + "updateorderforstatus",data)
+    },
+    //订单加急
+   	updateorderforurgent(data){
+      return  $http.post(orderBase + "updateorderforurgent",data)
+    },
+     //工艺列表
+   	gettechnologys(data){
+      return  $http.post(orderBase + "gettechnologys",data)
+    },
+    //已选工艺(产品进度)
+    //{ inorderid:'',productmodel:'',serialno:'' }
+   	gettechnologysbyorderid(data){
+      return  $http.post(orderBase + "gettechnologysbyorderid",data)
+    },
+    //保存工艺
+   	updatetechnologybyorderid(data){
+      return  $http.post(orderBase + "updatetechnologybyorderid",data)
+    },
+    //打印二维码
+    getorderdetail(data) {
+    	return $http.post(orderBase + "getorderdetail",data)
+    },
+    //订单统计
+    getorderstatistics(data) {
+    	return $http.post(orderBase + "getorderstatistics",data)
+    },
+    //用户录入数据展示接口(流程负责人列表)
+    //{ inorderid:'',productmodel:'',serialno:'',sequence:''}
+    getusertechnologysbyorderid(data) {
+    	return $http.post(orderBase + "getusertechnologysbyorderid",data)
+    },
+    //更新产品详情的工艺路线接口
+    //{inorderid:'',productmodel:'',productserialno:'', sequence:'',headstr:'1*25*25*15*1$',detailstr='1*30*30*gc$'}
+    updatetechnologyroute(data) {
+    	return $http.post(orderBase + "updatetechnologyroute",data)
+    },
+   
+
+}
+
+const TechnologyBase = '/cloudfactory/erp/Technology/'
+const Technology = {
+  //  获取工序
+  getAllTechnology(data) {
+    return $http.get(TechnologyBase + "getAllTechnology", data)
+  },
+  //  添加工序
+  add(data) {
+    return $http.post(TechnologyBase + "add", data)
+  }
+
+}
+
+export default {
+  //用户模块
+  user,
+
+  //订单模块
+  order,
+
+  //工序模块
+  Technology
+}

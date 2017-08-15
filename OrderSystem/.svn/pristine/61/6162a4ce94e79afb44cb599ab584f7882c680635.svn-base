@@ -1,0 +1,289 @@
+<template>
+<div class="progress-container">
+  <div class="table_01">
+    <el-table :data="progressData.table01Data" border style="width: 93%; margin:0 auto; " :row-style="{ height: '31px'}" @row-click="table01RowClick" :row-class-name="tableRowClassName" highlight-current-row>
+      <el-table-column prop="sequence" label="序号" min-width="75" align="center">
+      </el-table-column>
+      <el-table-column prop="technologyname" label="流程名称" min-width="90" align="center">
+      </el-table-column>
+      <el-table-column prop="planworkhours" label="预计工时" min-width="90" align="center">
+        <template scope="scope">
+                        <el-input v-model="scope.row.planworkhours" class="editInput" @blur="blur01(scope.row)"></el-input>
+                    </template>
+      </el-table-column>
+      <el-table-column prop="completeamount" label="完成数量" min-width="90" align="center">
+        <template scope="scope">
+                        <el-input v-model="scope.row.completeamount" class="editInput" @blur="blur01(scope.row)" :style="{backgroundColor:'#F8FAFE'}"></el-input>
+                    </template>
+      </el-table-column>
+      <el-table-column prop="qualifiedamount" label="合格数量" min-width="90" align="center">
+        <template scope="scope">
+                        <el-input v-model="scope.row.qualifiedamount" class="editInput" @blur="blur01(scope.row)" :style="scope.row.planworkhours == '--' ? {backgroundColor:'transparent'}:{backgroundColor:'#F8FAFE'}"></el-input>
+                    </template>
+      </el-table-column>
+      <el-table-column prop="technologystatus" label="状态" min-width="75" align="center">
+        <template scope="scope">
+                        <el-dropdown menu-align="start" trigger="hover" class="text-center" >
+                            <el-button type="primary">
+                                {{scope.row.technologystatus}}
+                            </el-button>
+                            <el-dropdown-menu slot="dropdown" class="text-center">
+                                <el-dropdown-item command="0" @click="choseStatus">
+                                    <div @click="choseStatus(scope.row,$event)" data-status="待来料" class="text-center" style="text-align: center;" >待来料</div>
+                                </el-dropdown-item>
+                                <el-dropdown-item command="1" @click="choseStatus">
+                                    <div @click="choseStatus(scope.row,$event)" data-status="待处理">待处理</div>
+                                </el-dropdown-item>
+                                <el-dropdown-item command="2" @click="choseStatus">
+                                    <div @click="choseStatus(scope.row,$event)" data-status="进行中">进行中</div>
+                                </el-dropdown-item>
+                                <el-dropdown-item command="3" @click="choseStatus">
+                                    <div @click="choseStatus(scope.row,$event)" data-status="已完成">已完成</div>
+                                </el-dropdown-item>
+                            </el-dropdown-menu>
+                        </el-dropdown>
+                    </template>
+      </el-table-column>
+      <el-table-column prop="completepercent" label="完成比例" min-width="130" align="center" class-name="scale">
+        <template scope="scope">
+                        <div :style="{width: scope.row.completepercent}" class="scaleDiv">
+                            <div>
+                                <span>{{scope.row.completepercent}}</span>
+                            </div>
+                        </div>
+                    </template>
+      </el-table-column>
+    </el-table>
+  </div>
+  <div class="line"></div>
+  <div class="table_02">
+    <el-table :data="progressData.table02Data" border height="false" style="width: 93%; margin:0 auto;" :row-style="{ height: '31px'}" highlight-current-row>
+      <el-table-column type="index" label="序号" min-width="75" align="center">
+      </el-table-column>
+      <el-table-column prop="owner" label="负责人" min-width="130" align="center">
+      </el-table-column>
+      <el-table-column prop="completeamount" label="完成数量" min-width="130" align="center">
+        <template scope="scope">
+                        <el-input v-model="scope.row.completeamount" class="editInput" @blur="blur02(scope.row)" :style="{backgroundColor:'#F8FAFE'}"></el-input>
+                    </template>
+      </el-table-column>
+      <el-table-column prop="qualifiedamount" label="合格数量" min-width="130" align="center">
+        <template scope="scope">
+                        <el-input v-model="scope.row.qualifiedamount" class="editInput" @blur="blur02(scope.row)" :style="scope.row.qualifiedamount == '--' ? {backgroundColor:'transparent'}:{backgroundColor:'#F8FAFE'}"></el-input>
+                    </template>
+      </el-table-column>
+      <el-table-column prop="createtime" label="录入时间" min-width="185" align="center">
+      </el-table-column>
+    </el-table>
+  </div>
+  <div class="footer">
+    <el-button type="primary" @click="Save">保存数据</el-button>
+  </div>
+</div>
+</template>
+
+<script>
+import api from 'api/request.js'
+
+export default {
+  props: ['progressData'],
+  data () {
+    return {
+      a: 1,
+      SaveParam: {
+        inorderid: '',
+        productmodel: '',
+        productserialno: '',
+        headstr: [],
+        detailstr: []
+      }
+    }
+  },
+  created () {},
+  beforeUpdate () {
+    let table01Data = this.progressData.table01Data
+    for (let i = 0; i < table01Data.length; i++) {
+      if (table01Data[i].technologystatus === '0') {
+        table01Data[i].technologystatus = '待来料'
+      } else if (table01Data[i].technologystatus === '1') {
+        table01Data[i].technologystatus = '待处理'
+      } else if (table01Data[i].technologystatus === '2') {
+        table01Data[i].technologystatus = '进行中'
+      } else if (table01Data[i].technologystatus === '3') {
+        table01Data[i].technologystatus = '已完成'
+      }
+    }
+
+    this.SaveParam.inorderid = this.progressData.inorderid
+    this.SaveParam.productmodel = this.progressData.productmodel
+    this.SaveParam.productserialno = this.progressData.productserialno
+  },
+  updated () {},
+  methods: {
+    table01RowClick (row, event, column) {
+      this.SaveParam.inorderid = row.inorderid
+      this.SaveParam.productmodel = row.productmodel
+      this.SaveParam.productserialno = row.productserialno
+
+      this.setHeadstr(row, row.technologystatus)
+
+      let param02 = {
+        inorderid: row.inorderid,
+        productmodel: row.productmodel,
+        serialno: row.serialno,
+        sequence: row.sequence
+      }
+      api.order.getusertechnologysbyorderid(param02).then(res => {
+        this.progressData.table02Data = res.data.data
+      })
+    },
+    choseStatus (row, $event) {
+      this.setHeadstr(row, $event.target.innerText)
+    },
+    Save () {
+      this.SaveParam.headstr = this.SaveParam.headstr.join('')
+      this.SaveParam.detailstr = this.SaveParam.detailstr.join('')
+
+      let param = this.SaveParam
+      api.order.updatetechnologyroute(param).then(res => {
+        this.SaveParam = {
+          inorderid: '',
+          productmodel: '',
+          productserialno: '',
+          headstr: [],
+          detailstr: []
+        }
+      })
+    },
+    blur01 (row) {
+      this.setHeadstr(row, row.technologystatus)
+    },
+    blur02 (row) {
+      let detailstr = row.sequence + '*' + row.completeamount + '*' + row.qualifiedamount + '*' + row.owner + '$'
+      this.SaveParam.detailstr[row.sequence] = detailstr
+    },
+    CheckStatus (statusText) {
+      let status
+      if (statusText === '待来料') {
+        status = 0
+      } else if (statusText === '待处理') {
+        status = 1
+      } else if (statusText === '进行中') {
+        status = 2
+      } else if (statusText === '已完成') {
+        status = 3
+      }
+      return status
+    },
+    setHeadstr (row, statusText) {
+      row.technologystatus = this.CheckStatus(statusText)
+      let headstr = row.sequence + '*' + row.completeamount + '*' + row.qualifiedamount + '*' + row.planworkhours + '*' + row.technologystatus + '$'
+      this.SaveParam.headstr[row.sequence] = headstr
+    },
+    tableRowClassName (row, index) {
+      if (index === 0) {
+        return 'current-row'
+      }
+    }
+  }
+}
+</script>
+
+<style lang="stylus">
+ .progress-container
+   height: 100%
+   padding-top: 20px
+   box-sizing:border-box
+
+   .cell
+     padding: 0
+
+   .el-table td
+     height: auto
+
+   .el-table
+     height: 100%
+     border-left: none
+
+   .el-table::before,
+     .el-table::after
+       height : 0
+
+     .el-table__header-wrapper
+       .el-table__header
+         border-left: 1px solid #dfe6ec
+
+     .el-table__body-wrapper
+       height : 80%
+       overflow-x: hidden
+
+       .el-table__body
+         border-left: 1px solid #dfe6ec
+
+   .editInput input
+     border: 0
+     background-color: #F8FAFE
+     text-align: center
+
+   .el-table--enable-row-transition .el-table__body td
+     .editInput input
+       transition: background-color .25s ease
+
+   .el-table--enable-row-hover .el-table__body tr:hover>td
+     .editInput input
+       background-color: #eef1f6
+
+   .el-table__body tr.current-row>td
+     background-color: #edf7ff!important
+     .editInput input
+       background-color: #edf7ff!important
+
+   .table_01
+     height: 55%
+
+     .el-dropdown
+        display: block
+
+        .el-button--primary
+            display: block
+            width: 100%
+            background-color: transparent
+            color: #333
+            border: none
+
+     .scale>div
+       position: absolute
+       top: 0
+       right: 0
+       bottom: 0
+       left: 0
+
+     .scaleDiv
+       background-color: #00FF00
+       height: 100%
+
+      span
+        position: absolute
+        top:0
+        right: 0
+        bottom: 0
+        left: 0
+        display: flex
+        align-items: center
+        justify-content: center
+
+     .text-center
+        text-align: center!important
+   .table_02
+     height: 30%
+
+   .footer
+     height: 10%
+     background-color: #EFF2F7
+     display: flex
+     align-items: center
+     justify-content: center
+
+     .el-button
+       width: 30%
+</style>

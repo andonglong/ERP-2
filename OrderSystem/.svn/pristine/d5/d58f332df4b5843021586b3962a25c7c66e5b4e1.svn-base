@@ -1,0 +1,180 @@
+<template>
+    <div class="progress-container">
+        <div class="table_01">
+            <el-table :data="table01Data" border style="width: 93%; margin:0 auto; " :row-style="{ height: '31px'}">
+                <el-table-column prop="a" label="序号" min-width="75" align="center">
+                </el-table-column>
+                <el-table-column prop="b" label="流程名称" min-width="90" align="center">
+                    <template scope="scope">
+                        <div contenteditable="true" data-id="99999999999999999" @click="clickA(scope.$index,scope.row,$event)">{{scope.row.b}}</div>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="c" label="预计工时" min-width="90" align="center">
+                    <template scope="scope">
+                        <el-input :placeholder="scope.row.c" v-model="scope.row.c" class="editInput"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="d" label="完成数量" min-width="90" align="center">
+                    <template scope="scope">
+                        <el-input :placeholder="scope.row.d" v-model="scope.row.d" class="editInput"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="e" label="合格数量" min-width="90" align="center">
+                    <template scope="scope">
+                        <el-input :placeholder="scope.row.e" v-model="scope.row.e" class="editInput"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="f" label="状态" min-width="75" align="center">
+                </el-table-column>
+                <el-table-column prop="g" label="完成比例" min-width="130" align="center" class-name="scale">
+                    <template scope="scope">
+                        <div :style="{width: scope.row.g}" class="scaleDiv">
+                            <div>
+                                <span>{{scope.row.g}}</span>
+                            </div>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+        <div class="line"></div>
+        <div class="table_02">
+            <el-table :data="table02Data" border height="false" style="width: 93%; margin:0 auto;" :row-style="{ height: '31px'}">
+                <el-table-column prop="a" label="序号" min-width="75" align="center">
+                </el-table-column>
+                <el-table-column prop="b" label="负责人" min-width="130" align="center">
+                </el-table-column>
+                <el-table-column prop="c" label="完成数量" min-width="130" align="center">
+                    <template scope="scope">
+                        <!--<div contenteditable="true" data-id="99999999999999999" @click="clickA(scope.$index,scope.row,$event)">{{scope.row.c}}</div>-->
+                        <el-input :placeholder="scope.row.c" v-model="scope.row.c" class="editInput"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="d" label="合格数量" min-width="130" align="center">
+                    <template scope="scope">
+                        <!--<div contenteditable="true" data-id="99999999999999999" @click="clickA(scope.$index,scope.row,$event)">{{scope.row.d}}</div>-->
+                        <el-input :placeholder="scope.row.d" v-model="scope.row.d" class="editInput"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="e" label="录入时间" min-width="185" align="center">
+                </el-table-column>
+            </el-table>
+        </div>
+        <div class="footer">
+            <el-button type="primary">保存数据</el-button>
+        </div>
+    </div>
+</template>
+
+<script>
+import $http from 'api/http'
+
+export default {
+    data() {
+        return {
+            table01Data: [],
+            table02Data: []
+        }
+    },
+    created() {
+        $http.ajax('/api/manage').then(res => {
+            console.log(res)
+        })
+        $http.ajax('/api/productDetail').then(res => {
+            console.log("产品详情")
+            console.log(res)
+            this.table01Data = res.data.data.progress.table01
+            this.table02Data = res.data.data.progress.table02
+
+        })
+    }
+}
+</script>
+
+<style lang="stylus">
+ .progress-container {
+   height: 100%
+   padding-top: 20px
+   box-sizing:border-box
+
+   .cell {
+      padding: 0
+    }
+   .el-table td { 
+     height: auto
+
+     
+   } 
+   .el-table{
+       height: 100%
+       border-left: none
+     }
+   .el-table::before,
+     .el-table::after{
+       height : 0
+     }
+     .el-table__header-wrapper{
+       .el-table__header{
+            border-left: 1px solid #dfe6ec;
+       }
+     }
+     .el-table__body-wrapper{
+       height : 80%
+       .el-table__body{
+           border-left: 1px solid #dfe6ec;
+       }
+     }
+   .editInput input{
+     border: 0
+     background-color: transparent
+     text-align: center
+   }
+   .table_01{
+     height: 55% 
+
+     .scale>div{
+       position: absolute
+       top: 0
+       right: 0
+       bottom: 0
+       left: 0
+     }
+     .scaleDiv{
+       background-color: #00FF00
+       height: 100%
+      
+      span {
+        position: absolute
+        top:0
+        right: 0
+        bottom: 0
+        left: 0
+        display: flex
+        align-items: center
+        justify-content: center
+      }
+     }
+   }
+   .table_02{
+     height: 30% 
+
+    
+   }
+   .footer{
+     height: 10%
+     background-color: #EFF2F7 
+     display: flex
+     align-items: center 
+     justify-content: center
+
+     .el-button{  
+       width: 30%
+     } 
+   }
+  
+ }
+ 
+
+
+</style>
+

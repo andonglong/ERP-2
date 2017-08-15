@@ -1,0 +1,311 @@
+<template lang='html'>
+  <div class='supplierdetail-box'>
+    <el-card class='box-card'>
+      <div class='nav'>
+        <el-breadcrumb separator='/'>
+          <el-breadcrumb-item :to="{ path: '/Manage/Customer' }">客户列表</el-breadcrumb-item>
+          <el-breadcrumb-item>{{BaseInfo.name}}</el-breadcrumb-item>
+        </el-breadcrumb>
+      </div>
+    </el-card>
+    <div class='supplier-tabs'>
+      <el-button class="tabs-btn" :class="[focus==1?'btn-focus':'']" @click="handletabs('1','information')">基本信息</el-button>
+      <el-button class='tabs-btn' :class="[focus==2?'btn-focus':'']" @click="handletabs('2','Industry')">行业信息</el-button>
+      <el-button class='tabs-btn' :class="[focus==3?'btn-focus':'']" @click="handletabs('3','business')">商务信息</el-button>
+      <el-button class='tabs-btn' :class="[focus==4?'btn-focus':'']" @click="handletabs('4','financial')">业务信息</el-button>
+      <el-button class='tabs-btn' :class="[focus==5?'btn-focus':'']" @click="handletabs('5','linkname')">联系人</el-button>
+      <el-button class='tabs-btn' :class="[focus==6?'btn-focus':'']" @click="handletabs('6','address')">地址</el-button>
+    </div>
+    <div class='supplier-info-box'>
+      <h3 ref='information'>基本信息</h3>
+      <div class='supplier-warper'>
+        <v-Information :BaseInfo='BaseInfo' :BaseOptions='BaseOptions'></v-Information>
+      </div>
+    </div>
+    <div class='supplier-info-box Industry-content'>
+      <h3 ref='Industry'>行业信息</h3>
+      <div class='supplier-warper'>
+        <el-form :inline='true' :model='IndustryData' :rules="IndustryDataRules" ref="IndustryData" class='demo-form-inline'>
+          <div class="h55">
+            <el-form-item label='所属行业' id="a" class="w442" prop="custtradesid">
+              <el-select v-model='IndustryData.custtradesid' placeholder='请选择' class='info-select'>
+                <el-option v-for='item in options.IndustryInfo' :key='item.id' :label='item.name' :value='item.id'>
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label='行业标杆'  class='info-textarea' prop="contacttarget">
+              <el-input type='textarea' v-model='IndustryData.contacttarget'  placeholder='多个标杆企业时，用，隔开' :autosize="{ minRows: 1, maxRows: 4}" style='width: 260px'></el-input>
+            </el-form-item>
+          </div>
+          <div class="h55">
+            <el-form-item label='主营产品' class="w442" prop='mainproduct'>
+              <el-input type='textarea' v-model='IndustryData.mainproduct' placeholder='多个主营产品时，用，隔开'  :autosize="{ minRows: 1, maxRows: 4}" class='info-textarea' style='width: 260px'></el-input>
+            </el-form-item>
+            <el-form-item label='竞争对手' prop='competitor'>
+              <el-input type='textarea' v-model='IndustryData.competitor'  placeholder='多个竞争对手时，用，隔开' :autosize="{ minRows: 1, maxRows: 4}" class='info-textarea' style='width: 260px'></el-input>
+            </el-form-item>
+          </div>
+
+          <el-form-item>
+            <el-button type='primary' @click='SaveIndustryInfo'>保存</el-button>
+          </el-form-item>
+        </el-form>
+      </div>
+    </div>
+    <div class='supplier-info-box'>
+      <h3 ref='business'>商务信息</h3>
+      <div class='supplier-warper'>
+        <v-Business :BusinessData='BusinessData' :BusinessOptions='BusinessOptions'></v-Business>
+      </div>
+    </div>
+    <div class='supplier-info-box'>
+      <h3 ref='financial'>业务信息</h3>
+      <div class='supplier-warper'>
+        <v-Financial :custbusinesslist='custbusinesslist'></v-Financial>
+      </div>
+    </div>
+    <div class='supplier-info-box'>
+      <h3 ref='linkname'>联系人</h3>
+      <div class='supplier-warper'>
+        <v-Contact :custcontactlist='custcontactlist'></v-Contact>
+      </div>
+    </div>
+    <div class='supplier-info-box'>
+      <h3 ref='address'>地址</h3>
+      <div class='supplier-warper'>
+          <v-address :AddressTableData="AddressTableData" :goTop="goTop"></v-address>
+      </div>
+    </div>
+    <v-backtop :scollTop="scollTop" id="fix-top"></v-backtop>
+  </div>
+</template>
+
+<script>
+import Information from './Information'
+import Business from './Business'
+import Contact from './Contact'
+import Financial from './Financial'
+import address from './address'
+import api from 'api/request'
+import backtop from 'public/backtop.vue'
+// import $util from 'common/js/util.js'
+export default {
+  name: 'supplierDetail',
+  components: {
+    'v-Information': Information,
+    'v-Business': Business,
+    'v-Contact': Contact,
+    'v-Financial': Financial,
+    'v-address': address,
+    'v-backtop': backtop
+  },
+  created() {
+    console.log(this.$route)
+
+    let _this = this
+    // 左侧导航
+    this.$store.state.adminleftnavnum = '/Manage/Customer'
+    // let dom = document.getElementById('a')
+    // let dom2 = document.querySelectorAll('#a')
+    // console.log('dom')
+    // console.log(dom)
+    // console.log(dom2)
+
+    // 数据请求
+    this.fetchData()
+
+    window.onscroll = function () {
+      // 变量t是滚动条滚动时，距离顶部的距离
+      var t = document.documentElement.scrollTop || document.body.scrollTop
+      // 当滚动到距离顶部200px时，返回顶部的锚点显示
+      _this.scollTop = t >= 600
+    }
+  },
+  data() {
+    return {
+      supplierName: '',
+      BaseInfo: {}, // 基本信息
+      BaseOptions: {}, // 基本信息选项集合
+      // 行业信息
+      IndustryData: {
+        id: '',
+        custtradesid: '',
+        contacttarget: '',
+        mainproduct: '',
+        competitor: ''
+      },
+      IndustryDataRules: {
+        custtradesid: [{ required: true, message: '请输入', trigger: 'blur' }],
+        mainproduct: [{ required: true, message: '请输入', trigger: 'blur' }]
+      },
+      BusinessData: {}, // 商业信息
+      BusinessOptions: {},
+      custbusinesslist: [], // 业务信息
+      custcontactlist: [{}], // 联系人
+      AddressTableData: [], // 地址列表
+      focus: 1,
+      scollTop: false,
+      options: {
+        IndustryInfo: []
+      },
+      value: ''
+    }
+  },
+  methods: {
+    handletabs(index, id) {
+      this.focus = index
+      let top = this.$refs[id].offsetTop
+      this.ScollFn(top)
+    },
+    ScollFn(top) {
+      window.scrollTo(0, top)
+    },
+    goTop() {
+      window.scrollTo(0, 0)
+    },
+    // 保存行业信息
+    SaveIndustryInfo() {
+      this.$refs['IndustryData'].validate((valid) => {
+        if (valid) {
+          let param = {
+            id: this.IndustryData.id,
+            custtradesid: this.IndustryData.custtradesid,
+            benchmark: this.IndustryData.contacttarget,
+            mainproduct: this.IndustryData.mainproduct,
+            competitor: this.IndustryData.competitor
+          }
+          api.customer.saveCustomer(param).then(res => {
+            this.$message.success('保存成功')
+          })
+        } else {
+          this.$message.success('请您填写所属行业、主营产品信息')
+          return false
+        }
+      })
+    },
+    fetchData() {
+      let param = { id: this.$route.params.id }
+      api.customer.getCustomerById(param).then(res => {
+        let data = res.data
+        this.IndustryData = {
+          id: data.customer && data.customer.id,
+          custtradesid: data.customer && data.customer.custtradesid,
+          contacttarget: data.benchmark,
+          mainproduct: data.mainproduct,
+          competitor: data.competitor
+        }
+
+        this.BaseInfo = data.customer
+        this.BusinessData = data.customer
+        this.custcontactlist = data.custcontactlist
+        this.AddressTableData = data.custlocationlist
+        this.custbusinesslist = data.custbusinesslist
+
+        // 所属行业选项
+        // data.custtrades.unshift({ name: '全部', id: '' })
+        this.options.IndustryInfo = data.custtrades
+        // 选项
+        data.custGroup.unshift({ name: '全部', number: '' })
+        this.BaseOptions.custGroup = data.custGroup
+
+        data.companyNature.unshift({ name: '全部', number: '' })
+        this.BaseOptions.nature = data.companyNature
+
+        data.custPurchaseUse.unshift({ name: '全部', number: '' })
+        this.BaseOptions.custPurchaseUse = data.custPurchaseUse
+
+        data.productEmphasis.unshift({ name: '全部', number: '' })
+        this.BaseOptions.productEmphasis = data.productEmphasis
+
+        data.custdiscount.unshift({ discount: '全部', creatorid: '' })
+        this.BusinessOptions.custdiscount = data.custdiscount
+        this.BusinessOptions.custqualitativegrade = data.custqualitativegrade
+        this.BusinessOptions.custquantifygrade = data.custquantifygrade
+      })
+    }
+  }
+}
+
+</script>
+
+<style lang='stylus'>
+ .supplierdetail-box
+  	padding:40px 30px 70px 46px
+  .tableIndex
+      > .cell
+          padding: 0   
+  .fix-Top        
+    bottom: 30px!important
+  .w104
+    width: 104px
+  .w442
+    width: 442px
+  .h55
+    height: 55px
+	.box-card
+		background-color:#f8f8f8
+		margin-right: 46px
+		margin-bottom:30px
+		.el-breadcrumb
+			font-size:14px
+			color:#5e6d82
+		.nav
+			.el-breadcrumb
+				line-height: 22px
+			.el-tabs--border-card>.el-tabs__content
+				display:none
+	.supplier-tabs
+		border-bottom:1px solid #e5e5e5
+		padding-left:10px
+		font-size:0
+		.tabs-btn
+			font-size:14px
+			width:80px
+			height:30px
+			padding:0
+			margin:0 10px -1px 0
+			text-align:center
+			line-height:30px
+			border-radius:0
+			border-color:#e5e5e5
+			&.btn-focus
+				color:#20a0ff
+				border-bottom:#fff
+	.supplier-warper:after
+		content:' '
+		clear:both
+		width:100%
+	.supplier-info-box
+		margin-top:30px
+		h3
+			font-size:16px
+			color:#1f2d3d
+			line-height:34px
+			padding-left:20px
+			border-bottom:1px solid #e5e5e5
+		.supplier-warper
+			// overflow:hidden
+			margin-top:30px
+			.left
+				float:left
+				width:442px
+			.right
+				float:left
+				width:400px
+			.info-input,.info-select,.info-inputdata
+				width:260px
+				height:32px
+			.info-input.info-input-number
+				width:180px
+			.el-input__inner
+				height:32px
+				line-height:32px
+				vertical-align: top
+			.el-form-item__label
+				padding:9px 12px 9px 0
+			.el-input-number__decrease, .el-input-number__increase
+				line-height: 30px
+			.el-form--inline .el-form-item
+				margin:0 0 10px 0
+       
+</style>

@@ -1,0 +1,177 @@
+<template>
+	<div class="print-box" :loading="loading">
+		<div v-show="show">
+			<v-header></v-header>
+			<div class="header">
+				<el-button class="print-btn" @click="movedown">无不干胶纸</el-button>
+				<el-button class="print-btn" @click="moveup">有不干胶纸</el-button>
+				<el-button class="print-btn" @click="print">打印</el-button>
+			</div>
+		</div>
+		<div class="print-warper">
+			<ul class="lists-box">
+				<li class="print-item" v-if="moveList.length>0" v-for="item in moveList"></li>
+				<li class="print-item"  v-for="(item,index) in list">
+					<div class="print-left">
+						<img :src="item.erweimaurl" alt="" class="item-pic" width="106" height="106"/>
+						<p class="print-number">{{item.serialno}}</p>
+					</div>
+					<div class="print-right">
+						<ul class="print-item-table">
+							<li class="item-table item-table-title">产品名称</li>
+							<li class="item-table item-table-des">{{item.productname}} </li>
+						</ul>
+						<ul class="print-item-table">
+							<li class="item-table item-table-title">产品型号</li>
+							<li class="item-table item-table-des">{{item.productmodel}}</li>
+						</ul>
+						<ul class="print-item-table">
+							<li class="item-table item-table-title">工艺路线 </li>
+							<li class="item-table item-table-des">{{item.technologyroute}}</li>
+						</ul>
+						<ul class="print-item-table">
+							<li class="item-table item-table-title">计划数量</li>
+							<li class="item-table item-table-des">{{item.planamount}}</li>
+						</ul>
+						<ul class="print-item-table">
+							<li class="item-table item-table-title">订单数量</li>
+							<li class="item-table item-table-des">{{item.orderamount}}</li>
+						</ul>
+						<ul class="print-item-table">
+							<li class="item-table item-table-title">交货日期</li>
+							<li class="item-table item-table-des">{{item.deliverydatetime | formattime}}</li>
+						</ul>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</div>
+</template>
+
+<script>
+	import header from './header/header'
+	import api from 'api/request'
+	import $util from 'common/js/util.js'
+	export default {
+		data() {
+			return {
+				loading:false,
+				show:true,
+				list:[],
+				moveList:[]
+			}
+		},
+		computed:{
+			lists() {
+				let arr = this.list
+				
+				return arr
+			}
+		},
+		methods:{
+			movedown() {
+				console.log("下移")
+				if(this.moveList.length>=7){
+					this.moveList = []
+				}else{
+					this.moveList.push({})
+				}
+			},
+			moveup() {
+				if(this.moveList.length){
+					this.moveList.shift()
+				}
+			},
+			print() {
+//				this.show = false
+				setTimeout(function(){
+					window.print()
+				},500)
+				console.log("打印")
+			}
+		},
+		filters: {
+      formattime(time) {
+        let dateTime = $util.formatDate.getDate(time)
+        dateTime = dateTime.split(" ")[0]
+        return dateTime	//去掉秒
+      }
+    },
+		components:{
+    	'v-header':header
+    },
+    created() {
+    	let userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+    	let data = {}
+    	data.companyid = userInfo.companyId
+			data.factoryid = userInfo.factoryId
+    	data.detailinfo = this.$route.params.detailinfo
+    	api.order.getorderdetail(data).then(res => {
+    		this.list = res.data.data
+    	})
+    }
+	}
+</script>
+
+<style lang="stylus">
+	.print-box
+		font-size:14px
+		color:#333333
+		.header
+			padding-top:60px
+			height:75px
+			line-height:75px
+			width:900px
+			margin:0 auto
+			font-size:0px
+			text-align:right
+			.print-btn
+				vertical-align: middle
+				margin:0
+				width:100px
+			.print-btn:nth-child(2)
+				margin:0 20px
+		.print-warper
+			border:1px solid #bbbbbb
+			padding:11px 14px
+			width:870px
+			margin:0 auto
+			.lists-box
+				overflow:hidden
+				margin-bottom:-20px
+				.print-item
+					border:1px solid #bbbbbb
+					width:428px
+					height:258px
+					float:left
+					margin-bottom:20px
+					overflow:hidden
+					&:nth-child(2n)
+						margin-left:10px
+					.print-left
+						float:left
+						margin:55px 11px 0 11px
+						.print-number
+							text-align:center
+						.item-pic
+							margin-bottom:10px
+					.print-right
+						float:left
+						width:280px
+						margin-top:26px
+						display: flex
+						flex-direction: column
+						justify-content: space-between
+						height: 210px
+						.print-item-table
+							/*flex:1*/
+							overflow:hidden
+							text-align:left
+							.item-table
+								float:left
+							.item-table-title
+								width:60px
+								margin-right:17px
+							.item-table-des
+								width:200px
+</style>

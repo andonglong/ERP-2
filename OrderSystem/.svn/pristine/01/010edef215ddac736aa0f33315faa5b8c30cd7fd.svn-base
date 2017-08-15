@@ -1,0 +1,147 @@
+<template>
+	<div class="login">
+		<div class="login-logo">
+			<p>订单跟踪系统登陆窗</p>
+		</div>
+		<section class="login-form">
+			<p class="login-title">登陆</p>
+			<el-form :model="loginForm" :rules="rules" ref="loginForm">
+				<el-form-item class='login-input' prop="moblie">
+					<el-input v-model.number="loginForm.moblie" auto-complete="off"  placeholder="手机"></el-input>
+				</el-form-item>
+				<el-form-item prop="password" class='login-input'>
+					<el-input  type="password" v-model="loginForm.password" auto-complete="off" placeholder="密码"></el-input>
+				</el-form-item>
+				<div class="login-tip">
+				  <el-checkbox v-model="checked">一周内自动登录</el-checkbox>
+				</div>
+				<div class="submit-box">
+					<el-button class="submit-btn" type="primary" :loading="load" @click='submit("loginForm")' @keyup.enter='submit("loginForm")'>登陆</el-button>
+				</div>
+			</el-form>
+		</section>
+	</div>
+</template>
+
+<script>
+		import api from '../../api/api'
+	  export default {
+	    data() {
+	    	var checkMoblie = (rule, value, callback) => {
+	    		if(!value){
+	    			return callback(new Error('手机号不能为空'))
+	    		}
+	    		setTimeout(() => {
+		            if (!(/^1[34578]\d{9}$/.test(value)) || !Number.isInteger(value)) {
+			              callback(new Error('手机号有误，请重填'));
+			        } else {
+			              callback();
+			        }
+		        }, 500);
+	    	}
+	    	var checkPassword = (rule, value, callback) => {
+	    		if(!value){
+	    			return callback(new Error('密码不能为空'))
+	    		}else{
+	    			callback();
+	    		}
+	    	}
+		    return {
+		        loginForm:{
+		        	moblie: 18680357414,
+			        password: '',
+			        checked: ''
+		        },
+		        rules: {
+		          moblie: [
+		            { validator: checkMoblie, trigger: 'blur' }
+		          ],
+		          password: [
+		            { validator: checkPassword, trigger: 'blur' }
+		          ]
+		        },
+		        checked: false,
+		        load:false
+		    };
+		},
+    methods: {
+      submit(loginForm) {
+      	var _t = this
+      	this.load = true
+      	this.$refs[loginForm].validate((valid) => {
+      		if(valid){
+      			this.load = false
+      			let data = {
+                nameOrMobile:_t.loginForm.moblie,
+                password: _t.loginForm.password
+           }
+      			//18680357414 654321
+      			//登录接口
+			    	api.Login(data).then(res => {
+			         if(res.succeed){
+			         		let userInfo = {
+			         			companyId :res.data.companyid,
+			         			factoryId:res.data.factoryid
+			         		}
+					    		sessionStorage.setItem('token', JSON.stringify(res.data.sessionid));
+					    		sessionStorage.setItem('userInfo', JSON.stringify(userInfo));
+					    		_t.$router.push({ path: '/Track/order' });
+					    	}else{
+					    		console.log(res.errorMessage)
+				    			_t.$alert(res.errorMessage, '错误提示', {
+				          	confirmButtonText: '确定',
+				        	});
+					    	}
+			      }).catch(error => {
+			      	_t.$alert('请求错误', '提示', {
+			          	confirmButtonText: '确定',
+			        	});
+			      })
+      		}else{
+      			this.load = false
+      		}
+      	})
+      }
+    },
+    created() {
+	  	let _t = this
+	  	window.onkeydown = function(e){
+	  		var e = event || window.event || arguments.callee.caller.arguments[0];
+        if (e && e.keyCode == 13) {
+            _t.submit("loginForm")
+        }
+	    }
+	  }
+  }
+  
+</script>
+
+<style lang="stylus">
+	body
+		/*background-color: #eee*/
+		min-width: 1200px
+	.login
+		width: 450px
+		margin: 30px auto 0
+		padding: 20px
+	.login-logo
+		padding-top:50px
+	.login-form
+		background-color: #fff
+		margin-top: 30px
+    .login-title
+		  background-color: #f9f9f9
+		  color: #a5a5a5
+		  font-size: 18px
+		  padding: 12px 22px
+		  text-align: center
+	.login-input
+			margin: 20px
+	.login-tip
+			margin: 20px
+			text-align: left
+	.submit-box
+		padding:0 20px 20px 
+	  .submit-btn
+		  width: 100%
+</style>

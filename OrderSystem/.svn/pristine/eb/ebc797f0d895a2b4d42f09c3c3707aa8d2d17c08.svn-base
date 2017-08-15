@@ -1,0 +1,104 @@
+<template>
+	<div class="foot-box">
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i class="icon iconfont icon-xiazai foot-icon"></i></div>
+				<p class="foot-item-title">当月成交总金额</p>
+				<p class="foot-item-total">¥{{outputorder.totalmoney}}</p>
+			</div>
+		</div>
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i class="icon iconfont icon-baobiaotongji foot-icon"></i></div>
+				<p class="foot-item-title">当月未发货总金额</p>
+				<p class="foot-item-total">¥{{outputorder.unsendmoney}}</p>
+			</div>
+		</div>
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i class="icon iconfont icon-shujutongji foot-icon"></i></div>
+				<p class="foot-item-title">当月产品款数</p>
+				<p class="foot-item-total">¥{{outputorder.totalcount}}</p>
+			</div>
+		</div>
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i class="icon iconfont icon-shujutongji1 foot-icon font-icon-r"></i></div>
+				<p class="foot-item-title">当月未完成产品款数</p>
+				<p class="foot-item-total">¥{{outputorder.unsendcount}}</p>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	import $util from "common/js/util.js"
+	export default {
+		name:"orderFoot",
+		props:{
+			orderstatistics: {
+				type : Array
+			}
+		},
+		computed: {
+			outputorder() {
+				let obj = {}
+					obj.totalmoney = $util.outputdollars(this.orderstatistics[0].totalmoney.toString())
+					obj.unsendmoney = $util.outputdollars(this.orderstatistics[0].unsendmoney.toString())
+					obj.totalcount = $util.outputdollars(this.orderstatistics[0].totalcount.toString())
+					obj.unsendcount = $util.outputdollars(this.orderstatistics[0].unsendcount.toString())
+				return obj
+			}
+		},
+		data () {
+			 return {}
+		},
+	}
+</script>
+
+<style lang="stylus" scoped>
+	.foot-box
+		width:1020px
+		margin:0 auto
+		.foot-item
+			display:inline-block
+			width:200px
+			height:100%
+			color:#fff
+			font-size:0
+			margin-right:70px
+			&:nth-child(4)
+				margin-right:0
+			.foot-item-minwidth
+				width:200px
+				margin-top:12px
+				overflow:hidden
+				.foot-item-img
+					border-radius:50%
+					float:left
+					margin-right:10px
+					width:62px
+					height:62px
+					background-color:#475669
+					line-height:62px
+					text-align:center
+					.foot-icon
+						font-size:40px
+						color:#fff
+					.font-icon-r
+						margin-left: 2px
+						margin-top: 1px;
+						display: inline-block
+				.foot-item-title
+					font-size:14px
+					line-height:25px
+					margin:4px 0 2px 0
+				.foot-item-total
+					overflow:hidden
+					text-overflow:ellipsis
+					white-space: nowrap
+					font-size:22px
+					line-height:25px
+					color:#f7ba2a
+					font-weight:bold
+</style>

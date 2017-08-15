@@ -1,0 +1,341 @@
+<template>
+<div class="ManageContainer">
+  <div style="height:100%;position:relative;min-width:1000px;min-height:700px ">
+    <el-row :gutter="20" class="mg-r0">
+      <el-col :span="8">
+        <div class="grid-content bg-purple">
+          <el-input v-model="keyword" placeholder="手机/姓名/员工编号" :icon="closeIcon" class="search_input" :change="importVal()" :on-icon-click="CloseIconClick"></el-input>
+        </div>
+      </el-col>
+
+      <el-col :span="4">
+        <el-button type="primary" class="search_btn" @click="Search()">查询</el-button>
+      </el-col>
+    </el-row>
+
+    <el-button type="primary" class="add_btn" @click="Add()">+ 新增</el-button>
+
+    <el-table ref="multipleTable" :data="tableData" border tooltip-effect="dark" style="width:90%;" max-height="570" class="table" @selection-change="handleSelectionChange">
+
+      <el-table-column label="序号" width="88" align="center">
+        <!--<template scope="scope">{{ scope.row.employeeid }}</template>-->
+        <template scope="scope">{{ scope.$index - 9 + currentPage*10 }}</template>
+      </el-table-column>
+
+      <el-table-column prop="username" label="姓名" min-width="138" align="center">
+      </el-table-column>
+
+      <el-table-column prop="mobilenumber" label="手机号" min-width="128" align="center">
+      </el-table-column>
+
+      <el-table-column prop="userid" label="员工编号" min-width="142" align="center">
+      </el-table-column>
+
+      <el-table-column prop="technologyB" label="工序" min-width="146" align="center">
+      </el-table-column>
+
+      <el-table-column prop="b" label="操作" min-width="218" align="center" show-overflow-tooltip>
+        <template scope="scope">
+            <el-button @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-button type="danger" @click="handleDelete(scope.$index, scope.row)" style="margin-left:28px;">删除</el-button>
+          </template>
+      </el-table-column>
+
+    </el-table>
+
+    <div class="block page">
+      <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page.sync="currentPage" :page-size="10" layout="prev, pager, next, jumper" :total="totalCount">
+      </el-pagination>
+    </div>
+
+    <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" size="tiny">
+      <el-form :model="dialogform" :rules="rules" ref="dialogform">
+        <el-form-item label="姓名" prop="name" :label-width="formLabelWidth">
+          <el-input v-model="dialogform.name" :maxlength="20" auto-complete="off" ></el-input>
+        </el-form-item>
+        <el-form-item label="手机" prop="mobilenumber" :label-width="formLabelWidth">
+          <el-input v-model.number="dialogform.mobilenumber"  auto-complete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="负责工序" :label-width="formLabelWidth">
+          <el-checkbox-group v-model="checkedTechnologys">
+            <div class="process">
+              <el-checkbox v-for="item in Technologys" :label="item.technologyname" :key="item.technologyname" style="display:block;">{{item.technologyname}}</el-checkbox>
+            </div>
+          </el-checkbox-group>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="Add_cancel()">取 消</el-button>
+        <el-button type="primary" @click="Add_confirm('dialogform')">{{ dialogTitle == "新增员工" ? '新增':'修改'}}</el-button>
+      </div>
+    </el-dialog>
+
+  </div>
+
+</div>
+</template>
+
+<script>
+import request from 'api/request.js'
+import $util from 'common/js/util.js'
+import productDetail from '../../components/orderTracking/productDetail/productDetail'
+export default {
+  data() {
+    let checkName = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error('姓名不能为空'))
+      }
+      callback()
+    }
+    return {
+      keyword: '',
+      closeIcon: '',
+      tableData: [],
+      totalCount: 0,
+      multipleSelection: [],
+      dialogTitle: '',
+      dialogFormVisible: false,
+      dialogform: {
+        name: '',
+        mobilenumber: ''
+      },
+      rules: {
+        name: [{
+          validator: checkName,
+          trigger: 'blur'
+        }],
+        mobilenumber: [{
+          validator: $util.checkMoblie,
+          trigger: 'blur'
+        }]
+      },
+      formLabelWidth: '75px',
+      checkedTechnologys: [],
+      Technologys: [],
+      userid: '',
+      currentPage: 1
+    }
+  },
+  components: {
+    'v-productDetail': productDetail
+  },
+  created() {
+    this.fetchData()
+    this.$store.state.adminleftnavnum = '/Manage/Employee'
+    request.Technology.getAllTechnology().then(res => {
+      this.Technologys = res.data.data
+    })
+  },
+  watch: {
+    '$rotue': 'fetchData'
+  },
+  methods: {
+    importVal() {
+      if (this.keyword) {
+        this.closeIcon = 'close'
+      } else {
+        this.closeIcon = ''
+      }
+    },
+    CloseIconClick() {
+      this.keyword = ''
+      this.fetchData()
+    },
+    Search() {
+      let param = {
+        keyword: this.keyword,
+        sortBy: 'userid',
+        pageindex: 1,
+        pageSize: 10
+      }
+      this.currentPage = 1
+      this.fetchData(param)
+    },
+    Add() {
+      this.dialogTitle = '新增员工'
+      this.dialogform.name = ''
+      this.dialogform.mobilenumber = ''
+      this.checkedCities1 = []
+      this.dialogFormVisible = true
+    },
+    Add_cancel() {
+      this.dialogFormVisible = false
+    },
+    Add_confirm(dialogform) {
+      this.$refs[dialogform].validate((valid) => {
+        if (valid) {
+          let param = {
+            username: this.dialogform.name,
+            mobilenumber: this.dialogform.mobilenumber
+          }
+          for (let i = 0; i < this.checkedTechnologys.length; i++) {
+            let technology = 'technology[' + i + ']'
+            param[technology] = this.checkedTechnologys[i]
+          }
+          if (this.dialogTitle === '新增员工') {
+            request.user.adduser(param).then(res => {
+              if (res.data.code == 200) {
+                  this.$message({
+                    message: '新增成功',
+                    type: 'success'
+                  })
+                 this.fetchData()
+                 this.dialogFormVisible = false
+              }
+            })
+            return
+          }
+          if (this.dialogTitle === '编辑') {
+            param.userid = this.userid
+            request.user.edituser(param).then(res => {
+               if (res.data.code == 200) {
+                  this.$message({
+                    message: '修改成功',
+                    type: 'success'
+                  })
+                 this.fetchData()
+                 this.dialogFormVisible = false
+              }
+            })
+            return
+          }
+        } else {
+          return false
+        }
+      })
+    },
+    handleEdit(index, row) {
+      this.dialogTitle = '编辑'
+      this.dialogFormVisible = true
+
+      this.dialogform.name = row.username
+      this.dialogform.mobilenumber = parseFloat(row.mobilenumber)
+      this.checkedTechnologys = row.technology
+
+      this.userid = row.userid
+    },
+    handleDelete(index, row) {
+      const h = this.$createElement
+      this.$msgbox({
+        title: '提示',
+        message: h('p', null, [
+          h('span', null, '确定删除？')
+        ]),
+        showCancelButton: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            instance.confirmButtonLoading = true
+            instance.confirmButtonText = '执行中...'
+            let param = {
+              userid: row.userid
+            }
+            request.user.delbyuserid(param).then(res => {
+              if (res.data.code == 200) {
+                 this.$message({
+                    message: '删除成功',
+                    type: 'success'
+                  })
+                  this.fetchData()
+                  instance.confirmButtonLoading = false
+                  done()
+              }
+            })
+          } else {
+            done()
+          }
+        }
+      })
+    },
+    handleSizeChange(val) {
+      // console.log(`每页 ${val} 条`)
+    },
+    handleCurrentChange(val) {
+      // console.log(`当前页: ${val}`)
+      let param = {
+        sortBy: 'userid',
+        pageindex: val,
+        pageSize: 10
+      }
+      this.fetchData(param)
+    },
+    fetchData(data) {
+      let param = {
+        sortBy: 'userid',
+        pageindex: 1,
+        pageSize: 10
+      }
+      if (data) {
+        param = {
+          keyword: data.keyword,
+          sortBy: data.sortBy,
+          pageindex: data.pageindex,
+          pageSize: data.pageSize
+        }
+      }
+      request.user.query(param).then(res => {
+        res = res.data.data
+        if (res.rows) {
+          for (let i = 0; i < res.rows.length; i++) {
+            res.rows[i].technologyB = res.rows[i].technology.join('、')
+          }
+        }
+        this.tableData = res.rows
+        this.totalCount = res.totalCount
+      })
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+    }
+  }
+}
+</script>
+
+<style lang='stylus'>
+  .mg-r0
+    margin-right: 0
+
+  .ManageContainer
+    position: relative
+    height: 850px
+    padding: 50px 30px
+    box-sizing: border-box
+
+    .search_btn
+      width: 90px
+
+    .add_btn
+      margin: 30px 0 20px 0
+      width: 90px
+
+    .table tr td
+      padding: 4px 0
+
+    .el-dialog .el-dialog__body
+      padding-bottom: 0;
+
+    .el-form .el-input
+      width: 280px
+
+
+    .el-dialog--tiny
+      min-width: 420px
+
+    .process
+      height:200px
+      width: 280px
+      border:1px solid #bfcbd9
+      border-radius: 5px
+      overflow-y: auto
+
+      >label
+        margin-left:10px !important
+
+    .page
+      position: absolute
+      bottom: 0
+      width: 90%
+      text-align: right
+
+</style>

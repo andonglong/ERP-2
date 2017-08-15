@@ -1,0 +1,98 @@
+<template>
+	<div class="nav-box">
+		<el-row class="tac">
+			<el-col :span="24">
+		    <el-menu :default-active="$route.path" router class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
+		      <el-menu-item index="/Track/order">
+		      	<el-tooltip class="item" effect="dark" content="订单跟踪" :disabled="sidebar" placement="right">
+				      <i class="icon iconfont icon-genzong"></i>
+				    </el-tooltip>
+				    订单跟踪
+		      </el-menu-item>
+		      <el-menu-item index="/Custom/manage">
+		      	<el-tooltip class="item" effect="dark" content="员工管理" :disabled="sidebar" placement="right">
+				      <i class="icon iconfont icon-administrators"></i>
+				    </el-tooltip>
+		      	员工管理
+		      </el-menu-item>
+		      <el-menu-item index="/Quotation/quotation">
+		       	<el-tooltip class="item" effect="dark" content="报价需求单" :disabled="sidebar" placement="right">
+				      <i class="icon iconfont icon-administrators"></i>
+				    </el-tooltip>
+		       	报价需求单
+		      </el-menu-item>
+					<el-menu-item index="/EnquirySheet/enquirySheet"><i class="icon iconfont icon-administrators"></i>询价单</el-menu-item>
+		    </el-menu>
+		 	</el-col>
+		</el-row>
+		<span class="icon-nav"  @click="sidebar_btn">
+			<i :class="[sidebar ? 'el-icon-caret-left' : 'el-icon-caret-right' , 'icon-arrow-left']"></i>
+		</span>
+	</div>
+</template>
+
+<script>
+	export default {
+		props: {
+			sidebar: {
+				type: Boolean
+			}
+		},
+		data () {
+			return {}
+		},
+    methods: {
+      handleOpen (key, keyPath) {
+        console.log(key, keyPath)
+      },
+      handleClose (key, keyPath) {
+        console.log(key, keyPath)
+      },
+      sidebar_btn () {
+				let bool = !this.sidebar
+				this.$emit('listenSidebar', bool)
+      }
+    }
+  }
+</script>
+
+<style lang="stylus">
+	.tac
+		text-align: center
+		color:#333
+		.el-menu
+			background-color: #d1dbe5
+		.el-menu-item
+			font-size:18px
+			border-bottom:1px solid #eef1f6
+			text-align:left
+			&:last-child
+				border-bottom:0
+		.icon
+			font-size:20px
+			margin-right:8px
+	.el-menu--horizontal.el-menu--dark .el-submenu .el-menu-item.is-active, .el-menu-item.is-active
+		color:#fff
+		background-color:#20a0ff
+	.nav-box
+		position:relative
+		height:850px
+		// margin-top:60px
+		overflow:hidden
+		background-color: #eef1f6
+	.icon-nav
+		position:absolute
+		top:50%
+		right:0
+		width:12px
+		height:100px
+		cursor:pointer
+		background-color:#20a0ff
+		text-align:center
+		line-height:100px
+		transition: all .2s ease-out
+		transform: translateY(-50%)
+		.icon-arrow-left
+			color:#fff
+
+</style>

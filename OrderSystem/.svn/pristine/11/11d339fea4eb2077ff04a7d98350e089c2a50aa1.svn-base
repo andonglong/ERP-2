@@ -1,0 +1,348 @@
+<template>
+	<div class="technologyroute" v-loading="loading">
+		<div class="left">
+			<el-input class="left-input"
+			  placeholder="关键字"
+			  icon="search"
+			  v-model="keyword"
+			  @change="inputChange"
+			  :on-icon-click="handleIconClick">
+			</el-input>
+			<ul class="technology-decs">
+				<li v-for="(item , index) in technologyArr" v-show="item.show" @click="choseTec(item.technologyid,index)" :class="{'active':ind === index}">{{item.technologyname}}</li>
+			</ul>
+		</div>
+		<div class="move-btn">
+			<el-button icon="arrow-right" @click="moveRight"></el-button>
+		</div>
+		<div class="right">
+			<ul class="route-lists">
+				<li class="route-item">已选工序</li>
+				<li class="route-item">预计工时</li>
+				<li class="route-item">是否外协</li>
+			</ul>
+			<div class="route-box">
+				<div class="line"></div>
+				<div class="line"></div>
+				<ul class="route-lists" 
+					:class="{'active':addInd === index}"
+					v-for="(list,index) in addTechnologyArr">
+					<li class="route-item" :class="{'fontColor':list.isout == 1}" @click="choseAddTec(index)">{{list.technologyname}}</li>
+					<li class="route-item" :class="{'fontColor':list.isout == 1}"><el-input v-model="list.planworkhours" :class="{'error':addIndError === index}" class="route-item-input" @change="planwordChange" placeholder=""></el-input></li>
+					<li class="route-item" @click="choseAddTec(index)">
+						<el-checkbox v-model="list.isout" :checked="list.isout==1" true-label="1" false-label="0" @change="addTechnologyChange()"></el-checkbox>
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="operation">
+			<i class="el-icon-caret-top icon-top" @click="moveUp"></i>
+			<i class="el-icon-caret-bottom icon-bottom" @click="moveDown"></i>
+			<i class="el-icon-delete icon-delete" @click="datele"></i>
+		</div>
+		<div class="route-footer">
+	    <el-button @click="result">取 消</el-button>
+	    <el-button type="primary" @click="saveRoute">确 定</el-button>
+	  </div>
+	</div>
+</template>
+
+<script>
+	import util from '../../common/js/util'
+	import api from '../../api/request'
+	
+	export default {
+		name:'technologyroute',
+		props:{
+			TechnologyrouteInfo: {
+				type:Object
+			}
+		},
+		data() {
+			return {
+				loading:false,
+				keyword:'',
+				technologyData: [],
+				addTechnologyArr:[],
+	      ind:'',
+	      addInd:'',
+	      addIndError:'',
+			}
+		},
+		methods:{
+			//取消
+			result(){
+				this.$emit("listenTechnologyroute", "result")
+			},
+			//保存
+			saveRoute(){
+				let technolognames = this.checkPlanworkhours()
+				if(!technolognames){
+					this.$message('请填写所需工时');
+					return
+				}
+				let parms = this.TechnologyrouteInfo
+						parms.technolognames = technolognames
+				api.order.updatetechnologybyorderid(parms)
+						.then(res => {
+							if(res.data.code==200){
+								this.$message({
+				          message: '操作成功',
+				          type: 'success',
+				          onClose:function(){
+				          	location.reload()
+				          }
+				        })
+								this.$emit("listenTechnologyroute", "result")
+							}else{
+								this.$message({
+				          message: res.data.data,
+				          type: 'warning'
+				        })
+							}
+						})
+			},
+			checkPlanworkhours(){
+				var query = ""
+				this.addIndError = ""
+				this.addTechnologyArr.map((value,index,arr) => {
+					if(isNaN(value.planworkhours)){
+						this.addIndError = index
+						return
+					}
+					if(index == arr.length-1){
+						query += value.technologyname+"*"+index+"*"+value.planworkhours+"*"+value.isout
+					}else{
+						query += value.technologyname+"*"+index+"*"+value.planworkhours+"*"+value.isout+"$"
+					}
+				})
+				if(this.addIndError != ""){
+					return false
+				}else{
+					return query
+				}
+			},
+			handleIconClick(val) {
+				console.log(val)
+			},
+			inputChange(value) {
+				console.log(value)
+			},
+			planwordChange(value) {
+				if(isNaN(value)){
+					this.$message('请输入正确的数字');
+				}
+			},
+			dialogVisible() {
+				
+			},
+			choseTec(id,index) {
+				this.ind = index===this.ind ? "" : index
+			},
+			choseAddTec(index) {
+				this.addInd = index===this.addInd ? "" : index
+			},
+			addTechnologyChange() {
+				console.log(this.addTechnologyArr)
+			},
+			moveRight() {
+				let index = this.ind
+				if(index !== ""){
+					let obj = {}
+							obj.technologyname = this.technologyData[index].technologyshortname
+							obj.planworkhours = 0
+							obj.isout = 0
+					this.addTechnologyArr.push(obj)
+				}else{
+					this.$message('请选择要添加的工艺名称');
+				}
+			},
+			moveUp() {
+				if(this.addInd == 0){
+					return
+				}
+				if(this.addInd !== ""){
+					this.addTechnologyArr = util.swapItems(this.addTechnologyArr,this.addInd-1,this.addInd)
+					this.addInd--
+				}else{
+					this.$message('请选择要移动的工艺名称');
+				}
+			},
+			moveDown() {
+				if(this.addInd == this.addTechnologyArr.length-1){
+					return
+				}
+				if(this.addInd !== ""){
+					this.addTechnologyArr = util.swapItems(this.addTechnologyArr,this.addInd,this.addInd+1)
+					this.addInd++
+				}else{
+					this.$message('请选择要移动的工艺名称');
+				}
+			},
+			datele() {
+				if(this.addInd !== ""){
+					this.addTechnologyArr.splice(this.addInd,1)
+					this.addInd = ""
+				}else{
+					this.$message('请选择要删除的工艺名称');
+				}
+			}
+		},
+		computed:{
+			technologyArr() {
+				let _t = this
+				let arr = this.technologyData	//浅复制数组
+				arr.map((value,index,arr) => {
+					value.show=true
+					if(value.technologyname.indexOf(_t.keyword)<0){
+						value.show=false
+					}
+				})
+				return arr
+			}
+		},
+		filters:{},
+		created(){
+			this.loading = true
+			var temp = 0
+//获取工艺列表
+			api.order.gettechnologys(this.TechnologyrouteInfo)
+      	.then(res => {
+      		temp++
+      		this.loading = temp == 2 ? false:true
+         	if(res.data.code==200){
+         		this.technologyData = res.data.data
+		    	}else{
+	    			_t.$alert(data.errorMessage, '错误提示', {
+	          	confirmButtonText: '确定',
+	        	})
+		    	}
+     	})
+ //获取已选工艺列表
+    	api.order.gettechnologysbyorderid(this.TechnologyrouteInfo)
+    	.then(res => {
+    		temp++
+      	this.loading = temp == 2 ? false:true
+       	if(res.data.code==200){
+       		this.addTechnologyArr = res.data.data
+	    	}else{
+    			_t.$alert(data.errorMessage, '错误提示', {
+          	confirmButtonText: '确定',
+        	})
+	    	}
+   		})
+		},
+	}
+</script>
+
+<style lang="stylus">
+	.technologyroute
+		color:#333
+		.left
+			display:inline-block
+			vertical-align: middle
+			margin-left:34px
+			width:155px
+			.left-input>input
+				border-radius:0
+				border:1px solid #bfcbd9
+				height:30px
+			.el-input__icon
+				cursor:default
+			.technology-decs
+				border:1px solid #bfcbd9
+				border-top:0
+				height:330px
+				overflow-y:auto
+				li
+					cursor:pointer
+					font-size:14px
+					color:#333
+					height:28px
+					line-height:28px
+					padding-left:20px
+					&:hover
+						background-color:#e4e8f1
+					&.active
+						background-color:#20a0ff
+						color:#fff
+		.move-btn
+			display:inline-block
+			vertical-align: middle
+			margin:0 15px 0 5px
+		.right
+			width: 345px
+			height:370px
+			display:inline-block
+			vertical-align: middle
+			.route-box
+				border:1px solid #bfcbd9
+				height:330px
+				overflow-y:auto
+				position:relative
+				.line
+					position:absolute
+					height:100%
+					width:0
+					border-left:1px dashed #ccc
+					&:nth-child(1)
+						left:33%
+					&:nth-child(2)
+						right:33%
+				.route-lists
+					.fontColor.route-item
+						color:#ff4949
+						input
+							color:#ff4949
+					&:hover
+						background-color:#e4e8f1
+					&.active
+						background-color:#20a0ff
+						.route-item
+							color:#fff
+							input
+								color:#fff
+					.route-item
+						text-align:center
+						height:28px
+						line-height:28px
+						.route-item-input>input
+							border:0
+							border-radius:0
+							background-color:transparent
+							height:28px
+							line-height:28px
+							text-align:center
+						.error>input
+								border:1px solid red
+			.route-lists
+				text-align:center
+				overflow:hidden
+				.route-item
+					font-size:14px
+					color:#333
+					height:30px
+					line-height:30px
+					float:left
+					width:33%
+		.operation
+			display:inline-block
+			vertical-align: middle
+			width:25px
+			margin-left:10px
+			i
+				cursor:pointer
+				color:#a3a3a3
+				&:hover
+					color:#505050
+			.icon-top
+				font-size:22px
+			.icon-bottom
+				font-size:22px
+			.icon-delete
+				font-size:22px
+				margin-top:15px
+		.route-footer
+			text-align:right
+			margin-top:40px
+</style>

@@ -1,0 +1,187 @@
+<template>
+  <div v-show="productDetailShow" style="position: relative;">
+    <div class="productDetail-fixed">
+    </div>
+    <div class="productDetail-container">
+      <el-tabs v-model="activeName2" type="card" @tab-click="handleClick">
+        <el-tab-pane label="图纸" name="first">
+          <v-drawing></v-drawing>
+        </el-tab-pane>
+        <el-tab-pane label="产品进度" name="second" class="progress">
+          <v-progress></v-progress>
+        </el-tab-pane>
+        <el-tab-pane label="操作记录" name="third"  class="record">
+          <v-record v-bind:my-items.sync="items" v-bind:my-distance="distance" v-bind:RecordLoadingText="RecordLoadingText"></v-record>
+        </el-tab-pane>
+      </el-tabs>
+  
+      <div></div>
+      <i class="el-icon-close" @click="CloseProductDetail"></i>
+    </div>
+  
+  </div>
+</template>
+
+<script>
+import drawing from './drawing'
+import progress from './progress'
+import record from './record'
+import $http from 'api/http'
+import request from "api/request"
+import $util from "common/js/util.js"
+
+
+export default {
+  props: ['productDetailShow'],
+  data() {
+    return {
+      activeName2: 'second',
+      table01Data: [],
+      distance:'',
+      items:[],
+      RecordPageIndex: 1,
+      RecordLoadingText:"加载中..."
+    }
+
+  },
+  components: {
+    "v-progress": progress,
+    "v-drawing": drawing,
+    "v-record": record
+  },
+  created() {
+    this.fetchRecordData(this.RecordPageIndex )
+  },
+  mounted(){
+   let _this = this 
+   let recordScroll = document.querySelectorAll('.record')
+    recordScroll[0].addEventListener('scroll', function(e){
+      e = e || window.event
+      let distance =  e.target.scrollHeight - e.target.scrollTop -  e.target.offsetHeight;
+      _this.distance = distance
+      if(distance<30){
+        _this.RecordPageIndex ++
+        _this.fetchRecordData(_this.RecordPageIndex)
+      }
+    })
+  },
+  methods: {
+    handleClick(tab, event) {
+      console.log(tab, event);
+    },
+    CloseProductDetail() {
+      this.$emit('connect')
+    },
+    fetchRecordData(pageindex) {
+            $http.ajax("/api/record").then(res => {
+                console.log(res)
+                res = res.data.data
+                for (let i = 0; i < res.length; i++) {
+                    console.log()
+                    res[i].date = $util.DateFormat(parseFloat(res[i].date), "yyyy/MM/dd hh:mm:ss")
+                }
+                if (pageindex == 1) {
+                    this.items = res.concat(res)
+                    // this.items = res
+                }
+                if (pageindex == 2) {
+                   setTimeout(()=>{
+                      this.items = res.concat(res).concat(res)
+                   },1000)
+                    
+                }
+                if(pageindex >=3){
+                   setTimeout(()=>{
+                     this.RecordLoadingText ="没有更多" 
+                   },1000)
+                    
+                }
+            })
+        }
+  }
+};
+</script>
+
+<style lang="stylus">
+.productDetail-fixed 
+  position: fixed
+  top: 0
+  right: 0
+  left: 0
+  bottom: 0
+  z-index: 30
+  background-color: rgba(0,0,0,0.6)
+  
+.productDetail-container 
+    background-color: #fff
+    position: fixed
+    top: 0
+    right: 0
+    bottom: 0
+    z-index: 200
+    min-width: 700px
+    width: 50%
+
+    .el-icon-close
+      position: absolute
+      top: 0
+      right: 0
+      margin: 16px 20px 0 0 
+      color: #d3dce6
+      font-size: 31px
+      cursor: pointer
+      
+    
+    .el-tabs__nav-wrap 
+      background-color: #475669
+      height: 64px
+    
+
+    .el-tabs__nav-scroll 
+      padding-top: 20px
+      height: 44px 
+    
+
+    .el-tabs--card>.el-tabs__header .el-tabs__item.is-active 
+      height: 44px  
+      background-color: #fff
+    
+      
+    .el-tabs--card>.el-tabs__header .el-tabs__item 
+        background-color: #EFF2F7;
+        margin-left: 10px;
+    
+
+    .el-tabs__item 
+      height: 43px
+      line-height: 43px
+    
+
+    .line 
+      height: 1px
+      background-color: #BBBBBB
+      margin: 20px 0 
+    
+    
+    .el-tabs
+      height: 100%!important 
+      position: relative
+    
+    .el-tabs__content 
+      position: absolute
+      top: 85px
+      bottom: 0
+      left: 0
+      right: 0
+    
+
+    .el-tab-pane 
+      height: 100%
+    
+    .record
+      overflow-y: auto
+
+
+
+ 
+</style>

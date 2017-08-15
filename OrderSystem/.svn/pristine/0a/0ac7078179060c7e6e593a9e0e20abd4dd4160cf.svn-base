@@ -1,0 +1,147 @@
+<template>
+    <div class="record-box">
+        <div class="record-container">
+            <div class="info-box" v-for=" item in recordData.data ">
+                <div class="date">{{item.date}}</div>
+                <div class="info">
+                    <div>
+                        <img class="Avatar" :src="item.img"> </div>
+                    <div>
+                        <div class="name">{{item.name}}</div>
+                        <div class="info" v-html="item.info"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="loading" v-show=" recordData && recordData.data.length >= 10 ? true:false ">
+                <i class="el-icon-loading" v-if="RecordLoadingText != '没有更多'"></i>
+                <span>{{RecordLoadingText}}</span>
+            </div>
+        </div>
+    </div>
+</template>
+    
+ <script>
+import $http from "api/http.js"
+import $util from "common/js/util.js"
+
+export default {
+    props: ["recordData"],
+    data() {
+        return {
+            RecordPageIndex: 1,
+            RecordLoadingText: "加载中..."
+        }
+    },
+    created() {
+        // this.fetchRecordData(this.RecordPageIndex)
+    },
+    mounted() {
+        let _this = this
+        let recordScroll = document.querySelectorAll('.record-box')
+        recordScroll[0].addEventListener('scroll', function (e) {
+            e = e || window.event
+            let distance = e.target.scrollHeight - e.target.scrollTop - e.target.offsetHeight;
+            if (distance < 30) {
+                _this.RecordPageIndex++
+                _this.fetchRecordData(_this.RecordPageIndex)
+            }
+        })
+    },
+    beforeUpdate() {
+        console.log("beforeUpdate")
+        console.log(this.recordData)
+    },
+    updated() {
+        console.log("Updated")
+        console.log(this.productDetailShow)
+    },
+    methods: {
+        fetchRecordData(pageindex) {
+            $http.ajax("/api/record").then(res => {
+                console.log(res)
+                res = res.data.data
+                for (let i = 0; i < res.length; i++) {
+                    res[i].date = $util.DateFormat(parseFloat(res[i].date), "yyyy/MM/dd hh:mm:ss")
+                }
+                if (pageindex == 1) {
+                    this.recordData.data = res.concat(res)
+                }
+                if (pageindex == 2) {
+                    setTimeout(() => {
+                        this.recordData.data = res.concat(res).concat(res)
+                    }, 1000)
+
+                }
+                if (pageindex >= 3) {
+                    setTimeout(() => {
+                        this.RecordLoadingText = "没有更多"
+                    }, 1000)
+
+                }
+            })
+        }
+    }
+}
+</script>
+
+ <style lang="stylus">
+    .fs18
+      font-size: 18px
+
+    .c333
+      color: #333        
+  .record-box
+    height: 100%
+    overflow-y: auto
+
+    .record-container
+        width: 93%
+        height: 100%
+        margin: 0 auto
+        padding-top: 20px
+        box-sizing:border-box
+
+        > div:first-child
+           border-top: 1px solid #e5e5e5    
+
+        .info-box
+           min-height: 76px
+           padding: 15px 20px 20px 20px
+           background-color: #f8f8f8
+           border-bottom: 1px solid #e5e5e5    
+           
+           .date
+             text-align: right
+
+           .info
+             display: flex
+
+           .Avatar
+             width: 48px
+             height: 48px
+             margin: 0 20px 0 5px
+             border-radius: 24px
+             vertical-align: top
+        
+           .name
+             font-size: 18px
+             color: #333
+             margin-bottom: 16px
+
+           .info 
+             line-height: 1.5
+             letter-spacing: 1px
+           
+           .red
+             color: #FF4949   
+
+        .loading
+           display:flex
+           justify-content: center
+           align-items: center
+           height: 40px
+
+           .el-icon-loading
+             margin-right: 5px
+ </style>
+    

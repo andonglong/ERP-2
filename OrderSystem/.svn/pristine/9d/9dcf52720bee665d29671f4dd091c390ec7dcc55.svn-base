@@ -1,0 +1,72 @@
+<template>
+    <div class="printImg-container">
+        <div v-show="show">
+            <v-header></v-header>
+            
+        </div>
+        <div class="header" v-show="show">
+                <el-button @click="printImg()">打印图纸</el-button>
+            </div>
+        <div class="printImg-box">
+            <img :src="imgurl3">
+        </div> 
+    </div>
+</template>
+
+<script>
+import header from '../../../components/header/header.vue'
+export default {
+    data() {
+        return {
+            show: true,
+            imgurl:'http://static.cnbetacdn.com/thumb/article/2017/0627/c2c8178a18051a9.jpg',
+            imgurl2: 'blob:http://localhost:8090/55728375-cf60-44e6-a1bd-23bca5ae6ba6',
+            imgurl3: 'blob:http://localhost:8090/39ea154d-342f-4c99-a474-4d6b0f0c1334'
+        }
+    },
+    created(){
+    },
+    components:{
+        'v-header': header
+    },
+    methods: {
+        printImg() {
+            this.show = false
+            setTimeout(()=>{
+               window.print()
+               this.show = true
+            },500)
+            // this.show = true
+        }
+    }
+}
+</script>
+
+<style lang="stylus">
+   .printImg-container
+     padding: 60px 0
+    
+    .header
+      width: 902px
+      margin: 0 auto
+      text-align: right
+      height: 75px
+      line-height: 75px
+
+    .printImg-box
+        box-sizing: border-box 
+        width: 902px
+        height: 1138px
+        border: 1px solid #ccc
+        margin: 0 auto
+        display: flex
+        justify-content: center
+        align-items: center     
+    
+       img
+         max-width: 100%
+         max-height: 100% 
+         transform:rotate(90deg);
+
+
+</style>

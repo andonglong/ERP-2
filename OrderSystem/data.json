@@ -1,0 +1,245 @@
+{
+	"orderList":[
+	     {
+	      "index":"1",
+	    	"orderTime":"2017-1-24",
+	    	"orderId":"10152255",
+	    	"productName":"螺1丝",
+	    	"productType":"CedddBN-11-2",
+	    	"orderNumber":"44444",
+	    	"planNumber":"10000",
+	    	"deliveryTime":"2017-6-6",
+	    	"documentaryId":"000000001",
+	    	"companyName":"深圳kkk瑞达设备有限公司",
+	    	"price":"51",
+	    	"process":"Q-W-D-dd",
+	    	"processTotal":"1",
+	    	"planTime":"2017-6-4",
+	    	"processPercent":"20",
+	    	"nowProcessName":"2-车",
+	    	"finishNumber":"66",
+	    	"qualifiedNumber":"60",
+	    	"processStatu":"待来料",
+	    	"finishPercent":"20",
+	    	"updateTime":"2017-6-23"
+	     },{
+	      "index":"2",
+	    	"orderTime":"2012-6-24",
+	    	"orderId":"20151255",
+	    	"productName":"螺2丝",
+	    	"productType":"CLUBN-11-2",
+	    	"orderNumber":"33333",
+	    	"planNumber":"50000",
+	    	"deliveryTime":"2017-6-6",
+	    	"documentaryId":"000000001",
+	    	"companyName":"深圳市士瑞达设备有限公司",
+	    	"price":"56",
+	    	"process":"Q-W-D-dd",
+	    	"processTotal":"4",
+	    	"planTime":"2017-6-4",
+	    	"processPercent":"70",
+	    	"nowProcessName":"2-车",
+	    	"finishNumber":"66",
+	    	"qualifiedNumber":"60",
+	    	"processStatu":"待来料",
+	    	"finishPercent":"99",
+	    	"updateTime":"2017-6-23"
+	     },{
+	      "index":"3",
+	    	"orderTime":"2017-6-24",
+	    	"orderId":"20251255",
+	    	"productName":"螺3丝",
+	    	"productType":"CLUBN-11-2",
+	    	"orderNumber":"22222",
+	    	"planNumber":"50000",
+	    	"deliveryTime":"2017-6-6",
+	    	"documentaryId":"000000001",
+	    	"companyName":"深圳市士瑞达设备有限公司",
+	    	"price":"56",
+	    	"process":"Q-W-D-dd",
+	    	"processTotal":"4",
+	    	"planTime":"2017-6-4",
+	    	"processPercent":"70",
+	    	"nowProcessName":"2-车",
+	    	"finishNumber":"66",
+	    	"qualifiedNumber":"60",
+	    	"processStatu":"待来料",
+	    	"finishPercent":"99",
+	    	"updateTime":"2017-6-23"
+	     },{
+	      "index":"4",
+	    	"orderTime":"2017-6-24",
+	    	"orderId":"20151255",
+	    	"productName":"螺4丝",
+	    	"productType":"CLUBN-11-2",
+	    	"orderNumber":"1111",
+	    	"planNumber":"50000",
+	    	"deliveryTime":"2017-6-6",
+	    	"documentaryId":"000000001",
+	    	"companyName":"深圳市士瑞达设备有限公司",
+	    	"price":"56",
+	    	"process":"Q-W-D-dd",
+	    	"processTotal":"4",
+	    	"planTime":"2017-6-4",
+	    	"processPercent":"70",
+	    	"nowProcessName":"2-车",
+	    	"finishNumber":"66",
+	    	"qualifiedNumber":"60",
+	    	"processStatu":"待来料",
+	    	"finishPercent":"99",
+	    	"updateTime":"2017-6-23"
+	     }
+	 ],
+	 "checkList":[
+	 		{
+        "id": "1",
+        "label": "下单日",
+        "checked":"true"
+      }, {
+        "id": "2",
+        "label": "客户订单号",
+        "checked":"true"
+      }, {
+        "id": "3",
+        "label": "产品名称",
+         "checked":"true"
+      },{
+        "id": "4",
+        "checked":"true",
+        "label": "产品型号"
+      }, {
+        "id": "5",
+        "checked":"true",
+        "label": "订单数量"
+      }, {
+        "id": "6",
+        "checked":"false",
+        "label": "计划数量"
+      },{
+        "id": "7",
+        "checked":"true",
+        "label": "交货日期"
+      }, {
+        "id": "8",
+        "checked":"false",
+        "label": "跟单号"
+      }, {
+        "id": "9",
+        "checked":"false",
+        "label": "产品序号"
+      },{
+        "id": "10",
+        "checked":"true",
+        "label": "客户名称"
+      },{
+        "id": "11",
+        "checked":"false",
+        "label": "工艺路线"
+      }, {
+        "id": "12",
+        "checked":"true",
+        "label": "工序数"
+      },{
+        "id": "13",
+        "label": "当前流程",
+        "checked":"true",
+        "children": [{
+          "id": "14",
+          "checked":"true",
+          "label": "流程名称"
+        }, {
+          "id": "15",
+          "checked":"true",
+          "label": "完成数量"
+        }, {
+          "id": "16",
+          "checked":"true",
+          "label": "合格数量"
+        }, {
+          "id": "17",
+          "checked":"true",
+          "label": "状态"
+        }, {
+          "id": "18",
+          "checked":"true",
+          "label": "完成比例"
+        }]
+      }, {
+        "id": "19",
+        "checked":"true",
+        "label": "最近操作时间"
+      }
+	 ],
+	 "select":[
+		 {
+		 	"label":"下单日",
+		 	"value":"orderTime",
+		 	"sign":[
+		 		{
+	 				"label":"=",
+	 				"value":"equalTo"
+		 		},
+		 		{
+	 				"label":"≥",
+	 				"value":"greate"
+		 		},
+		 		{
+	 				"label":"≤",
+	 				"value":"less"
+		 		}
+		 	],
+		 	"inputType":"input"
+		 },
+		 {
+		 	"label":"客户订单号",
+		 	"value":"orderNumber",
+		 	"sign":[
+		 		{
+	 				"label":"=",
+	 				"value":"equalTo"
+		 		}
+		 	],
+		 	"inputType":"input"
+		 },
+		 {
+		 	"label":"图纸",
+		 	"value":"drawing",
+		 	"sign":[
+		 		{
+	 				"label":"=",
+	 				"value":"equalTo"
+		 		}
+		 	],
+		 	"select":[
+		 		{
+	 				"label":"有图",
+	 				"value":"hasPic"
+		 		},
+		 		{
+	 				"label":"无图",
+	 				"value":"nonePic"
+		 		}
+		 	],
+		 	"inputType":"select"
+		 },
+		 {
+		 	"label":"日期",
+		 	"value":"dateTime",
+		 	"sign":[
+		 		{
+	 				"label":"=",
+	 				"value":"equalTo"
+		 		},
+		 		{
+	 				"label":"≥",
+	 				"value":"greate"
+		 		},
+		 		{
+	 				"label":"≤",
+	 				"value":"less"
+		 		}
+		 	],
+		 	"inputType":"date"
+		 }
+	 ]
+}

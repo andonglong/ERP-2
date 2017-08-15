@@ -1,0 +1,571 @@
+<template>
+  <div class="enquirySheetDetail-container">
+    <div class="header-panel">
+      <div class="header-title jc-start ai-center c5e6d82">
+        <el-breadcrumb separator="/">
+          <el-breadcrumb-item :to="{ path: '/EnquirySheet/enquirySheet' }">询价单</el-breadcrumb-item>
+          <el-breadcrumb-item>{{$route.params.inquiryorderid}}</el-breadcrumb-item>
+        </el-breadcrumb>
+        <div class="urgent urgent-A" v-if="parseInt(baseData.isurgent)">加急</div>
+        <span class="flag redflag" v-if="parseInt(baseData.ismark)"></span>
+      </div>
+      <div class="header-BtnGroup relative">
+        <el-button @click="ClickRefresh">刷新</el-button>
+        <el-button type="primary" @click="ClickQuoted">报价</el-button>
+        <el-button @click="ClickSave">保存</el-button>
+        <span class="icon-slide icon-silde-down" v-show="!InfoShow" @click="InfoShow = !InfoShow">
+          <span>展开</span>
+          <i class="icon-silde-arrow el-icon-d-arrow-left"></i>
+        </span>
+      </div>
+    </div>
+    <div class="content-panel">
+  
+      <transition name="el-zoom-in-top">
+        <div class="baseInfo" v-show="InfoShow">
+          <div class="info-title">
+            <span class="inblock text-center">基础信息</span>
+          </div>
+          <div class="tabs-box">
+            <!--<el-tabs v-model="activeName" @tab-click="handleClick">-->
+            <!--<el-tab-pane label="基本信息" name="first">-->
+            <!--<el-card class="tabs-box-card">-->
+            <div class="tabs-box-card">
+              <div class="info-box info-box-lh">
+                <ul class="info-lists">
+                  <li class="info-list">
+                    <span>询价单号：</span>
+                    <span>{{baseData.inquiryorderid}}</span>
+                  </li>
+                  <li class="info-list">
+                    <span>状态：</span>
+                    <span>{{checkedStatu(baseData.orderstatus)}}</span>
+                  </li>
+                  <li class="info-list">
+                    <span>联系人：</span>
+                    <span>{{baseData.linkname}}</span>
+                  </li>
+                  <li class="info-list">
+                    <span>联系电话：</span>
+                    <span>{{baseData.telephone}}</span>
+                  </li>
+                </ul>
+                <ul class="info-lists">
+                  <li class="info-list">
+                    <span>询价时间：</span>
+                    <span>{{baseData.createtime}}</span>
+                  </li>
+                  <li class="info-list">
+                    <span>要求报价时间：</span>
+                    <span>{{baseData.asktime}}</span>
+                  </li>
+                  <!-- <li class="info-list">
+                                                        <span>提醒报价时间：</span>
+                                                        <span>{{baseData.g}}</span>
+                                                      </li> -->
+                  <li class="info-list">
+                    <span>实际报价时间：</span>
+                    <span>{{baseData.facktime}}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <!--</el-card>-->
+            <!--</el-tab-pane>-->
+            <!--</el-tabs>-->
+            <span class="icon-slide icon-silde-up" @click="InfoShow = !InfoShow">收起
+              <i class="icon-silde-arrow el-icon-d-arrow-right"></i>
+            </span>
+          </div>
+        </div>
+  
+      </transition>
+  
+      <div class="detailInfo mg-t20">
+        <div class="info-title">
+          <span class="inblock text-center">明细信息</span>
+        </div>
+        <div class="mg-b30">
+          <el-button type="primary" class="button" @click="ClickImOutport">导入导出</el-button>
+          <el-button class="button" @click="ClickDownDrawing">下载图纸</el-button>
+        </div>
+        <el-table ref="multipleTable" :data="tableData" border resizable tooltip-effect="dark" :strip="true" style="width: 100%" :row-class-name="rowBackground" @selection-change="handleSelectionChange" highlight-current-row>
+          <el-table-column fixed type="selection" min-width="36">
+          </el-table-column>
+          <el-table-column fixed type="index" label="序号" width="65" align="center" class-name="sequenceColumn">
+          </el-table-column>
+           <el-table-column fixed prop="productcode" label="产品编码" width="153" align="center">
+            <template scope="scope">
+              <span class="c20a0ff pointer" @click="ClickProductcode(scope.$index)">{{scope.row.productcode}}</span>
+            </template>
+          </el-table-column> 
+          <el-table-column prop="productname" label="产品名称" min-width="153" align="center" show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column label="询价单位" min-width="120" align="center" show-overflow-tooltip>
+            <template scope="scope">{{ scope.row.unit }}</template>
+          </el-table-column>
+          <el-table-column prop="orderamount" label="询价数量" min-width="120" align="center" show-overflow-tooltip>
+          </el-table-column>
+          <el-table-column prop="iscando" label="是否能做" width="135" align="center" show-overflow-tooltip>
+            <template scope="scope">
+              <el-checkbox v-model="scope.row.iscando">能做</el-checkbox>
+            </template>
+          </el-table-column>
+          <el-table-column label="最小订购量" min-width="137" align="center" show-overflow-tooltip>
+            <template scope="scope">
+              <!--{{ scope.row.minamount }}-->
+              <el-input v-model.number="scope.row.minamount" class="center-input"></el-input>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label-class-name="deliverytime" prop="deliverytime" label="货期（天）" min-width="137" align="center" show-overflow-tooltip>
+            <template scope="scope">
+              <!--{{ scope.row.minamount }}-->
+              <el-input v-model.number="scope.row.deliverytime" :class="{'center-input': true, 'required-input': scope.row.iscando && !scope.row.deliverytime ? isImportDeliverytime(true) : isImportDeliverytime(false) }"></el-input>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column prop="pricenotax" label="未税单价(元)" min-width="138" align="center" show-overflow-tooltip>
+            <template scope="scope">
+              <!--{{ scope.row.minamount }}-->
+              <el-input v-model.number="scope.row.pricenotax" class="center-input" @focus="ClickPricenotax(scope.row,scope.$index)"></el-input>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="税率" min-width="78" align="center" class-name="rateColumn">
+            <template scope="scope">
+              <el-select v-model="scope.row.taxrate">
+                <el-option v-for="item in options" :key="item.value" :label="item.text" :value="item.value">
+                </el-option>
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column prop="pricewithtax" label="含税单价" min-width="137" align="center" show-overflow-tooltip>
+            <template scope="scope">
+              <!--{{ scope.row.minamount }}-->
+              <el-input v-model.number="scope.row.pricewithtax"  :class="{'center-input': true, 'required-input': scope.row.iscando && !scope.row.pricewithtax ? isImportPricewithtaxFnc(true) : isImportPricewithtaxFnc(false) }"></el-input>
+              </el-input>
+            </template>
+          </el-table-column>
+          <el-table-column label="含税金额" min-width="137" align="center" show-overflow-tooltip>
+            <template scope="scope">{{ scope.row.taxamount }}</template>
+          </el-table-column>
+          <el-table-column prop="issendcost" label="是否包含运费" min-width="137" align="center" class-name="freightColumn">
+            <template scope="scope">
+              <el-checkbox v-model="scope.row.issendcost">包含运费</el-checkbox>
+            </template>
+          </el-table-column>
+          <el-table-column prop="remark" label="备注" min-width="260" align="center" show-overflow-tooltip class-name="remarkColumn">
+            <template scope="scope">
+              <el-input type="textarea" v-model="scope.row.remark" style="height: 36px"></el-input>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+  
+    </div>
+    <transition name="slide-fade">
+      <v-window v-show="windowShow" :inquiryorderid="$route.params.inquiryorderid" :windowShow.sync="windowShow" :tableData.sync="tableData" :tableDataIndex="tableDataIndex" :optionsRate.sync="options"></v-window>
+    </transition>
+  
+    <transition name="el-fade-in-linear">
+      <el-dialog title="导入订单" :visible.sync="isShowImport" class="dialog-upload">
+        <v-importBox :inquiryorderid="$route.params.inquiryorderid"></v-importBox>
+      </el-dialog>
+    </transition>
+  
+     <transition name="el-fade-in-linear">
+      <el-dialog :title=" dialogTitle +'价格组成'" :visible.sync="dialogVisible" size="tiny" :before-close="handleClose" v-if="tableData.length > 0">
+        <div class="bg-f8f8f8 pd-tb20 dialogContent">
+          <div class="mg-b10">
+            <span class="inblock w90 text-right">材料费</span>
+            <el-input-number size="small" v-model="tableData[pricenotaxIndex].materialcost" :min='0' :max="9999" class="w200 mg-lr10"></el-input-number>元</div>
+          <div class="mg-b10">
+            <span class="inblock w90 text-right">加工费</span>
+            <el-input-number size="small" v-model="tableData[pricenotaxIndex].workcost" :min='0' :max="9999" class="w200 mg-lr10"></el-input-number>元</div>
+          <div>
+            <span class="inblock w90 text-right">表面处理费</span>
+            <el-input-number size="small" v-model="tableData[pricenotaxIndex].dealwithcost" :min='0' :max="9999" class="w200 mg-lr10"></el-input-number>元</div>
+        </div>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="ClickDialogConfirm">确 定</el-button>
+        </span>
+      </el-dialog>
+    </transition> 
+  </div>
+</template>
+
+<script>
+import api from 'api/request.js'
+// import $util from 'common/js/util.js'
+import window from './enquirySheetDetailWindow.vue'
+import importBox from './importBox.vue'
+export default {
+  // props: ['windowShow'],
+  components: {
+    'v-window': window,
+    'v-importBox': importBox
+  },
+  data() {
+    return {
+      InfoShow: true,
+      isShowImport: false,
+      baseData: {
+        inquiryorderid: 'P201705100004C02',
+        orderstatus: '待报价',
+        linkname: 'Ryan',
+        telephone: '0755-12345660',
+        createtime: '2017-05-13 17:39:28',
+        asktime: '2016-09-21  08:50:08',
+        g: '2016-09-21  08:50:08',
+        facktime: '2016-09-21  08:50:08'
+      },
+      activeName: 'first',
+      windowShow: false,
+      tableDataIndex: 0,
+      tableData: [],
+      options: [{
+        text: '13%',
+        value: ''
+      }],
+      dialogVisible: false,
+      dialogTitle: '',
+      dialogData: {},
+      pricenotaxIndex: 0,  // 未税单价index
+      isDeliverytime: true,
+      isImportPricenotax: true
+    }
+  },
+  beforeCreate() { },
+  created() {
+    this.$store.state.adminleftnavnum = '/EnquirySheet/enquirySheet'
+    this.fetchData()
+  },
+  beforeUpdate() { },
+  updated() { },
+  beforeMount() { },
+  mounted() {
+    // let dom = document.querySelectorAll('.deliverytime')
+    // let dom2 = document.getElementsByClassName('deliverytime')
+    // dom.appendChild('*')
+    // console.log(dom)
+    // console.log(dom2)
+  },
+  filters: {},
+  methods: {
+    ClickRefresh() {
+      this.fetchData({ refresh: true })
+    },
+    ClickQuoted() {
+      let param = { inquiryorderid: this.$route.params.inquiryorderid }
+      api.inquiryorder.confirmwillorder(param).then(res => {
+        this.$message.success('报价成功')
+      })
+    },
+    ClickSave() {
+      let copeData = this.tableData
+      // 判断是否符合保存条件
+      for (let i = 0; i < copeData.length; i++) {
+        if (copeData[i].iscando) {
+          if (!copeData[i].deliverytime || !copeData[i].pricewithtax) {
+            this.$message.error('能做的产品，请您填写货期和含税单价')
+            return
+          }
+        }
+      }
+      // 深层拷贝
+      copeData = []
+      for (let i = 0; i < this.tableData.length; i++) {
+        if (typeof this.tableData[i] === 'object') {
+          copeData[i] = {}
+          for (let j in this.tableData[i]) {
+            if (j == 'iscando') {
+              copeData[i][j] = this.tableData[i][j] ? '1' : '0'
+            } else if (j == 'issendcost') {
+              copeData[i][j] = this.tableData[i][j] ? 1 : 0
+            } else {
+              copeData[i][j] = this.tableData[i][j]
+            }
+          }
+        }
+      }
+      let param = {
+        inquiryorderid: this.$route.params.inquiryorderid,
+        detailList: copeData
+      }
+      api.inquiryorder.updateinquiryorder(param).then(res => {
+        if (res.data.code == 0 || res.data.code == 200) {
+          this.$message.success('保存成功')
+        } else {
+          this.$message.error(res.data.message)
+        }
+        // this.fetchData()
+      })
+    },
+    ClickDownDrawing() {
+      let param = { inquiryorderid: this.$route.params.inquiryorderid }
+      // let param = { inquiryorderid: 201708041472 }
+      api.inquiryorder.downloadattachment(param).then(res => {
+        if (res.data.code == 200) {
+          location.href = res.data.data
+        }
+      })
+    },
+    ClickProductcode(index) {
+      this.windowShow = true
+      this.tableDataIndex = index
+    },
+    checkedStatu(satau) {
+      if (satau === '0') {
+        return '待报价'
+      } else if (satau === '1') {
+        return '已报价'
+      } else if (satau === '2') {
+        return '已作废'
+      }
+    },
+    handleClick() { },
+    ClickPricenotax(row, index) {
+      console.log(11111)
+      // this.dialogTitle = row.productcode
+      // this.dialogData = row
+      this.dialogVisible = true
+      console.log(row)
+      console.log(index)
+      this.pricenotaxIndex = index
+    },
+    ClickDialogConfirm() {
+      let data = this.tableData
+      let index = this.pricenotaxIndex
+      data[index].pricenotax = data[index].materialcost + data[index].workcost + data[index].dealwithcost
+      this.dialogVisible = false
+    },
+    // 是否输入货期
+    isImportDeliverytime(flag) {
+      this.isDeliverytime = flag
+      return flag
+    },
+    // 是否输入未税单价
+    isImportPricewithtaxFnc(flag) {
+      this.isImportPricenotax = flag
+      return flag
+    },
+    handleClose() {
+      this.dialogVisible = false
+    },
+    handleSelectionChange() {
+      console.log('111')
+    },
+    fetchData(obj) {
+      let param = { inquiryorderid: this.$route.params.inquiryorderid }
+      if (obj && obj.data) {
+        param = obj.data
+      }
+      api.inquiryorder.getinquiryorderbyid(param).then(res => {
+        console.log(res)
+        if (res.data.code == 200 && res.data.data) {
+          let data = res.data.data
+          this.baseData = data
+          if (obj && obj.method) {
+            obj.method()
+          }
+          for (let i = 0; i < data.detailList.length; i++) {
+            data.detailList[i].iscando = data.detailList[i].iscando == '1' ? true : false
+            data.detailList[i].issendcost = data.detailList[i].issendcost == '1' ? true : false
+          }
+          console.log('详情页数据')
+          console.log(this.tableData)
+          this.tableData = data.detailList
+
+          for (let i = 0; i < res.data.taxratelist.length; i++) {
+            res.data.taxratelist[i].text = res.data.taxratelist[i].value + '%'
+          }
+          this.options = res.data.taxratelist
+          console.log(this.options)
+          if (obj && obj.save) {
+            this.$message.success('保存成功')
+          }
+          if (obj && obj.refresh) {
+            this.$message.success('刷新成功')
+          }
+        }
+      })
+    },
+    ClickImOutport() {
+      console.log(this.isShowImport)
+      this.isShowImport = true
+    },
+    rowBackground(row, index) {
+      if (row.statu === '已作废') {
+        return 'rowBgColor-d'
+      }
+      if (index % 2) {
+        return 'rowBgColor'
+      }
+    }
+  },
+  computed: {},
+  watch: {}
+}
+</script>
+
+<style lang="stylus">
+    .enquirySheetDetail-container
+        padding: 40px 30px 30px 30px
+        background-color: #fff
+        min-width: 1250px
+        .w90
+          width: 90px
+        .icon-slide
+            display:inline-block
+            width:79px
+            height:20px
+            background-size:100% 100%
+            cursor:pointer
+            position: absolute
+            text-align:center
+            line-height:20px
+            font-size:14px
+            color:#bfcbd9
+            background:url(/static/icon/icon-slide-bg.png) 0 0 no-repeat
+            &:hover
+                color:#20a0ff
+            i
+                font-size: 12px
+        .icon-silde-arrow
+            margin-left: 5px
+            transform: rotateZ(-90deg)
+        .icon-silde-down
+            top: 8px
+            left: 50%
+        .icon-silde-up
+            left:50%
+            bottom:-19px
+            transform:translateX(-50%)
+
+        .header-panel
+            .header-title
+                height: 62px
+                padding-left: 20px
+                border: 1px solid #e5e5e5
+                background-color: #f8f8f8
+                .urgent
+                    display: inline-block
+                    font-size: 12px
+                    width: 32px
+                    height: 22px
+                    line-height: 22px
+                    margin: 0 20px
+                    border-radius: 5px
+                    text-align: center
+
+                .urgent-A
+                    color: #fff
+                    background-color: #FF4949
+
+            .header-BtnGroup
+                margin: 30px 0 
+                .el-button
+                    width: 80px
+                    height: 30px
+                    line-height: 30px
+                    padding: 0
+
+        .tabs-box
+            // margin-right: 46px
+            position:relative
+            padding: 20px
+            border: 1px solid #d1dbe5
+            border-radius: 4px
+            background-color: #f8f8f8
+            overflow: hidden
+            box-shadow: 0 2px 4px 0 rgba(0,0,0,.12), 0 0 6px 0 rgba(0,0,0,.04)
+            margin: 0 2px 4px 0
+            overflow: visible
+
+            .tabs-box-card
+                background-color:#f8f8f8
+                margin: 0 2px 4px 0
+            .info-box.info-box-lh .info-lists .info-list
+                line-height:25px
+            .info-box
+                .info-lists
+                    overflow:hidden
+                    width:100%
+                    min-width:1120px
+                    .info-list
+                        float:left
+                        font-size:0
+                        line-height:22px
+                        &:nth-child(1)
+                            width:310px
+                        &:nth-child(2)
+                            width:336px
+                        &:nth-child(3)
+                            width:336px
+                        &:nth-child(4)
+                            max-width:300px
+                        span
+                            font-size:14px
+                            color:#5e6d82
+          .content-panel        
+            .info-title  
+              height: 56px
+              line-height: 56px
+              border-bottom : 1px solid #d1dbe5
+              margin-bottom: 30px 
+              font-size: 16px
+              span
+                width: 130px
+
+            .rowBgColor
+              background-color: #f8f8f8
+            .rowBgColor-d
+              background-color: #e9e9e9
+            // .baseInfo
+            .detailInfo
+              .el-table
+                .rateColumn
+                  .cell
+                    padding: 0
+                    input
+                      border: none
+                      text-align: center
+                .freightColumn
+                .sequenceColumn
+                  .cell
+                    padding: 0
+                .remarkColumn
+                  textarea
+                    height: 36px    
+              .center-input
+                input      
+                  text-align: center
+                  
+          .el-pagination__sizes
+              margin-left: 15px
+
+        .slide-fade-enter-active 
+          transition: all 0.5s ease
+        
+        .slide-fade-leave-active 
+          transition: all 0.5s cubic-bezier(1.0, 0.5, 0.8, 1.0)
+        
+        .slide-fade-enter, .slide-fade-leave-to
+          transform: translateX(10px)
+          opacity: 0   
+        .el-dialog--tiny
+          top: auto!important
+          width: auto
+        .dialogContent  
+          width: 408px
+          border: 1px solid #e5e5e5
+        .required-input  
+          input
+            background-color: #FFF3F1
+        .el-dialog__wrapper
+          display: flex    
+          align-items: center
+          justify-content: center
+</style>

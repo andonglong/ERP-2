@@ -1,0 +1,179 @@
+<template>
+<div class="willorderInfo-box">
+	<h3 class="willorderInfo-title">SRDSB674ZZ {{willoaderObject.id}}</h3>
+	<div class="btn-box">
+		<el-button type="primary" class="btn-w80">保存</el-button>
+		<el-button class="btn-w80">取消</el-button>
+	</div>
+	<div class="info-item">
+		<h4>询价信息</h4>
+		<div class="left">
+			<ul class="info">
+				<li>产品编码：<span class="font-color-5">SRDSB674ZZ</span></li>
+				<li>产品型号/SKU：<span class="font-color-5">SB674ZZ</span></li>
+				<li>附件名/图纸号：<span class="font-color-5">--</span></li>
+				<li>询价数量：<span class="font-color-5">20</span></li>
+			</ul>
+		</div>
+		<div class="right">
+			<ul class="info">
+				<li>品牌：<span class="font-color-5">SRD</span></li>
+				<li>产品名称：<span class="font-color-5">轴承</span></li>
+				<li>询价单位：<span class="font-color-5">pcs</span></li>
+			</ul>
+		</div>
+	</div>
+	<div class="info-item project-box">
+		<h4>工程报价</h4>
+		<el-form :model="projectPrice" label-position="left">
+			<div class="left">
+				<el-form-item label="建议最低含.." title="建议最低含税价" label-width="97px">
+					<el-input class="info-item-input" v-model="projectPrice.mintaxprice"></el-input>
+				</el-form-item>
+				<el-form-item label="确认后差异" label-width="97px">
+					<el-input class="info-item-input" v-model="projectPrice.confirmdiffmessage"></el-input>
+				</el-form-item>
+				<el-form-item label="确认后最小.." title="最小订购量" label-width="97px">
+					<el-input class="info-item-input" v-model="projectPrice.confirmstartqty"></el-input>
+				</el-form-item>
+			</div>
+			<div class="right">
+				<el-form-item label="建议含税售价*" label-width="104px">
+					<el-input class="info-item-input" v-model="projectPrice.maxtaxprice"></el-input>
+				</el-form-item>
+				<el-form-item label="确认后货期" label-width="104px">
+					<el-input class="info-item-input" v-model="projectPrice.confirmdeliverytime"></el-input>
+				</el-form-item>
+				<el-form-item label="工程备注" label-width="104px">
+					<el-input class="info-item-input" v-model="projectPrice.confirmremark"></el-input>
+				</el-form-item>
+			</div>
+		</el-form>
+	</div>
+
+	<div class="info-item supplier-box">
+		<el-form :model="supplierPrice" label-position="left">
+			<h4>供应商报价</h4>
+			<div class="left">
+				<el-form-item label="供应商名称" label-width="97px">
+					<el-input class="info-item-input" v-model="supplierPrice.supplier" icon="caret-bottom"></el-input>
+					<v-suppliertable :keyWord="supplierPrice.supplier" v-show="supplierShow"></v-suppliertable>
+				</el-form-item>
+				<el-form-item label="最小订购量" label-width="97px">
+					<el-input-number class="info-item-input-number" v-model="supplierPrice.confirmstartqty" :debounce="50"></el-input-number>
+				</el-form-item>
+				<el-form-item label="是否包含运费" label-width="97px">
+					<el-checkbox class="info-item-checkbox" v-model="supplierPrice.issendcost" true-label="1" false-label="0">包含</el-checkbox>
+				</el-form-item>
+			</div>
+			<div class="right">
+				<el-form-item label="是否能做" label-width="104px">
+					<el-checkbox class="info-item-checkbox" v-model="supplierPrice.iscando" true-label="1" false-label="0">能做</el-checkbox>
+				</el-form-item>
+				<el-form-item label="货期（天）" label-width="104px">
+					<el-input-number class="info-item-input-number" v-model="supplierPrice.deliverytime" :debounce="50"></el-input-number>
+				</el-form-item>
+				<el-form-item label="未税单价" label-width="104px">
+					<div class="price-warpper">
+						<el-input class="info-item-input" :disabled="true" v-model="supplierPrice.pricenotax"></el-input>
+						<p class="price-tip">系统默认未税单价=材料费+加工费+表面处理</p>
+					</div>
+				</el-form-item>
+			</div>
+			<div class="clear"></div>
+			<div class="pricenotax-box">
+				<div class="left">
+					<el-form-item label="材料费" label-width="97px">
+						<el-input class="info-item-input" v-model="supplierPrice.materialcost"></el-input>
+					</el-form-item>
+					<el-form-item label="表面处理费" label-width="97px">
+						<el-input class="info-item-input" v-model="supplierPrice.dealwithcost"></el-input>
+					</el-form-item>
+				</div>
+				<div class="right">
+					<el-form-item label="加工费" label-width="104px">
+						<el-input class="info-item-input" v-model="supplierPrice.workcost"></el-input>
+					</el-form-item>
+				</div>
+			</div>
+			<div class="left">
+				<el-form-item label="税率" label-width="97px">
+					<el-select v-model="supplierPrice.taxrate" class="info-item-input" placeholder="请选择">
+						<el-option v-for="item in taxrates" :key="item.value" :label="item.label" :value="item.value">
+						</el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="含税金额" label-width="97px">
+					<el-input class="info-item-input" v-model="supplierPrice.taxamount"></el-input>
+				</el-form-item>
+			</div>
+			<div class="right">
+				<el-form-item label="含税单价" label-width="104px">
+					<el-input class="info-item-input" :disable="true" v-model="supplierPrice.pricewithtax"></el-input>
+				</el-form-item>
+				<el-form-item label="备注" label-width="104px">
+					<el-input class="info-item-input" type="textarea" autosize v-model="supplierPrice.remark"></el-input>
+				</el-form-item>
+			</div>
+		</el-form>
+	</div>
+</div>
+</template>
+<script type="text/javascript">
+import supplierTable from './supplierTable'
+export default {
+	name: 'willorderInfo',
+	props: {
+		willoaderObject: {
+			type: Object
+		}
+	},
+	data() {
+		return {
+			projectPrice: {
+				mintaxprice: '',
+				confirmdiffmessage: '',
+				confirmstartqty: '',
+				maxtaxprice: '',
+				confirmdeliverytime: '',
+				confirmremark: ''
+			},
+			supplierPrice: {
+				supplier: '',
+				confirmstartqty: '',
+				issendcost: '0',
+				iscando: '1',
+				deliverytime: '',
+				pricenotax: '',
+				materialcost: '',
+				dealwithcost: '',
+				workcost: '',
+				taxrate: '',
+				taxamount: '',
+				pricewithtax: '',
+				remark: ''
+			},
+			taxrates: [{
+				value: '7',
+				label: '7%'
+			}, {
+				value: '9',
+				label: '9%'
+			}, {
+				value: '13',
+				label: '13%'
+			}, {
+				value: '17',
+				label: '17%'
+			}],
+      supplierShow: false
+		}
+	},
+  components: {
+    'v-suppliertable': supplierTable
+  }
+}
+</script>
+<style lang="stylus">
+
+</style>

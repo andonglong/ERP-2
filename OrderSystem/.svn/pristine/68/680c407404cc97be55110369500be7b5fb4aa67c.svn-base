@@ -1,0 +1,150 @@
+<template lang="html">
+  <div class="supplierdetail-box">
+		<el-card class="box-card">
+	    <div class="nav">
+	      <el-breadcrumb separator="/">
+	        <el-breadcrumb-item :to="{ path: '/Supplier/SupplierList' }">供应商列表</el-breadcrumb-item>
+	        <el-breadcrumb-item>{{supplierName}}</el-breadcrumb-item>
+	      </el-breadcrumb>
+	    </div>
+	  </el-card>
+		<div class="supplier-tabs">
+			<el-button class="tabs-btn" :class="[focus==1?'btn-focus':'']" @click="handletabs('1')">基本信息</el-button>
+			<el-button class="tabs-btn" :class="[focus==2?'btn-focus':'']" @click="handletabs('2')">联系人</el-button>
+			<el-button class="tabs-btn" :class="[focus==3?'btn-focus':'']" @click="handletabs('3')">商务信息</el-button>
+			<el-button class="tabs-btn" :class="[focus==4?'btn-focus':'']" @click="handletabs('4')">财务信息</el-button>
+			<el-button class="tabs-btn" :class="[focus==5?'btn-focus':'']" @click="handletabs('5')">认证信息</el-button>
+		</div>
+		<div class="supplier-info-box">
+			<h3>基本信息</h3>
+			<div class="supplier-warper">
+				<v-Information></v-Information>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3>联系人</h3>
+			<div class="supplier-warper">
+				<v-Contact></v-Contact>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3>商务信息</h3>
+			<div class="supplier-warper">
+				<v-Business></v-Business>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3>财务信息</h3>
+			<div class="supplier-warper">
+				<v-Financial></v-Financial>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3>认证信息</h3>
+			<div class="supplier-warper">
+				<v-Identification></v-Identification>
+			</div>
+		</div>
+  </div>
+</template>
+
+<script>
+import Information from './Information'
+import Business from './Business'
+import Contact from './Contact'
+import Financial from './Financial'
+import Identification from './Identification'
+export default {
+	name: 'supplierDetail',
+	data() {
+		return {
+			supplierName: '供应商名称',
+      focus: 1
+		}
+	},
+	methods: {
+    handletabs(index) {
+      this.focus = index
+    }
+  },
+	components: {
+		'v-Information': Information,
+		'v-Business': Business,
+		'v-Contact': Contact,
+		'v-Financial': Financial,
+		'v-Identification': Identification
+	},
+	created() {
+		this.$store.state.adminleftnavnum = '/Supplier/SupplierList'
+	}
+}
+</script>
+
+<style lang="stylus">
+.supplierdetail-box
+	padding:40px 0 40px 46px
+	.box-card
+		background-color:#f8f8f8
+		margin-right: 46px
+		margin-bottom:30px
+		.el-breadcrumb
+			font-size:14px
+			color:#5e6d82
+		.nav
+			.el-breadcrumb
+				line-height: 22px
+			.el-tabs--border-card>.el-tabs__content
+				display:none
+	.supplier-tabs
+		border-bottom:1px solid #e5e5e5
+		padding-left:10px
+		font-size:0
+		.tabs-btn
+			font-size:14px
+			width:80px
+			height:30px
+			padding:0
+			margin:0 10px -1px 0
+			text-align:center
+			line-height:30px
+			border-radius:0
+			border-color:#e5e5e5
+			&.btn-focus
+				color:#20a0ff
+				border-bottom:#fff
+	.supplier-info-box
+		margin-top:30px
+		h3
+			font-size:16px
+			color:#1f2d3d
+			line-height:34px
+			padding-left:20px
+			border-bottom:1px solid #e5e5e5
+		.supplier-warper
+			overflow:hidden
+			margin-top:30px
+			.left
+				float:left
+				width:442px
+			.right
+				float:left
+				width:400px
+			.info-input,.info-select,.info-inputdata
+				width:260px
+				height:32px
+			.info-input.info-input-number
+				width:180px
+			.el-input__inner
+				height:32px
+				line-height:32px
+				vertical-align: top
+				color:#1f2d3d
+			.el-form--inline .el-form-item__content
+				height:32px
+			.el-form-item__label
+				padding:9px 12px 9px 0
+			.el-input-number__decrease, .el-input-number__increase
+				line-height: 30px
+			.el-form--inline .el-form-item
+				margin:0 0 10px 0
+</style>

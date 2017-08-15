@@ -1,0 +1,198 @@
+<template lang="html">
+  <div class="supplierList-box">
+		<div class="search-box">
+			<el-form :inline="true" :model="form" ref="form" class='form-wrap'>
+				<div class="search-left" :class="[show ? 'search-left-w':'']">
+					<el-form-item label="供应商编码" prop="supplierCode" label-width="84px" class='search-item'>
+						<el-input v-model="form.supplierCode" class="quotation-input" placeholder="请输入"></el-input>
+					</el-form-item>
+					<el-form-item label="供应商简称" prop="abbreviation" label-width="140px" class='search-item'>
+						<el-input v-model="form.abbreviation" class="quotation-input" placeholder="请输入"></el-input>
+					</el-form-item>
+					<el-form-item label="供应商名称" v-show="show" prop="name" label-width="144px" class='search-item'>
+						<el-input v-model="form.name" class="quotation-input" placeholder="请输入"></el-input>
+					</el-form-item>
+					<el-collapse-transition>
+						<div v-if='show'>
+							<el-form-item label="单据状态" prop="invoicesStatus" label-width="84px" class='search-item'>
+								<el-select v-model="form.invoicesStatus" class="quotation-input" placeholder="请选择">
+									<el-option v-for="item in statuOptions" :key="item.value" :label="item.label" :value="item.value">
+									</el-option>
+								</el-select>
+							</el-form-item>
+							<el-form-item label="禁用状态" prop="disabledStatus" label-width="140px" class='search-item'>
+								<el-select v-model="form.disabledStatus" class="quotation-input" placeholder="请选择">
+									<el-option v-for="item in statuOptions" :key="item.value" :label="item.label" :value="item.value">
+									</el-option>
+								</el-select>
+							</el-form-item>
+							<el-form-item label="创建时间" prop="createdDate" label-width="144px" class='search-item'>
+								<el-date-picker v-model="form.createdDate" type="daterange" placeholder="选择日期范围" @change="creatDataChange">
+								</el-date-picker>
+							</el-form-item>
+							<el-form-item label="审核时间" prop="checkedData" label-width="84px" class='search-item'>
+								<el-date-picker v-model="form.checkedData" type="daterange" placeholder="选择日期范围" @change="checkedDataChange">
+								</el-date-picker>
+							</el-form-item>
+						</div>
+					</el-collapse-transition>
+				</div>
+				<div class="search-right va-middle">
+					<el-form-item class='search-item'>
+						<el-button type="primary" icon="search" @click="search('form')">查询</el-button>
+						<el-button @click="resetForm('form')" class="resetbtn" v-show="show">重置</el-button>
+						<el-button type="text" class="spreadbtn" @click="show = !show">{{show?"收起":"展开"}}<i class="el-icon-d-arrow-left icon-spread" :class="[show ? 'icon-arrow-up' : 'icon-arrow-down']"></i></el-button>
+					</el-form-item>
+				</div>
+			</el-form>
+		</div>
+		<div class="supplier-table" @click="toSupplierDetail('111')">
+			<el-table :data="tableData" border style="width: 100%" height="600" v-loading.body="loading">
+				<el-table-column type="index" align="center" label="序号" width="66"></el-table-column>
+		    <el-table-column prop="date" align="center" label="供应商编码" width="133"></el-table-column>
+		    <el-table-column prop="name" align="center" label="供应商简称" width="120"></el-table-column>
+		    <el-table-column prop="address" align="center" label="供应商名称" width="230"></el-table-column>
+				<el-table-column prop="date" align="center" label="单据状态" width="120"></el-table-column>
+		    <el-table-column prop="name" align="center" label="付款条件" width="136"></el-table-column>
+		    <el-table-column prop="address" align="center" label="禁用状态" width="117">></el-table-column>
+				<el-table-column prop="date" align="center" label="主营行业" width="117"></el-table-column>
+		    <el-table-column prop="name" align="center" label="联系人" width="138"></el-table-column>
+		    <el-table-column prop="address" align="center" label="性别" width="78"></el-table-column>
+				<el-table-column prop="address" align="center" label="职务" width="137"></el-table-column>
+				<el-table-column prop="date" align="center" label="电话" width="160"></el-table-column>
+		    <el-table-column prop="name" align="center" label="手机" width="153"></el-table-column>
+		    <el-table-column prop="address" align="center" label="传真" width="160"></el-table-column>
+				<el-table-column prop="date" align="center" label="电子邮箱" width="214"></el-table-column>
+		    <el-table-column prop="name" align="center" label="QQ" width="144"></el-table-column>
+		  </el-table>
+		</div>
+		<div class="page-box">
+			<el-pagination class="page-box" @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="1" :page-sizes="page_sizes" :page-size="page_sizes[0]" layout="prev, pager, next,sizes, jumper" :total="Total">
+			</el-pagination>
+		</div>
+	</div>
+</template>
+
+<script>
+// import api from 'api/request'
+// import $util from 'common/js/util.js'
+export default {
+	name: 'supplierList',
+	data() {
+		return {
+			form: {
+				supplierCode: '',
+				abbreviation: '',
+				name: '',
+				invoicesStatus: '',
+				disabledStatus: '',
+				createdDate: null,
+				checkedData: null
+			},
+			show: false,
+			statuOptions: [{
+        value: '',
+        label: '全部'
+      }, {
+        value: '0',
+        label: '待报价'
+      }, {
+        value: '1',
+        label: '已向供应商询价'
+      }],
+			tableData: [],
+			loading: false,
+			// 分页
+      page_sizes: [100, 200, 300, 400],
+      Total: 100 // 总条数
+		}
+	},
+	methods: {
+		// form查询
+		creatDataChange() { },
+		checkedDataChange() { },
+		search(form) { },
+		resetForm(form) { },
+		// table
+		toSupplierDetail(supplierCode) {
+			this.$router.push({path: '/Supplier/SupplierDetail/' + supplierCode})
+		},
+		// 分页
+		handleSizeChange() { },
+		handleCurrentChange() { }
+	},
+	created() {
+		this.$store.state.adminleftnavnum = '/Supplier/SupplierList'
+	}
+}
+</script>
+
+<style lang="stylus">
+.supplierList-box
+	background-color:#fff
+	margin-left:46px
+	.search-box
+		min-width:1450px
+		padding-top:40px
+		.form-wrap .search-left .search-item.el-form-item
+			margin-right:0px
+		.form-wrap
+			overflow:hidden
+			font-size:0
+			.search-left.search-left-w
+				width:1150px
+			.search-left
+				display:inline-block
+				width:750px
+				margin-left:0
+				vertical-align: middle
+				.el-form-item__label
+					color:#1f2d3d
+					font-size:14px
+				.quotation-input
+					width:260px
+			.search-right
+				display:inline-block
+				/*width:210px*/
+				font-size:0
+				.resetbtn
+					margin-left:6px
+					width:80px
+				.spreadbtn
+					margin-left:20px
+				.search-item
+					margin-left: 40px
+					.icon-arrow
+						color:#20a0ff
+						transition:0.7s
+						position:absolute
+						top:50%
+						margin-top:-7px
+						right:5px
+						&:hover
+							color:#4db3ff
+					.icon-arrow-down
+						transform: rotateZ(-90deg)
+					.icon-arrow-up
+						transform: rotateZ(90deg)
+					.icon-spread
+						margin-left:11px
+						font-size:12px
+			.el-select .el-input__inner
+				width:260px!important
+	.supplier-table
+		.el-table th
+			background-color:#eff2f7
+		.el-table__header-wrapper .el-table__header .cell,
+		.el-table__fixed-header-wrapper .el-table__header .cell
+			line-height:66px
+		.el-table .cell
+			line-height:54px
+			color:#5e6d82
+		.page-box
+			background-color:#eeeeee
+			margin-top:30px
+			text-align:right
+			.el-pagination__sizes
+				margin-left:15px
+</style>

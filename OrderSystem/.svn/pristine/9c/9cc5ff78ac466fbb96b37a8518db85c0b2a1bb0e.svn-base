@@ -1,0 +1,113 @@
+
+import orderTracking from '../components/orderTracking/orderList'
+import login from '../components/login/login'
+import Employee from '../components/Employee/Employee.vue'
+import NotFound from '../components/404'
+import print from '../components/print'
+import Home from '../components/Home'
+import printIm from '../components/orderTracking/productDetail/printImg.vue'
+
+import quotation from '../components/quotation/quotation'
+import quotationDetail from '../components/quotation/quotationDetail/quotationDetail'
+import addSupplierQuotation from '../components/quotation/addSupplierQuotation/addSupplierQuotation'
+
+import enquirySheet from '../components/enquirySheet/enquirySheet'
+import enquirySheetDetail from '../components/enquirySheet/enquirySheetDetail/enquirySheetDetail'
+
+import Customer from '../components/Customer/Customer'
+import CustomerDetail from '../components/Customer/CustomerDetail'
+
+import SupplierList from '../components/supplier/supplierList'
+import SupplierDetail from '../components/supplier/supplierDetail/supplierDetail'
+
+let routes = [
+    {
+        path: '/',
+        component: login,
+        name: '',
+        hidden: true
+    },
+    {
+        path: '/404',
+        component: NotFound,
+        name: '',
+        hidden: true
+    },
+    {
+        path: '/Print/:detailinfo',
+        component: print,
+        name: 'print',
+        hidden: true
+    },
+    {
+        path: '/PrintImg',
+        component: printIm,
+        name: '打印图纸'
+    },
+    {
+        path: '/Track',
+        component: Home,
+        name: '订单跟踪',
+        iconCls: 'el-icon-message',
+        children: [
+            { path: 'order', component: orderTracking, name: '主页', hidden: true }
+        ]
+    },
+    {
+        path: '/Manage',
+        component: Home,
+        name: '管理',
+        iconCls: 'el-icon-message',
+        children: [
+            { path: 'Employee', component: Employee, name: '员工管理' },
+            { path: 'Customer', component: Customer, name: '客户管理' }
+        ]
+    },
+    {
+        path: '/Customer',
+        component: Home,
+        name: '客户管理',
+        children: [
+             { path: 'CustomerDetail/:id', component: CustomerDetail, name: 'CustomerDetail' }
+        ]
+    },
+    {
+        path: '/Quotation',
+        component: Home,
+        name: '报价需求单',
+        iconCls: 'el-icon-message',
+        children: [
+            { path: 'quotation', component: quotation, name: 'quotation', hidden: true },
+            { path: 'quotationDetail/:demandNumber', component: quotationDetail, name: 'quotationDetail', hidden: true },
+            { path: 'addSupplierQuotation/:demandNumber', component: addSupplierQuotation, name: 'addSupplierQuotation', hidden: true }
+        ]
+    },
+    {
+        path: '/EnquirySheet',
+        component: Home,
+        name: '询价单',
+        iconCls: 'el-icon-message',
+        children: [
+            { path: 'enquirySheet', component: enquirySheet, name: 'enquirySheet' },
+            { path: 'enquirySheetDetail/:inquiryorderid', component: enquirySheetDetail, name: 'enquirySheetDetail' }
+
+        ]
+    },
+    {
+        path: '/Supplier',
+        component: Home,
+        name: '供应商列表',
+        iconCls: 'el-icon-message',
+        children: [
+            { path: 'SupplierList', component: SupplierList, name: 'SupplierList' },
+            { path: 'SupplierDetail/:supplierCode', component: SupplierDetail, name: 'SupplierDetail' }
+        ]
+    },
+    {
+        path: '*',
+        hidden: true,
+        redirect: { path: '/404' }
+    }
+]
+
+export default routes

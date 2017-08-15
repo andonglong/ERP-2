@@ -1,0 +1,47 @@
+<template>
+  <div class="drawing-container">
+    <div class="drawing-header" >
+        <el-button>打印图纸</el-button>
+        <el-button>替换图纸</el-button>
+        <el-button>删除图纸</el-button>
+      </div>
+    <div class="img-box">
+  
+    </div>
+    <textarea placeholder="有问题，写备注"></textarea>
+  </div>
+</template>
+
+<script>
+
+</script>
+
+<style lang="stylus">
+    .drawing-container
+      width: 93%
+      margin: 0 auto
+      box-sizing: border-box;
+
+      .drawing-header
+        text-align: right
+        margin: 6px 0
+
+        button
+          height: 28px
+          line-height: 28px
+          padding: 0
+          width: 73px
+
+      .img-box
+        height: 648px
+        border: 1px solid #bbb
+
+      textarea
+        width: 100%
+        box-sizing: border-box
+        margin-top: 10px
+        border-color: #bbb
+        padding: 8px 6px  
+
+       
+</style>

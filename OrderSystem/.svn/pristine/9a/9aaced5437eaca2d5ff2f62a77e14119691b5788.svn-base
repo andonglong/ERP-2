@@ -1,0 +1,1041 @@
+ <template>
+<div class="detail-box">
+  <el-card class="box-card">
+    <div class="nav">
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/Quotation/quotation' }">报价需求单</el-breadcrumb-item>
+        <el-breadcrumb-item>{{$route.params.demandNumber}}</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+  </el-card>
+  <div class="main">
+    <div class="btn-box">
+      <el-button @click="Refresh">刷新</el-button>
+      <el-button type="primary" @click="handleConfirm" :disabled="activeName2=='second'">确认建议售价</el-button>
+      <el-button @click="Save" :disabled="activeName2=='second'">保存</el-button>
+      <span class="icon-slide icon-silde-down" v-show="!InfoShow" @click="InfoShow = !InfoShow"><span>展开</span><i class="icon-silde-arrow el-icon-d-arrow-left"></i></span>
+    </div>
+    <transition name="el-zoom-in-top">
+      <div class="tabs-box" v-show="InfoShow">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+          <el-tab-pane label="基本信息" name="first">
+            <el-card class="tabs-box-card">
+              <div class="info-box info-box-lh">
+                <ul class="info-lists">
+                  <li class="info-list"><span>报价需求单编号：</span><span>{{data.willorderid}}</span></li>
+                  <li class="info-list"><span>报价单编号：</span><span>{{data.quotationid}}</span></li>
+                  <li class="info-list"><span>询价时间：</span><span>{{data.inquirytime}}</span></li>
+                  <li class="info-list"><span>要求报价时间：</span><span>{{data.feedbacktime | checkNull}}</span></li>
+                </ul>
+                <ul class="info-lists">
+                  <li class="info-list"><span>采购询价员：</span><span>{{data.buyer | checkNull}}</span></li>
+                  <li class="info-list"><span>销售员：</span><span>{{data.seller | checkNull}}</span></li>
+                  <li class="info-list"><span>产品负责人：</span><span>{{data.engineer | checkNull}}</span></li>
+                  <li class="info-list"><span>报价员：</span><span>{{data.quoter | checkNull}}</span></li>
+                </ul>
+                <ul class="info-lists info-lists-last">
+                  <li class="info-list"><span>备注：</span><span>{{data.remark | checkNull}}</span></li>
+                </ul>
+              </div>
+            </el-card>
+          </el-tab-pane>
+          <el-tab-pane label="其他" name="second">
+            <el-card class="tabs-box-card">
+              <div class="info-box">
+                <ul class="info-lists info-other-lists">
+                  <li class="info-list"><span>创建人：</span><span>{{data.createuser | checkNull}}</span></li>
+                  <li class="info-list"><span>修改人：</span><span>{{data.modifyuser | checkNull}}</span></li>
+                  <li class="info-list"><span>确认人：</span><span>{{data.confirmuser | checkNull}}</span></li>
+                  <li class="info-list"><span>报价要求时间：</span><span>{{data.feedbacktime | checkNull}}</span></li>
+                </ul>
+                <ul class="info-lists info-other-lists">
+                  <li class="info-list"><span>创建时间：</span><span>{{data.createtime | checkNull}}</span></li>
+                  <li class="info-list"><span>修改时间：</span><span>{{data.modifytime | checkNull}}</span></li>
+                  <li class="info-list"><span>确认时间：</span><span>{{data.confirmtime | checkNull}}</span></li>
+                  <li class="info-list"><span>报价员：</span><span>{{data.quoter | checkNull}}</span></li>
+                </ul>
+              </div>
+            </el-card>
+          </el-tab-pane>
+        </el-tabs>
+        <span class="icon-slide icon-silde-up" @click="InfoShow = !InfoShow">收起<i class="icon-silde-arrow el-icon-d-arrow-right"></i></span>
+      </div>
+    </transition>
+
+    <div class="main-tabs">
+      <el-tabs v-model="activeName2" @tab-click="handleClick2" :row-class-name="tableRowClassName">
+        <el-tab-pane label="明细信息" name="first">
+          <div class="main-info">
+            <div class="btn-box">
+              <div class="info-pos">
+                <el-button type="primary" class='supplier-btn' @click="resultSuppliers">向供应商询价</el-button>
+                <el-button type="primary" class="supplier-tip-btn" :icon="showTipbtn?'arrow-up':'arrow-down'" @click="showTipbtn = !showTipbtn"  @blur.native="blurSupplier"></el-button>
+                <transition name="el-zoom-in-top">
+                  <ul class="info-por" v-show="showTipbtn">
+                    <li @click="handleTipsupplier">提醒供应商报价</li>
+                  </ul>
+                </transition>
+              </div>
+              <div class="info-pos info-border">
+                <el-button class='supplier-btn' @click="handleQuotainExcellent">采用最优报价</el-button>
+                <el-button class="supplier-tip-btn" :icon="showChosebtn ? 'arrow-up':'arrow-down'" @click="showChosebtn = !showChosebtn"  @blur.native="QuotainBlur"></el-button>
+                <transition name="el-zoom-in-top">
+                  <ul class="info-por" v-show="showChosebtn">
+                    <li @click="handleQuotainNear">采用最近报价</li>
+                    <li @click="handleQuotainLow">采用最低报价</li>
+                  </ul>
+                </transition>
+              </div>
+              <div class="info-pos">
+                <el-button class='upload-btn' @click="handleImport">导入导出</el-button>
+                <el-button class='upload-btn' @click="handleDownload">下载图纸</el-button>
+              </div>
+            </div>
+            <div class="table-box">
+              <el-table ref="multipleTable" v-loading="listLoading" element-loading-text="拼命加载中" :data="tableData" border style="width: 100%" height="600" :row-class-name="tableRowClassName" @selection-change="handleSelectionChange">
+                <el-table-column align="center" fixed type="selection" width="45"></el-table-column>
+                <el-table-column align="center" fixed type="index" width="65" label="序号">
+                </el-table-column>
+                <el-table-column align="center" fixed prop="productcode" sortable label="产品编码" width="153">
+                  <template scope="scope">
+						    		<span class="span-font c20a0ff" @click="showQuotationDetail(scope.row)">{{scope.row.productcode}}</span>
+								  </template>
+                </el-table-column>
+                <el-table-column align="center" prop="productname" sortable label="产品名称" width="153">
+                  <template scope="scope">
+      			    		<span class="span-font">{{scope.row.productname}}</span>
+      			    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="unit" label="报价单位" width="153">
+                </el-table-column>
+                <el-table-column align="center" prop="orderamount" label="报价数量" width="153">
+                </el-table-column>
+                <el-table-column align="left" prop="status" label="产品询价状态" width="188">
+                  <template scope="scope">
+						        <span class="icon-dot icon-statu marginLeft" :class="quotedStatu(scope.row.status)">{{scope.row.status | Formatstatus}}</span>
+						      </template>
+                </el-table-column>
+                <el-table-column align="center" prop="mintaxprice" sortable label="建议最低含税售价" width="188">
+                  <template scope="scope">
+						    		<div class="el-input-number table-input">
+						    		  <el-input v-model="scope.row.mintaxprice" @change="inputChange(scope.row)" :disabled="scope.row.status==4 || scope.row.status==5" @blur="checkMintaxprice(scope.row)"></el-input>
+						    		</div>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="maxtaxprice" label="建议含税售价" width="137" class-name="required-icon">
+                  <template scope="scope">
+						    		<div class="el-input-number table-input">
+						    		  <el-input v-model="scope.row.maxtaxprice" @change="inputChange(scope.row)" :disabled="scope.row.status==4 || scope.row.status==5" @blur="checkMaxtaxprice(scope.row)"></el-input>
+						    		</div>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="startqty" label="最小订购量" width="137">
+                  <template scope="scope">
+						    		<el-input-number v-model="scope.row.startqty" :debounce="100" :controls="false" class="table-input" :disabled="scope.row.status==4 || scope.row.status==5" @change="inputChange(scope.row)"></el-input-number>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="deliverytime" label="货期（天 ）" width="137">
+                  <template scope="scope">
+						    		<el-input-number v-model="scope.row.deliverytime" :debounce="100" :controls="false" class="table-input" :disabled="scope.row.status==4 || scope.row.status==5" @change="inputChange(scope.row)"></el-input-number>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="taxprice" label="含税单价" width="137">
+                  <template scope="scope">
+						    		<div class="table-input el-input-number">
+						    		  <el-input v-model="scope.row.taxprice" @change="inputChange(scope.row)" @blur="checkTaxprice(scope.row)" :disabled="scope.row.status==4 || scope.row.status==5"></el-input>
+						    		</div>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="taxamount" label="含税金额" width="137">
+                </el-table-column>
+                <el-table-column align="center" prop="containfreight" label="是否包含运费" width="137">
+                  <template scope="scope">
+						    		<el-checkbox v-model="scope.row.containfreight" true-label="1" false-label="0" :checked="scope.row.containfreight==1" :disabled="scope.row.status==4 || scope.row.status==5">包含</el-checkbox>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="confirmremark" label="工程备注" width="260">
+                  <template scope="scope">
+						    		<el-input type="textarea" autosize v-model="scope.row.confirmremark" :disabled="scope.row.status==4 || scope.row.status==5" class="table-input" @change="inputChange(scope.row)"></el-input>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" label="操作" width="168">
+                  <template scope="scope">
+						        <el-button @click="Checkquotation(scope.row.productbrand, scope.row.productmodel, scope.row.willorderdetailid)" :disabled="!scope.row.hashistory" type="text" size="small">查看历史报价</el-button>
+						      </template>
+                </el-table-column>
+              </el-table>
+            </div>
+            <div  class="page-warrpe">
+              <el-pagination  class="page-box"
+                @size-change="handleSizeChange1"
+                @current-change="handleCurrentChange1"
+                :current-page="1"
+                :page-sizes="[100, 200, 300, 400]"
+                :page-size="100"
+                layout="prev, pager, next, sizes,jumper"
+                :total="willorderTotal">
+              </el-pagination>
+            </div>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane name="second">
+          <span slot="label">供应商报价<i class="icon-message" v-show="count>0">{{count}}</i></span>
+          <div class="main-info">
+            <div class="btn-box btn-box-second">
+              <div class="info-pos">
+                <el-button type="primary" class='upload-btn' @click="handleUseSupplier">采用供应商报价</el-button>
+                <el-button class='add-btn' @click="handleAdd">新增</el-button>
+                <el-button class='upload-btn' @click="handleTipSupplier2">提醒供应商报价</el-button>
+              </div>
+            </div>
+            <div class="table-box">
+              <el-table v-loading="listLoading" element-loading-text="拼命加载中" :data="tableDataSupplier" border style="width: 100%" height="600" :row-class-name="tableRowClassName" @selection-change="handleSelectionChange2">
+                <el-table-column type="selection" align="center" fixed width="55"></el-table-column>
+                <el-table-column type="index" align="center" fixed width="65" label="序号">
+                </el-table-column>
+                <el-table-column align="center" fixed prop="inquiryorderid" label="供应商报价单号" width="172">
+                </el-table-column>
+                <el-table-column align="center" prop="suppliername" label="供应商名称" width="172">
+                  <template scope="scope">
+                    <span class="span-font">{{scope.row.suppliername}}</span>
+                  </template>
+                </el-table-column>
+                <el-table-column align="center" prop="productmodel" label="产品编码" width="153">
+                  <template scope="scope">
+								    <span class="span-font c20a0ff" @click="showSupplierDetail(scope.row)">{{scope.row.productmodel}}</span>
+								  </template>
+                </el-table-column>
+                <el-table-column align="center" prop="productname" label="产品名称" width="153">
+                </el-table-column>
+                <el-table-column align="center" prop="unit" label="询价单位" width="120">
+                </el-table-column>
+                <el-table-column align="center" prop="orderamount" label="询价数量" width="120">
+                </el-table-column>
+                <el-table-column align="center" prop="iscando" label="是否能做*" width="137">
+                  <template scope="scope">
+						    		<el-checkbox v-model="scope.row.iscando" true-label="1" false-label="0" :disabled="true">能做</el-checkbox>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="minamount" label="最小订购量" width="137">
+                </el-table-column>
+                <el-table-column align="center" prop="deliverytime" label="货期（天 ）*" width="137">
+                </el-table-column>
+                <el-table-column align="center" prop="pricenotax" label="未税单价" width="137">
+                  <!-- <template scope="scope">
+							    		<el-input-number v-model="scope.row.pricenotax" :debounce="100" :controls="false" class="table-input"></el-input-number>
+							    	</template> -->
+                </el-table-column>
+                <el-table-column align="center" prop="taxrate" label="税率" width="80">
+                  <template scope="scope">
+									  <el-select v-model="scope.row.taxrate" disabled placeholder="请选择" class="duty-select">
+									    <el-option
+									      v-for="item in dutyRate" :key="item.name" :label="item.text" :value="item.name">
+									    </el-option>
+									  </el-select>
+									</template>
+                </el-table-column>
+                <el-table-column align="center" prop="pricewithtax" label="含税单价" width="137">
+                </el-table-column>
+                <el-table-column align="center" prop="taxamount" label="含税金额" width="137">
+                </el-table-column>
+                <el-table-column align="center" prop="issendcost" label="是否包含运费" width="137">
+                  <template scope="scope">
+						    		<el-checkbox v-model="scope.row.issendcost" :disabled="true" true-label="1" false-label="0">包含</el-checkbox>
+						    	</template>
+                </el-table-column>
+                <el-table-column align="center" prop="remark" label="备注" width="260">
+                  <template scope="scope">
+						    		<span class="span-font">{{scope.row.remark}}</span>
+						    	</template>
+                </el-table-column>
+              </el-table>
+            </div>
+            <div class="page-warrpe">
+              <el-pagination class="page-box"
+                @size-change="handleSizeChange2"
+                @current-change="handleCurrentChange2"
+                :current-page="1"
+                :page-sizes="[100, 200, 300, 400]"
+                :page-size="100"
+                layout="prev, pager, next, sizes,jumper"
+                :total="inquiryorderTotal">
+              </el-pagination>
+            </div>
+          </div>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+  </div>
+  <div class="tipbox">
+      <el-dialog :visible.sync="tipbox_dialogVisible" size="tiny" :before-close="handleClose">
+        <span slot="title" class="dialog-title"><i class='icon-title-statu' :class="[iconTitle ? 'el-icon-circle-check' : 'el-icon-circle-cross']"></i><span class="dialog-title-txt">{{TipTotal}}</span><span class="detail-btn" :class="{ 'detail-btn-color' : !quoteDetail }" @click="quoteDetail = !quoteDetail"
+          v-show="iconTitle">查看详情</span></span>
+        <div class="dialog-content">
+          <div v-if="iconTitle">
+            <el-collapse-transition>
+              <div v-show="quoteDetail"  class="dialog-content-border">
+                <div class="quotedetail-success">
+                  <p class="quotedetail-fail-item" v-for="(item, index) in SuccessList">{{index+1}}、“{{item.name}}”</p>
+                </div>
+              </div>
+            </el-collapse-transition>
+          </div>
+          <div class="quotedetail-fail dialog-content-border" v-else>
+            <p class="quotedetail-fail-item"><span class="quotedetail-fail-t">可能原因：</span><span>1、未找到供应商邮箱或者邮箱地址有误；</span></p>
+            <p class="quotedetail-fail-item"><span class="quotedetail-fail-t"></span><span>2、无未报价供应商；</span></p>
+            <p class="quotedetail-fail-item"><span class="quotedetail-fail-t"></span><span>3、半小时内已提醒过报价。</span></p>
+          </div>
+        </div>
+        <span slot="footer" class="dialog-footer">
+    	    <el-button type="primary" @click="tipbox_dialogVisible = false">确 定</el-button>
+    	  </span>
+      </el-dialog>
+      <el-dialog :visible.sync="tipbox_dialogVisible2" size="tiny" :before-close="handleClose2">
+        <span slot="title" class="dialog-title"><i class='icon-title-statu el-icon-circle-check icon-circle-color'></i><span class="dialog-title-txt">{{TipTotal2}}</span><span class="detail-btn" :class="{ 'detail-btn-color' : !quoteDetail2 }" @click="quoteDetail2 = !quoteDetail2">查看详情</span></span>
+        <div class="dialog-content">
+            <el-collapse-transition>
+              <div v-show="quoteDetail2"  class="dialog-content-border">
+                <div class="quotedetail-success">
+                  <p>成功：</p>
+                  <p class="quotedetail-fail-item" v-for="(item, index) in SuccessList2">{{index+1}}、“{{item.name == null ? '--': item.name}}”
+                    <span v-for="(list, i) in item.detail" class="detail-item txt-hid">{{list.text}}</span>
+                  </p>
+                  <p>失败：</p>
+                  <p class="quotedetail-fail-item" v-for="(item, index) in FailList">{{index+1}}、“{{item.name == null ? '--': item.name}}” , {{item.message}}
+                    <span v-for="(list, i) in item.detail" class="detail-item txt-hid">{{list.text}}</span>
+                  </p>
+                </div>
+              </div>
+            </el-collapse-transition>
+        </div>
+        <span slot="footer" class="dialog-footer">
+  		    <el-button type="primary" @click="tipbox_dialogVisible2 = false">确 定</el-button>
+  		  </span>
+      </el-dialog>
+      <el-dialog title="导入导出" :visible.sync="dialogUploadorder" class="dialog-upload">
+        <v-uploadorder :uploadPrams='uploadPrams' v-on:listenUploadorder="Uploadorder"></v-uploadorder>
+      </el-dialog>
+  </div>
+  <transition name="el-fade-in-linear">
+      <div v-if="productcodeShow">
+        <div class="shade-box" @click="close('productcodeShow')"></div>
+        <v-willoaderInfo :willoaderObject='willoaderObject' v-on:listenwilloaderDetail="listenwilloaderDetail"></v-willoaderInfo>
+      </div>
+  </transition>
+  <transition name="el-fade-in-linear">
+    <div v-if="supplierDetailShow">
+      <div class="shade-box" @click="close('supplierDetailShow')"></div>
+      <v-supplierDetail :supplierDetailObject='supplierDetailObject' v-on:listensupplierDetail="listensupplierDetail"></v-supplierDetail>
+    </div>
+  </transition>
+  <transition name="el-fade-in-linear">
+    <div v-if="historyQuotationShow">
+      <div class="shade-box" @click="close('historyQuotationShow')"></div>
+      <v-historyQuotation :historyQuotationObject='historyQuotationObject' v-on:listenhistoryDetail="listenhistoryDetail"></v-historyQuotation>
+    </div>
+  </transition>
+
+	<div class="dialog">
+		<el-dialog title="向供应商询价" :visible.sync="dialogSupplierVisible">
+			<v-getSupplierList v-if="dialogSupplierVisible" :getsuppliersParms="getsuppliersParms" v-on:listenSuppliers="listenSuppliers"></v-getSupplierList>
+		</el-dialog>
+	</div>
+</div>
+</template>
+
+<script>
+import uploadorder from './uploadorder'
+import willorderInfo from './willorderInfo'
+import supplierDetail from './supplierDetail'
+import historyQuotation from './historyQuotation'
+import getSupplierList from './getSupplierList'
+import api from 'api/request'
+import axios from 'axios'
+import $util from 'common/js/util.js'
+export default {
+  name: 'quotationDetail',
+  data () {
+    return {
+      data: {
+        willorderid: '',
+        quotationid: '',
+        inquirytime: '',
+        buyer: '',
+        seller: '',
+        engineer: '',
+        remark: '',
+        createuser: '',
+        modifyuser: '',
+        confirmuser: '',
+        feedbacktime: '',
+        createtime: '',
+        modifytime: '',
+        confirmtime: '',
+        quoter: ''
+      },
+      count: 0,      // 供应商报价未读信息
+      activeName: 'first',
+      activeName2: 'first',
+      InfoShow: true,
+      showTipbtn: false,
+      showChosebtn: false,
+      listLoading: false,
+      filters: [{
+        value: '0',
+        text: '待报价'
+      }, {
+        value: '1',
+        text: '已向供应商询价'
+      }, {
+        value: '2',
+        text: '供应商已报价'
+      }, {
+        value: '3',
+        text: '已筛选供应商报价'
+      }, {
+        value: '4',
+        text: '已确认建议售价'
+      }, {
+        value: '5',
+        text: '已作废'
+      }],
+      tableData: [],    // 明细信息
+      willorderTotal: 100,
+      multipleSelection: [],
+      tableDataSupplier: [],  // 供应商报价
+      inquiryorderTotal: 100,
+      multipleSelection2: [],
+      dialogUploadorder: false,    // 导入导出
+      dialogSupplierVisible: false, // 向供应商报价
+      uploadPrams: {},
+      dialogVisible: false,
+      dutyRate: [],
+      willoaderObject: { id: '' },
+      productcodeShow: false,
+      supplierDetailObject: { id: '' },
+      supplierDetailShow: false,
+      historyQuotationObject: {},
+      historyQuotationShow: false,
+      getsuppliersParms: {
+        willorderid: '',
+        detailIdList: []
+      },   // 向供应商询价
+      // 提醒供应商浮层
+      tipbox_dialogVisible: false,
+      tipbox_dialogVisible2: false,
+      iconTitle: true, // 提醒供应商报价返回状态
+      quoteDetail: false,
+      quoteDetail2: false,
+      TipTotal: '',  // 全部成功总数
+      TipTotal2: '',
+      SuccessList: [], // 全部成功数组
+      SuccessList2: [], // 部分成功数组
+      FailList: []
+    }
+  },
+  methods: {
+    // 确认建议售价
+    handleConfirm () {
+      let _t = this
+      this.QuotationRequre(function(detailIdList) {
+        api.willorders.confirmwillorder({detailIdList: detailIdList}).then(res => {
+          if (res.data.code == 200) {
+            _t.$message({
+              message: '操作成功',
+              type: 'success'
+            })
+          } else {
+            _t.$alert(res.data.message, '操作失败', {
+              confirmButtonText: '确定'
+            })
+          }
+        })
+      })
+    },
+    Save () {
+      let _t = this
+      if (!this.checkChoseorder(this.multipleSelection.length > 0)) {
+        return false
+      }
+      let data = this.getParms()
+      if (data.maxtaxprice > 0) {
+        this.$notify({
+          title: '温馨提示',
+          message: '建议含税售价未必填项',
+          type: 'warning',
+          duration: 3000,
+          offset: 60
+        })
+        return false
+      }
+      axios.post('cloudfactory/willorder/updatewillorder', data).then(res => {
+        if (res.data.code == 200) {
+          _t.$message({
+            message: '保存成功',
+            type: 'success'
+          })
+          this.listenUpdate()
+        } else {
+          _t.$alert(res.data.message, '保存失败', {
+            confirmButtonText: '确定'
+          })
+        }
+      })
+    },
+    // 保存
+    getParms() {
+      let data = {}
+      data.willorderid = this.$route.params.demandNumber
+      data.detailList = []
+      data.maxtaxprice = 0
+      for (var i = 0; i < this.multipleSelection.length; i++) {
+        let obj = {}
+        obj.willorderdetailid = this.multipleSelection[i].willorderdetailid
+        obj.serialno = this.multipleSelection[i].serialno
+        obj.productmodel = this.multipleSelection[i].productmodel
+        obj.mintaxprice = this.multipleSelection[i].mintaxprice
+        if (this.tableData[i].maxtaxprice == null || this.tableData[i].maxtaxprice == '' || this.tableData[i].maxtaxprice <= 0) {
+          data.maxtaxprice++
+        }
+        obj.maxtaxprice = this.multipleSelection[i].maxtaxprice
+        if (this.multipleSelection[i].cando != null) {
+          obj.cando = parseInt(this.multipleSelection[i].cando)
+        }
+        obj.startqty = this.multipleSelection[i].startqty
+        obj.deliverytime = this.multipleSelection[i].deliverytime
+        obj.taxprice = this.multipleSelection[i].taxprice
+        obj.containfreight = parseInt(this.multipleSelection[i].containfreight)
+        obj.confirmremark = this.multipleSelection[i].confirmremark
+        data.detailList.push(obj)
+      }
+      return data
+    },
+    Refresh () {
+      let obj = {}
+      let userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+      obj.willorderid = this.$route.params.demandNumber
+      obj.companyid = userInfo.companyid
+      obj.factoryid = userInfo.factoryid
+      this.getWillorders(obj, true)
+    },
+    handleClick (tab, event) { },
+    handleClick2 (tab, event) {
+      if (tab.name == 'second' && this.count > 0) {
+        api.inquiryorder.markreadbywillorderid({willorderid: this.$route.params.demandNumber}).then(res => {
+            if (res.data.code == 200) {
+              this.count = 0
+            }
+        })
+      }
+    },
+    blurSupplier() {
+      this.showTipbtn = false
+    },
+    QuotainBlur() {
+      this.showChosebtn = false
+    },
+    checkMaxtaxprice(val) {
+      if (val.maxtaxprice == null || val.maxtaxprice == '') { return }
+      if (isNaN(val.maxtaxprice) || val.maxtaxprice != '') {
+				val.maxtaxprice = val.maxtaxprice.replace(/[^\d|.]/g, '')
+        return
+			}
+      if (val.mintaxprice > val.maxtaxprice) {
+        val.maxtaxprice = ''
+        this.tipTaxprice()
+      }
+    },
+    checkMintaxprice(val) {
+      if (val.mintaxprice == null || val.mintaxprice == '') { return }
+      if (isNaN(val.mintaxprice)) {
+				val.mintaxprice = val.mintaxprice.replace(/[^\d|.]/g, '')
+        return
+			}
+      if (val.mintaxprice > val.maxtaxprice) {
+        val.mintaxprice = ''
+        this.tipTaxprice()
+      }
+    },
+    checkTaxprice(val) {
+      if (val.taxprice == null || val.taxprice == '') {
+        return
+      }
+      if (isNaN(val.taxprice)) {
+				val.taxprice = val.taxprice.replace(/[^\d|.]/g, '')
+        val.taxprice = val.taxprice == '' ? '' : parseFloat(val.taxprice).toFixed(2)
+        return
+			}
+    },
+    tipTaxprice() {
+      this.$notify({
+        title: '温馨提示',
+        message: '建议最低含税售价必须小于建议含税售价',
+        type: 'warning',
+        duration: 3000,
+        offset: 60
+      })
+    },
+    // 采用最优报价
+    handleQuotainExcellent () {
+      let _t = this
+      this.QuotationRequre(function(detailIdList) {
+        api.willorders.usebestsupplierquote({detailIdList: detailIdList}).then(res => {
+          _t.checkData(res)
+        })
+      })
+    },
+    // 采用最近报价
+    handleQuotainNear () {
+      let _t = this
+      this.QuotationRequre(function(detailIdList) {
+        api.willorders.uselastsupplierquote({detailIdList: detailIdList}).then(res => {
+          _t.checkData(res)
+        })
+      })
+    },
+    // 采用最低报价
+    handleQuotainLow () {
+      let _t = this
+      this.QuotationRequre(function(detailIdList) {
+        api.willorders.useminsupplierquote({detailIdList: detailIdList}).then(res => {
+          _t.checkData(res)
+        })
+      })
+    },
+    // 采用报价
+    QuotationRequre(callback) {
+      if (this.checkChoseorder(this.multipleSelection.length > 0)) {
+        let detailIdList = this.getWillorderdetailidList(this.multipleSelection)
+        callback(detailIdList)
+      }
+    },
+    // 采用报价返回提示
+    checkData(res) {
+      if (res.data.code == 200) {
+        this.$message({
+          message: res.data.data,
+          type: 'success'
+        })
+      } else {
+        this.$alert(res.data.message, '提示', {
+          confirmButtonText: '确定'
+        })
+      }
+    },
+    handleImport () {
+      this.uploadPrams.willorderid = this.$route.params.demandNumber
+      this.dialogUploadorder = true
+    },
+    handleDownload () {
+      let willorderid = this.$route.params.demandNumber
+      api.willorders.downloadattachment({willorderid: willorderid}).then(res => {
+        if (res.data.code == 200) {
+          location.href = JSON.parse(res.data.data).data
+        } else {
+          this.$alert(res.data.message, '提示')
+        }
+      })
+    },
+    // 向供应商询价
+    resultSuppliers() {
+      if (this.checkChoseorder(this.multipleSelection.length > 0)) {
+        this.dialogSupplierVisible = true
+        this.getsuppliersParms.willorderid = this.$route.params.demandNumber
+        this.getsuppliersParms.detailIdList = this.getWillorderdetailidList(this.multipleSelection)
+      }
+    },
+    // 向供应商询价 组件回调
+    listenSuppliers(data) {
+      this.dialogSupplierVisible = false
+    },
+    listenwilloaderDetail(val) {
+      this[val] = false
+      $util.forbiddenScroll(false)
+      this.listenUpdate()
+    },
+    listensupplierDetail(val) {
+      this[val] = false
+      $util.forbiddenScroll(false)
+      this.listenUpdate()
+    },
+    listenhistoryDetail(val) {
+      this[val] = false
+      $util.forbiddenScroll(false)
+      this.listenUpdate()
+    },
+    listenUpdate() {
+      let obj = {}
+      let userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+      obj.willorderid = this.$route.params.demandNumber
+      obj.companyid = userInfo.companyid
+      obj.factoryid = userInfo.factoryid
+      this.getWillorders(obj)
+    },
+    // 6.	提醒供应商报价
+    handleTipsupplier () {
+      let _t = this
+      if (this.checkChoseorder(this.multipleSelection.length > 0)) {
+        let detailIdList = this.getWillorderdetailidList(this.multipleSelection)
+        api.willorders.remindsupplier({detailIdList: detailIdList}).then(res => {
+          if (res.data.code == 200) {
+            _t.remindData(res.data.data)
+          } else {
+            this.$alert(res.data.message, '提示')
+          }
+        })
+      }
+    },
+    // 供应商报价--提醒供应商报价
+    handleTipSupplier2() {
+      let _t = this
+      if (this.checkChoseorder(this.multipleSelection2.length > 0)) {
+        let detailIdList = this.getWillorderdetailidList2(this.multipleSelection2)
+        api.willorders.remindsupplier({detailIdList: detailIdList}).then(res => {
+          if (res.data.code == 200) {
+            _t.remindData(res.data.data)
+          } else {
+            this.$alert(res.data.message, '提示')
+          }
+        })
+      }
+    },
+    // 提醒报价返回数据处理
+    remindData(data) {
+      let Success = {}
+      let Fail = {}
+      Success.number = 0   // 成功数
+      Success.data = []
+      Fail.number = 0   // 失败数
+      Fail.data = []
+      for (var i = 0; i < data.length; i++) {
+        let obj = {name: '', detail: []}
+        if (data[i].isSuccess) {
+          Success.number++
+          obj.name = data[i].data.suppliername
+          obj.detail = this.CheckDetail(data[i].data.detailList)
+          Success.data.push(obj)
+        } else {
+          Fail.number++
+          obj.name = data[i].data.suppliername
+          obj.detail = this.CheckDetail(data[i].data.detailList)
+          obj.message = data[i].data.message
+          Fail.data.push(obj)
+        }
+      }
+      if (Success.number == 0) {
+        // 全部失败
+        this.tipbox_dialogVisible = true
+        this.iconTitle = false
+        this.TipTotal = '提醒供应商报价失败'
+      } else if (Success.Fail == 0) {
+        // 全部成功
+        this.tipbox_dialogVisible = true
+        this.iconTitle = true
+        this.TipTotal = `已成功提醒${Success.number}家供应商报价`
+        this.SuccessList = Success.data
+      } else {
+        // 部分成功部分失败
+        this.tipbox_dialogVisible2 = true
+        this.TipTotal2 = `已成功提醒${Success.number}家供应商报价,${Fail.number}家失败`
+        this.SuccessList2 = Success.data
+        this.FailList = Fail.data
+      }
+    },
+    CheckDetail(arr) {
+      let str = ''
+      let Arry = []
+      for (var i = 0; i < arr.length; i++) {
+        arr[i].inquiryorderid = arr[i].inquiryorderid == null ? '无报价单号' : arr[i].inquiryorderid
+        arr[i].productmodel = arr[i].productmodel == null ? '无产品编码' : arr[i].productmodel
+        str = arr[i].inquiryorderid + ' - ' + arr[i].productmodel
+        Arry.push({text: str})
+      }
+      return Arry
+    },
+    // 提示层  提醒供应商报价
+    handleClose () {
+      this.tipbox_dialogVisible = false
+    },
+    handleClose2 () {
+      this.tipbox_dialogVisible2 = false
+    },
+    // 获取明细ID
+    getWillorderdetailidList(data) {
+      let list = []
+      data.map((value, index, arr) => {
+        list.push(value.willorderdetailid)
+      })
+      return list
+    },
+    // 获取明细ID
+    getWillorderdetailidList2(data) {
+      let list = []
+      data.map((value, index, arr) => {
+        list.push(value.inquiryorderdetailid)
+      })
+      return list
+    },
+    // 验证是否勾选订单
+  	checkChoseorder(res) {
+  		if (res) {
+  			return true
+  		} else {
+  			this.$notify({
+          title: '温馨提示',
+          message: '请勾选订单',
+          type: 'warning',
+          duration: 3000,
+          offset: 60
+        })
+        return false
+  		}
+  	},
+    showQuotationDetail (val) {
+      if (val.cando == null) {
+        val.cando = 1
+      }
+      if (val.taxrate == null) {
+        val.taxrate = 17
+      }
+      this.willoaderObject = val
+      this.willoaderObject.dutyRate = this.dutyRate
+      this.productcodeShow = !this.productcodeShow
+      $util.forbiddenScroll(true)
+    },
+    showSupplierDetail(val) {
+      this.supplierDetailShow = !this.supplierDetailShow
+      this.supplierDetailObject = val
+      $util.forbiddenScroll(true)
+    },
+    close(show) {
+      this[show] = !this[show]
+      $util.forbiddenScroll(false)
+    },
+    tableRowClassName (row, index) {
+      if (this.multipleSelection.length > 0) {
+        let className = ''
+        for (var i = 0; i < this.multipleSelection.length; i++) {
+          if (this.multipleSelection[i] == row) {
+            className = 'info-row-9ed'
+            break
+          }
+        }
+        if (className != '') {
+          return className
+        }
+      }
+      if (index % 2 === 0) {
+        return 'info-row-bg'
+      } else {
+        return 'positive-row-bg'
+      }
+    },
+    handleSelectionChange (val) {
+      this.multipleSelection = val
+    },
+    handleSelectionChange2 (val) {
+      this.multipleSelection2 = val
+    },
+    Checkquotation (productbrand, productmodel, willorderdetailid) {
+      this.historyQuotationShow = !this.historyQuotationShow
+      this.historyQuotationObject.productbrand = productbrand
+      this.historyQuotationObject.productmodel = productmodel
+      this.historyQuotationObject.willorderdetailid = willorderdetailid
+      $util.forbiddenScroll(true)
+    },
+    quotedStatu (satau) {
+      if (satau === '1') {
+        return 'icon-statu-a'
+      } else if (satau === '2') {
+        return 'icon-statu-b'
+      } else if (satau === '3') {
+        return 'icon-statu-c'
+      } else {
+        return 'icon-statu-d'
+      }
+    },
+    Uploadorder (bool) {
+      this.dialogUploadorder = false
+      this.listenUpdate()
+      // 导出
+      if (bool) {
+        this.dialogVisible = true
+      }
+    },
+    handleUseSupplier () {
+      if (this.checkChoseorder(this.multipleSelection2.length > 0)) {
+        if (!this.checkDerdetailid()) {
+          this.$notify({
+            title: '温馨提示',
+            message: '只能采用一家供应商报价，请重新选择',
+            type: 'warning',
+            duration: 3000,
+            offset: 60
+          })
+          return false
+        }
+        let inquiryDetailIdList = this.getWillorderdetailidList2(this.multipleSelection2)
+        api.willorders.usesupplierquote({inquiryDetailIdList: inquiryDetailIdList}).then(res => {
+          if (res.data.code == 200) {
+            this.$message({
+              message: '操作成功',
+              type: 'success'
+            })
+          } else {
+            this.$alert(res.data.message, '提示')
+          }
+        })
+      }
+    },
+    checkDerdetailid() {
+      let obj = {}
+      let bool = true
+      for (let i = 0; i < this.multipleSelection2.length; i++) {
+        if (obj[this.multipleSelection2[i].willorderdetailid]) {
+          bool = false
+          obj[this.multipleSelection2[i].willorderdetailid] = true
+        }
+      }
+      return bool
+    },
+    handleAdd () {
+      let id = this.$route.params.demandNumber
+      this.$router.push({path: '/Quotation/addSupplierQuotation/' + id})
+    },
+    handleSizeChange1() { },
+    handleCurrentChange1() { },
+    handleSizeChange2() { },
+    handleCurrentChange2() { },
+    getWillorders (obj, bool) {
+      this.listLoading = true
+      let _t = this
+      api.willorders.getwillorderbyid(obj).then(res => {
+        this.listLoading = false
+        if (res.data.code == 200) {
+          let Data = res.data.data
+          _t.tableData = Data.detailList
+          _t.data.willorderid = Data.willorderid
+          _t.data.quotationid = Data.quotationid
+          _t.data.inquirytime = $util.DateFormat(Data.inquirytime, 'yyyy-MM-dd hh:mm:ss')
+          _t.data.buyer = Data.buyer
+          _t.data.seller = Data.seller
+          _t.data.engineer = Data.engineer
+          _t.data.remark = Data.remark
+          _t.data.createuser = Data.createuser
+          _t.data.modifyuser = Data.modifyuser
+          _t.data.confirmuser = Data.confirmuser
+          _t.data.feedbacktime = Data.feedbacktime
+          _t.data.createtime = $util.DateFormat(Data.createtime, 'yyyy-MM-dd hh:mm:ss')
+          if (Data.modifytime != undefined) {
+            _t.data.modifytime = $util.DateFormat(Data.modifytime, 'yyyy-MM-dd hh:mm:ss')
+          }
+          if (Data.confirmtime != undefined) {
+            _t.data.confirmtime = $util.DateFormat(Data.confirmtime, 'yyyy-MM-dd hh:mm:ss')
+          }
+          _t.data.quoter = Data.quoter
+        }
+        if (bool) {
+          this.$message.success('刷新成功')
+        }
+      })
+    },
+    getordersbywillorderid(obj) {
+      let _t = this
+      api.inquiryorder.getordersbywillorderid(obj).then(res => {
+        if (res.data.code == 200) {
+          _t.tableDataSupplier = res.data.datalist
+          _t.count = res.data.datasum
+        }
+      })
+    },
+    inputChange(row) {
+      this.$refs.multipleTable.toggleRowSelection(row, true)
+    }
+  },
+  filters: {
+    Formatstatus (status) {
+      let statusTxt = ''
+      switch (status) {
+        case '0':
+          statusTxt = '待报价'
+          break
+        case '1':
+          statusTxt = '已向供应商询价'
+          break
+        case '2':
+          statusTxt = '供应商已报价'
+          break
+        case '3':
+          statusTxt = '已筛选供应商报价'
+          break
+        case '4':
+          statusTxt = '已确认建议售价'
+          break
+        case '5':
+          statusTxt = '已作废'
+          break
+      }
+      return statusTxt
+    },
+    checkNull(val) {
+			val = val == null || val == '' ? '--' : val
+			return val
+		}
+  },
+  created () {
+    let obj = {}
+    let userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+    obj.willorderid = this.$route.params.demandNumber
+    obj.companyid = userInfo.companyid
+    obj.factoryid = userInfo.factoryid
+    this.getWillorders(obj)
+    this.getordersbywillorderid(obj)
+    this.$store.state.adminleftnavnum = '/Quotation/quotation'
+    api.supplier.getDictByTypeNumbers({ typenumbers: 'TaxRate' }).then(res => {
+			if (res.data.code == 200) {
+        for (var i = 0; i < res.data.data.TaxRate.length; i++) {
+          res.data.data.TaxRate[i].name = parseInt(res.data.data.TaxRate[i].name)
+          res.data.data.TaxRate[i].text = res.data.data.TaxRate[i].name + '%'
+        }
+				this.dutyRate = res.data.data.TaxRate
+			}
+		})
+  },
+  watch: { },
+  components: {
+    'v-uploadorder': uploadorder,
+    'v-willoaderInfo': willorderInfo,
+    'v-supplierDetail': supplierDetail,
+    'v-historyQuotation': historyQuotation,
+		'v-getSupplierList': getSupplierList
+  }
+}
+</script>
+
+<style lang="stylus">
+	@import url("~common/style/public.css")
+  @import '~common/style/supplierDetail.styl'
+	@import '~common/style/quotatil.styl'
+	.detail-box
+		.dialog
+			.el-dialog--small
+				width:740px
+			.page-warrpe
+				height:40px
+				line-height:40px
+				.page-box
+					margin-top:5px
+					.el-input__inner
+						height:28px
+						line-height:28px
+		.icon-title-statu
+			font-size:21px
+			margin-right:10px
+			vertical-align: middle
+		.el-icon-circle-check.icon-circle-color
+			color:#108ee9
+		.el-icon-circle-check
+			color:#13ce66
+		.el-icon-circle-cross
+			color:#ff4949
+</style>

@@ -1,0 +1,74 @@
+<template lang="html">
+	<div class="willorderInfo-box">
+		<h3 class="willorderInfo-title">SRDSB674ZZ {{supplierDetailObject.id}}</h3>
+		<div class="btn-box">
+			<el-button type="primary" class="btn-w80">采用报价</el-button>
+			<el-button class="btn-w80">取消</el-button>
+		</div>
+		<div class="info-item">
+			<h4>询价信息</h4>
+			<div class="left">
+				<ul class="info">
+					<li>产品编码：<span class="font-color-5">SRDSB674ZZ</span></li>
+					<li>产品型号/SKU：<span class="font-color-5">SB674ZZ</span></li>
+					<li>附件名/图纸号：<span class="font-color-5">--</span></li>
+					<li>询价数量：<span class="font-color-5">20</span></li>
+				</ul>
+			</div>
+			<div class="right">
+				<ul class="info">
+					<li>品牌：<span class="font-color-5">SRD</span></li>
+					<li>产品名称：<span class="font-color-5">轴承</span></li>
+					<li>询价单位：<span class="font-color-5">pcs</span></li>
+				</ul>
+			</div>
+		</div>
+		<div class="info-item margin-bottom0">
+			<h4>报价信息</h4>
+			<div class="left">
+				<ul class="info">
+					<li>供应商名称：<span class="font-color-5">上海五同同步带有限公司</span></li>
+					<li>最小订购量：<span class="font-color-5">100</span></li>
+					<li>未税单价：<span class="font-color-5">--</span></li>
+					<li>加工费：<span class="font-color-5">--</span></li>
+					<li>税率：<span class="font-color-5">17%</span></li>
+					<li>含税金额：<span class="font-color-5">500</span></li>
+					<li>备注：<span class="font-color-5">500</span></li>
+				</ul>
+			</div>
+			<div class="right">
+				<ul class="info">
+					<li>是否能做：<span class="font-color-5"><el-checkbox v-model="iscando" true-label='1' false-label='0'>能做</el-checkbox></span></li>
+					<li>货期（天）：<span class="font-color-5">5</span></li>
+					<li>材料费：<span class="font-color-5">5 </span></li>
+					<li>表面处理费：<span class="font-color-5">5</span></li>
+					<li>含税单价：<span class="font-color-5">25</span></li>
+					<li>是否包含运费：<span class="font-color-5"><el-checkbox v-model="issendcost" true-label='1' false-label='0'>包含</el-checkbox></span></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+export default {
+	name: 'supplierDetail',
+	props: {
+		supplierDetailObject: {
+			type: Object
+		}
+	},
+	data() {
+		return {
+			issendcost: '0',
+			iscando: '1'
+		}
+	},
+	methods: { }
+}
+</script>
+
+<style lang="stylus">
+.margin-bottom0
+	border-bottom:0!important
+</style>

@@ -1,0 +1,114 @@
+<template lang="html">
+		<div class="supplierName-warper"  @click.stop="clickStop">
+			<el-table
+		    :data="tableData"
+		    border
+				height="340"
+				@row-click="Chose"
+				empty-text="无相关供应商"
+				v-loading="loading"
+		    style="width: 100%">
+		    <el-table-column
+		      type="index"
+		      width="40" align="center">
+		    </el-table-column>
+		    <el-table-column
+		      prop="number"
+		      label="供应商编码"
+		      width="160" align="center">
+		    </el-table-column>
+		    <el-table-column
+		      prop="name"
+		      label="供应商名称"
+					width="500" align="center">
+		    </el-table-column>
+		  </el-table>
+			<div class="page-warrpe">
+        <el-pagination class="page-box" @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="1" :page-sizes="page_sizes" :page-size="page_sizes[0]" layout="prev, pager, next,sizes, jumper" :total="Total">
+        </el-pagination>
+      </div>
+		</div>
+</template>
+
+<script>
+import api from 'api/request'
+export default {
+	name: 'supplierList',
+	props: {
+		supplierData: {
+			type: String
+		}
+	},
+	watch: {
+		supplierData(val) {
+			this.form.supplier = val
+			this.getsuppliers()
+		}
+	},
+	data() {
+		return {
+			page_sizes: [10, 20, 30],
+			Total: 0,
+			loading: false,
+			tableData: [],
+			form: {
+				pageindex: 1,
+				pagesize: 10,
+				supplier: ''
+			}
+		}
+	},
+	methods: {
+		clickStop() { },
+		// 分页
+    handleSizeChange (val) {
+      this.form.pagesize = val
+    },
+    handleCurrentChange (val) {
+      this.form.pageindex = val
+    },
+		Chose(row) {
+			let obj = {
+				name: row.name,
+				id: row.id
+			}
+			this.$emit('listenKeyWord', obj)
+		},
+		bodyClick(e) {
+			let obj = {
+				name: this.supplierData,
+				id: ''
+			}
+			 this.$emit('listenKeyWord', obj)
+		},
+		getsuppliers() {
+			let _t = this
+			this.loading = true
+			api.supplier.getsuppliers(this.form).then(res => {
+					this.loading = false
+					if (res.data.code == 200) {
+						_t.tableData = res.data.data.datalist
+						_t.Total = res.data.data.datacount
+					}
+			})
+		}
+	},
+	created() {
+		document.querySelectorAll('body')[0].addEventListener('click', this.bodyClick, false)
+	},
+	beforeDestroy() {
+		document.querySelectorAll('body')[0].removeEventListener('click', this.bodyClick, false)
+	}
+}
+</script>
+
+<style lang="stylus">
+.supplierName-warper
+	position: absolute
+	top:30px
+	left:0
+	width:700px
+	height:400px
+	background-color:#fff
+	z-index:999
+</style>

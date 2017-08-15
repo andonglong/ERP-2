@@ -1,0 +1,198 @@
+var SIGN_REGEXP = /([yMdhsm])(\1*)/g
+var DEFAULT_PATTERN = 'yyyy-MM-dd'
+function padding(s, len) {
+    var lens = len - (s + '').length
+    for (var i = 0; i < lens; i++) { s = '0' + s }
+    return s
+};
+
+export default {
+    getQueryStringByName: function (name) {
+        var reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)', 'i')
+        var r = window.location.search.substr(1).match(reg)
+        var context = ''
+        if (r != null) {
+            context = r[2]
+        }
+        reg = null
+        r = null
+        return context == null || context === '' || context === 'undefined' ? '' : context
+    },
+    formatDate: {
+        format: function (date, pattern) {
+            pattern = pattern || DEFAULT_PATTERN
+            return pattern.replace(SIGN_REGEXP, function ($0) {
+                switch ($0.charAt(0)) {
+                    case 'y': return padding(date.getFullYear(), $0.length)
+                    case 'M': return padding(date.getMonth() + 1, $0.length)
+                    case 'd': return padding(date.getDate(), $0.length)
+                    case 'w': return date.getDay() + 1
+                    case 'h': return padding(date.getHours(), $0.length)
+                    case 'm': return padding(date.getMinutes(), $0.length)
+                    case 's': return padding(date.getSeconds(), $0.length)
+                }
+            })
+        },
+        parse: function (dateString, pattern) {
+            var matchs1 = pattern.match(SIGN_REGEXP)
+            var matchs2 = dateString.match(/(\d)+/g)
+            if (matchs1.length === matchs2.length) {
+                var _date = new Date(1970, 0, 1)
+                for (var i = 0; i < matchs1.length; i++) {
+                    var _int = parseInt(matchs2[i])
+                    var sign = matchs1[i]
+                    switch (sign.charAt(0)) {
+                        case 'y': _date.setFullYear(_int); break
+                        case 'M': _date.setMonth(_int - 1); break
+                        case 'd': _date.setDate(_int); break
+                        case 'h': _date.setHours(_int); break
+                        case 'm': _date.setMinutes(_int); break
+                        case 's': _date.setSeconds(_int); break
+                    }
+                }
+                return _date
+            }
+            return null
+        },
+
+        getDate: function (time) {
+            let date = new Date(time)
+            return this.format(date, 'yyyy-MM-dd hh:mm')
+        }
+    },
+
+    GetDateDiff: function (startDate, endDate) {
+        var startTime = new Date(Date.parse(startDate.replace(/-/g, '/'))).getTime()
+        var endTime = new Date(Date.parse(endDate.replace(/-/g, '/'))).getTime()
+        var dates = parseInt((endTime - startTime)) / (1000 * 60 * 60 * 24)
+        return dates
+    },
+
+    swapItems: function (arr, index1, index2) {
+        arr[index1] = arr.splice(index2, 1, arr[index1])[0]
+        return arr
+    },
+    checkMoblie(rule, value, callback) {
+        if (!value) {
+            return callback(new Error('手机号不能为空'))
+        }
+        setTimeout(() => {
+            if (!(/^1[34578]\d{9}$/.test(value)) || !Number.isInteger(value)) {
+                callback(new Error('手机号有误，请重填'))
+            } else {
+                callback()
+            }
+        }, 500)
+    },
+    // "yyyy-MM-dd HH:mm:ss"
+    DateFormat(date, fmt) {
+        date = new Date(date)
+        var o = {
+            'M+': date.getMonth() + 1,
+            'd+': date.getDate(),
+            'h+': date.getHours(),
+            'm+': date.getMinutes(),
+            's+': date.getSeconds(),
+            'q+': Math.floor((date.getMonth() + 3) / 3),
+            'S': date.getMilliseconds()
+        }
+        if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length))
+        for (var k in o) {
+            if (new RegExp('(' + k + ')').test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? (o[k]) : (('00' + o[k]).substr(('' + o[k]).length)))
+        }
+        return fmt
+    },
+    ShowBeforeDate(Arr) {
+        let DataArray = this.isArray(Arr)
+        if (DataArray.length) {
+            let NowData = new Date().getTime()
+            let FullYear = new Date().getFullYear()
+            let NowDayTime = new Date(new Date().toLocaleDateString()).getTime()
+            let NowYear = new Date(FullYear + '/1/1').getTime()
+            for (let i = 0; i < DataArray.length; i++) {
+                // X<1小时 N分钟前，如“45分钟前”
+                // 1小时≤X，当天  显示发布时与分，如“14:59”
+                // X的年份=当年 月+日+时间展示，如“04-27    14:59”
+                // X的年份≠当年 日期+时间展示，如“2016-05-01 14:59”
+                if (NowData - DataArray[i].creattime <= 60 * 60 * 1000) { DataArray[i].creattime = parseInt((NowData - DataArray[i].creattime) / 1000 / 60) + '分钟前'; continue }
+                if ((DataArray[i].creattime - NowDayTime >= 0) && (DataArray[i].creattime - NowDayTime) <= 24 * 60 * 60 * 1000) { DataArray[i].creattime = this.DateFormat(DataArray[i].creattime, 'hh:mm'); continue }
+                if (DataArray[i].creattime - NowYear <= 365 * 24 * 60 * 60 * 1000) { DataArray[i].creattime = this.DateFormat(DataArray[i].creattime, 'MM-dd hh:mm'); continue }
+                DataArray[i].creattime = this.DateFormat(DataArray[i].creattime, 'yyyy/MM/dd hh:mm:ss')
+            }
+        }
+        return Arr
+    },
+    outputdollars(number) {
+        if (number.length <= 3) {
+            return (number === '' ? '0' : number)
+        } else {
+            var mod = number.length % 3
+            var output = (mod === 0 ? '' : (number.substring(0, mod)))
+            for (var i = 0; i < Math.floor(number.length / 3); i++) {
+                if ((mod === 0) && (i === 0)) {
+                    output += number.substring(mod + 3 * i, mod + 3 * i + 3)
+                } else {
+                    output += ',' + number.substring(mod + 3 * i, mod + 3 * i + 3)
+                }
+            }
+            return (output)
+        }
+    },
+    checkDateFormat(val) {
+        if (val === '') {
+            return true
+        }
+        let str = /^(\d{4})-(0[1-9]|1[0-2])-([0-2][1-9]|[1-3]0|31)$/
+        return str.test(val)
+    },
+    checkDateDaterange(val) {
+        if (val === '') {
+            return true
+        }
+        let str = /^(\d{4})-(0[1-9]|1[0-2])-([0-2][1-9]|[1-3]0|31)( - )(\d{4})-(0[1-9]|1[0-2])-([0-2][1-9]|[1-3]0|31)$/
+        return str.test(val)
+    },
+    // 数组去重
+    arrayToHeavy(arr) {
+        var res = []
+        var json = {}
+        for (var i = 0; i < arr.length; i++) {
+            if (!json[arr[i]]) {
+                res.push(arr[i])
+                json[arr[i]] = 1
+            }
+        }
+        return res
+    },
+    // 检测数据类型
+    isArray(val) {
+        return Object.prototype.toString.call(val) === '[object Array]' ? val : []
+    },
+    isObject(val) {
+        return Object.prototype.toString.call(val) === '[object Object]' ? val : {}
+    },
+    isNumber(val) {
+        return Object.prototype.toString.call(val) === '[object Number]' ? val : 0
+    },
+    isString(val) {
+        return Object.prototype.toString.call(val) === '[object String]' ? val : ''
+    },
+    getCookie(name) {
+      if (document.cookie.length > 0) {
+        let start = document.cookie.indexOf(name + '=')
+        if (start != -1) {
+          start = start + name.length + 1
+          let end = document.cookie.indexOf(';', start)
+          if (end == -1) end = document.cookie.length
+          return unescape(document.cookie.substring(start, end))
+        }
+      }
+      return ''
+    },
+    forbiddenScroll(bool) {
+      let s = bool ? 'hidden' : 'auto'
+      let body = document.querySelectorAll('body')[0]
+      body.style.overflowY = s
+      body.style.paddingRight = bool ? '17px' : '0'
+    }
+}

@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset=utf-8>
+		<title>订单跟踪系统</title>
+		<link href=/static/css/app.040a897f61d6b2944218382e1da296d8.css rel=stylesheet>
+	</head>
+
+	<body>
+		<div id=app></div>
+		<script type=text/javascript src=/static/js/manifest.9e4bdb5a96da4facaa60.js></script>
+		<script type=text/javascript src=/static/js/vendor.3d4782c39165d7848b40.js></script>
+		<script type=text/javascript src=/static/js/app.bb7746c6a9a8b5c6c779.js></script>
+	</body>
+
+</html>

@@ -1,0 +1,300 @@
+<template>
+	<div class="quotation">
+		<div class="search-box">
+			<el-form :inline="true" :model="form" ref="form" class='form-wrap'>
+				<div class="search-left">
+				  <el-form-item label="报价需求单号" prop="demandNumber" label-width="110px" class='search-item'>
+				    <el-input v-model="form.demandNumber" class="quotation-input" placeholder="请输入"></el-input>
+				  </el-form-item>
+				  <el-form-item label="报价单号" prop="quotationNumber" label-width="95px" class='search-item'>
+				    <el-input v-model="form.quotationNumber" class="quotation-input" placeholder="请输入"></el-input>
+				  </el-form-item>
+				  <el-form-item label="产品询价状态" prop="statu" label-width="120px" class='search-item'>
+				    <el-select v-model="form.statu" class="quotation-input" placeholder="请选择">
+					    <el-option
+					      v-for="item in statuOptions"
+					      :key="item.value"
+					      :label="item.label"
+					      :value="item.value">
+					    </el-option>
+					  </el-select>
+				  </el-form-item>
+				  <el-collapse-transition>
+				  	<div v-if='show'>
+			  		  <el-form-item label="询价日期" prop="inquiryData" label-width="110px" class='search-item'>
+			  		  	<el-date-picker v-model="form.inquiryData" type="daterange" placeholder="选择日期范围" @change="inquiryDataChange">
+								</el-date-picker>
+						  </el-form-item>
+						  <el-form-item label="产品负责人" prop="productOwner" label-width="95px" class='search-item'>
+						    <el-input v-model="form.productOwner" class="quotation-input" placeholder="请输入"></el-input>
+						  </el-form-item>
+						  <el-form-item label="采购员" prop="buyer" label-width="120px" class='search-item'>
+						    <el-input v-model="form.buyer" class="quotation-input" placeholder="请输入"></el-input>
+						  </el-form-item>
+						  <el-form-item label="产品型号" prop="productModel" label-width="110px" class='search-item'>
+						    <el-input v-model="form.productModel" class="quotation-input" placeholder="请输入"></el-input>
+						  </el-form-item>
+				  	</div>
+				  </el-collapse-transition>
+			  </div>
+			  <div class="search-right">
+			    <el-form-item class='search-item'>
+				    <el-button type="primary" icon="search" @click="search('form')">查询</el-button>
+				    <el-button @click="resetForm('form')">重置</el-button>
+				  </el-form-item>
+			  </div>
+			</el-form>
+			<div class="search-silder-btn" @click="show = !show">
+				<i class="el-icon-d-arrow-left icon-arrow" :class="[show ? 'icon-arrow-up' : 'icon-arrow-down']"></i>
+			</div>
+		</div>
+		<div class="main">
+			 <el-tabs v-model="activeName" @tab-click="handleClick">
+			    <el-tab-pane label="全部" name="first">
+			    </el-tab-pane>
+			    <el-tab-pane name="second">
+			    	<span slot="label">待报价<i class="icon-message">99+</i></span>
+			    </el-tab-pane>
+			    <el-tab-pane name="third">
+			    	<span slot="label">供应商已报价<i class="icon-message">9</i></span>
+			    </el-tab-pane>
+			  </el-tabs>
+			  <div class="all-box">
+		<p class="total-message">共搜索到{{Total}}条数据</p>
+		<div class="all-btn">
+			<el-button type="primary" class='refresh-btn'>刷新</el-button>
+			<el-button class="tipsupplier-btn">提醒供应商报价</el-button>
+		</div>
+		<div class="table-box">
+			<el-table v-loading="listLoading" :data="tableData" border style="width: 100%" height="620" @selection-change="handleSelectionChange" :default-sort="defaultSort">
+				<el-table-column type="selection" width="55"  :selectable="selectable"></el-table-column>
+		    <el-table-column fixed align="center" prop="demandNumber" label="报价需求单编号" width="180">
+		    	<template scope="scope">
+		    		<span  class="font-color" @click="toquotationDetail(scope.row.demandNumber)">{{scope.row.demandNumber}}</span>
+		    	</template>
+		    </el-table-column>
+		    <el-table-column align="center" prop="quotationNumber" label="报价单编号" width="180">
+		    </el-table-column>
+		    <el-table-column align="center" prop="productModel" label="产品型号/SKU" width="180">
+		    </el-table-column>
+		    <el-table-column align="center" prop="productName" label="产品名称" width="120">
+		    </el-table-column>
+		    <el-table-column align="center" prop="statu" label="产品询价状态" width="180"
+		      :filters="filters"
+		      :filter-method="filterTag"
+		      filter-placement="bottom-end">
+		      <template scope="scope">
+		        <span>{{scope.row.statu}}</span>
+		      </template>
+		    </el-table-column>
+		    <el-table-column align="center" prop="inquiryDate" sortable label="询价时间" width="180">
+		    </el-table-column>
+		    <el-table-column align="center" prop="quotedDate" label="要求报价反馈时间(h)" width="170">
+		    </el-table-column>
+		    <el-table-column align="center" prop="productOwner" label="产品负责人" width="180">
+		    </el-table-column>
+		    <el-table-column align="center" prop="supplier" label="指定供应商" width="240">
+		    </el-table-column>
+		    <el-table-column align="center" prop="warnDate" label="提醒报价时间" width="200">
+		    </el-table-column>
+		  </el-table>
+		</div>
+		<div class="page-box">
+			<el-pagination class="page-box" 
+				@size-change="handleSizeChange" 
+				@current-change="handleCurrentChange" 
+				:current-page="1" 
+				:page-sizes="page_sizes" 
+				:page-size="page_sizes[0]" 
+				layout="prev, pager, next,sizes, jumper" 
+				:total="Total">
+			</el-pagination>
+		</div>
+	</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				form:{
+					demandNumber:'',
+					quotationNumber:'',
+					statu:'',
+					inquiryData:'',
+					productOwner:'',
+					buyer:'',
+					productModel:''
+				},
+				statuOptions:[{
+          value: '',
+          label: '全部'
+        }, {
+          value: '0',
+          label: '待报价'
+        }, {
+          value: '1',
+          label: '已报价'
+        }, {
+          value: '2',
+          label: '已询价'
+        }, {
+          value: '3',
+          label: '已作废'
+        }],
+        show:false,
+        activeName:'first',
+        
+        tableData:[{
+					demandNumber:'P201706070002B02',
+					quotationNumber:'P201706070002',
+					productModel:'CQ2A12-5DM',
+					productName:'气缸',
+					statu:'待报价',
+					inquiryDate:'2016-09-21 08:50:08',
+					quotedDate:'3',
+					productOwner:'Ryan',
+					supplier:'深圳市天昌科技有限公司',
+					warnDate:'2016-09-21  08:50:08'
+				},{
+					demandNumber:'P201706070002B03',
+					quotationNumber:'P201706070002',
+					productModel:'CQ2A12-5DM',
+					productName:'气缸',
+					statu:'已报价',
+					inquiryDate:'2016-09-22 08:50:08',
+					quotedDate:'3',
+					productOwner:'Ryan',
+					supplier:'深圳市天昌科技有限公司',
+					warnDate:'2016-09-21  08:50:08'
+				},{
+					demandNumber:'P201706070002B04',
+					quotationNumber:'P201706070002',
+					productModel:'CQ2A12-5DM',
+					productName:'气缸',
+					statu:'已作废',
+					inquiryDate:'2016-09-23 08:50:08',
+					quotedDate:'3',
+					productOwner:'Ryan',
+					supplier:'深圳市天昌科技有限公司',
+					warnDate:'2016-09-21  08:50:08'
+				}],
+				filters:[{ value:'待报价', text:'待报价'},{value: '已报价',text: '已报价'}, {value: '已询价',text: '已询价'}, {value: '已作废',text: '已作废'}],
+				defaultSort:{
+						prop: 'date',
+						order: 'descending'
+				},
+				
+				listLoading:false,
+				
+				//分页
+				page_sizes: [10, 20, 30, 50, 100, 200, 500, 1000],
+				Total: 100,		//总条数
+			}
+		},
+		methods: {
+			//查询
+			search(formName) {
+				console.log('submit!!');
+			},
+			//重置
+			resetForm(formName) {
+				this.$refs[formName].resetFields();
+			},
+			//导航切换
+			handleClick(tab, event) {
+				if(tab.index==0){
+					console.log('全部')
+				}else if(tab.index == 1){
+					console.log('待报价')
+				}else{
+					console.log('供应商已报价')
+				}
+			},
+			handleSelectionChange(val){
+				console.log(val)
+			},
+			filterTag(value, row) {
+        return row.statu === value;
+	    },
+	    toquotationDetail(id) {
+	     	this.$router.push({path:'/Quotation/quotationDetail/'+id})
+	    },
+	    selectable(row, index) {
+	    	return row.statu != '已作废'
+	    },
+			//分页
+			handleSizeChange(val) {
+//				this.form.pagesize = val
+			},
+			handleCurrentChange(val) {
+//				this.form.pageindex = val
+			},
+		},
+		components:{
+		}
+	}
+</script>
+
+<style lang="stylus">
+	@import '~common/style/common.styl'
+	.quotation
+		background-color:#fff
+		margin-left:46px
+		.search-box
+			min-width:1420px
+			.search-left
+					width:1175px
+				.el-form-item__label
+					color:#1f2d3d
+					font-size:16px
+				.quotation-input
+					width:260px
+			.search-right
+				width:200px
+			.el-select .el-input__inner
+				width:260px!important
+		.main
+			margin-top:40px
+			.el-tabs__item
+				font-size:16px
+			.icon-message
+				font-size:12px
+				font-style:inherit
+				display:inline-block
+				/*width:20px*/
+				padding:0 5px
+				height:16px
+				text-align:center
+				line-height:16px
+				border-radius:50%
+				background-color:#ff4949
+				color:#fff
+				vertical-align: top
+				margin-top: 8px
+		.all-box
+			.total-message
+				font-size:14px
+				color:#5e6d82
+				padding:25px 0 30px 0
+			.all-btn
+				margin-bottom:30px
+				font-size:0
+				.refresh-btn
+					width:80px
+				.tipsupplier-btn
+					margin-left:20px
+					width:125px
+			.page-box
+				margin-top:30px
+				text-align:right
+				.el-pagination__sizes
+					margin-left:15px
+			.table-box
+				.font-color
+					color:#20a0ff
+					cursor:pointer	
+		
+</style>

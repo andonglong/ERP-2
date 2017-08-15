@@ -1,0 +1,14 @@
+<template>
+   <div class="record-container">
+       操作记录
+   </div>  
+</template>
+    
+ <script>
+     
+ </script>
+
+ <style lang="stylus">
+ 
+ </style>
+    

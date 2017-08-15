@@ -1,0 +1,37 @@
+<template lang="html">
+  <div class="contact">
+    <el-table :data="tableData" border style="width: 100%" max-height="600">
+      <el-table-column type="selection" width="55"></el-table-column>
+      <el-table-column type="index" align="center" label="序号" width="66"></el-table-column>
+      <el-table-column prop="linkname" align="center" label="联系人" width="140"></el-table-column>
+      <el-table-column prop="sex" align="center" label="性别" width="80"></el-table-column>
+      <el-table-column prop="department" align="center" label="部门" width="137"></el-table-column>
+      <el-table-column prop="duty" align="center" label="职务" width="137"></el-table-column>
+      <el-table-column prop="telephone" align="center" label="电话" width="160"></el-table-column>
+      <el-table-column prop="mobile" align="center" label="手机" width="153">></el-table-column>
+      <el-table-column prop="fax" align="center" label="传真" width="160"></el-table-column>
+      <el-table-column prop="email" align="center" label="电子邮箱" width="214"></el-table-column>
+      <el-table-column prop="qq" align="center" label="QQ" width="146"></el-table-column>
+      <el-table-column prop="default" align="center" label="默认" width="80">
+        <template scope="scope">
+          <el-checkbox v-model="scope.row.containfreight" true-label="1" false-label="0" :checked="scope.row.containfreight==1" disabled>是</el-checkbox>
+        </template>
+      </el-table-column>
+      <el-table-column prop="description" align="center" label="描述" width="300"></el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+export default {
+	name: 'contact',
+	data() {
+		return {
+      tableData: []
+    }
+	}
+}
+</script>
+
+<style lang="stylus">
+</style>

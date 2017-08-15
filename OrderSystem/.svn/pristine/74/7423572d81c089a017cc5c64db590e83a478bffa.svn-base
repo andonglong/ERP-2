@@ -1,0 +1,54 @@
+<template lang="html">
+  <div class="contact">
+    <el-table :data="suppliercontacts" border style="width: 100%" max-height="600">
+      <el-table-column type="selection" width="55"></el-table-column>
+      <el-table-column type="index" align="center" label="序号" width="66"></el-table-column>
+      <el-table-column prop="name" align="center" label="姓名" width="140"></el-table-column>
+      <el-table-column prop="sex" align="center" label="性别" width="80">
+        <template scope="scope">
+          <span>{{scope.row.sex | checkSex}}</span>
+        </template>
+      </el-table-column>
+      <el-table-column prop="department" align="center" label="部门" width="137"></el-table-column>
+      <el-table-column prop="post" align="center" label="职务" width="137"></el-table-column>
+      <el-table-column prop="tel" align="center" label="业务地点" width="160"></el-table-column>
+      <el-table-column prop="mobile" align="center" label="固定电话" width="153">></el-table-column>
+      <el-table-column prop="fax" align="center" label="传真" width="160"></el-table-column>
+      <el-table-column prop="email" align="center" label="电子邮箱" width="214"></el-table-column>
+      <el-table-column prop="im" align="center" label="QQ" width="146"></el-table-column>
+      <el-table-column prop="isdefault" align="center" label="默认" width="80">
+        <template scope="scope">
+          <el-checkbox v-model="scope.row.isdefault" true-label="1" false-label="0" :checked="scope.row.isdefault==1" disabled>是</el-checkbox>
+        </template>
+      </el-table-column>
+    </el-table>
+  </div>
+</template>
+
+<script>
+export default {
+	name: 'contact',
+  props: {
+    suppliercontacts: {
+      type: Array
+    }
+  },
+	data() {
+		return { }
+	},
+  filters: {
+    checkSex(val) {
+      if (val == 'SEX02_SYS') {
+        return '男'
+      } else if (val == 'SEX01_SYS') {
+        return '女'
+      } else {
+        return ''
+      }
+    }
+  }
+}
+</script>
+
+<style lang="stylus">
+</style>

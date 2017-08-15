@@ -1,0 +1,102 @@
+<template lang="html">
+  <div class="infomation">
+		<el-form :inline="true" :model="supplierBase" class="demo-form-inline" label-position="left">
+	  	<div class="left">
+				  <el-form-item label="公司名称" label-width="83px">
+				    <el-input v-model="supplierBase.companyName" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+					<el-form-item label="所属区域" label-width="83px">
+				    <!-- <el-input v-model="supplierBase.area" placeholder="" :disabled="true" class="info-input"></el-input> -->
+						 <el-select v-model="value" placeholder="请选择">
+									<el-option
+										v-for="item in options"
+										:key="item.value"
+										:label="item.label"
+										:value="item.value">
+									</el-option>
+						</el-select>
+				  </el-form-item>
+					<el-form-item label="成立时间" label-width="83px">
+		        <el-date-picker type="date" placeholder="选择日期" :disabled="true" class="info-inputdata" v-model="supplierBase.founddate"></el-date-picker>
+		      </el-form-item>
+					<el-form-item label="注册资金" label-width="83px">
+				     <el-input-number v-model="supplierBase.registerfund" :disabled="true" class="info-input info-input-number"></el-input-number><span>  元</span>
+				  </el-form-item>
+					<el-form-item label="工商登记号" label-width="83px">
+				      <el-input v-model="supplierBase.registercode" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+				  <el-form-item label="公司性质" label-width="83px">
+				    <el-select v-model="supplierBase.companynature" placeholder="公司性质" disabled class="info-select">
+				     <el-option v-for="item in BasedataInfo.CompanyNature" :key="item.number" :label="item.name" :value="item.number"></el-option>
+				    </el-select>
+				  </el-form-item>
+					<el-form-item label="公司总人数" label-width="83px">
+             <el-input v-model="supplierBase.staffcount" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+					<el-form-item label="技术人数" label-width="83px">
+             <el-input v-model="supplierBase.techniciancount" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+					<el-form-item label="品管人数" label-width="83px">
+             <el-input v-model="supplierBase.qccount" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+	  	</div>
+			<div class="right">
+				<el-form-item label="简称" label-width="80px">
+					<el-input v-model="supplierBase.shortname" placeholder="" :disabled="true" class="info-input"></el-input>
+				</el-form-item>
+				<el-form-item label="通讯地址" label-width="80px" class="info-item-address">
+					<el-input  type="textarea" :rows="2" v-model="supplierBase.address" :disabled="true" placeholder="" class="info-input info-input-address"></el-input>
+				</el-form-item>
+				<el-form-item label="法人代表" label-width="80px">
+					<el-input v-model="supplierBase.legalperson" placeholder="法人代表" :disabled="true" class="info-input"></el-input>
+				</el-form-item>
+				<el-form-item label="公司类别" label-width="80px">
+					<el-select v-model="supplierBase.companyclassify" placeholder="公司类别" disabled class="info-select">
+            <el-option v-for="item in BasedataInfo.CompanyClassify" :key="item.number" :label="item.name" :value="item.number"></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="公司规模" label-width="80px">
+					<el-select v-model="supplierBase.companyscale" placeholder="公司规模" disabled class="info-select">
+						<el-option v-for="item in BasedataInfo.CompanyScale" :key="item.number" :label="item.name" :value="item.number"></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="采购人数" label-width="80px" label-position="left">
+          <el-input v-model="supplierBase.purchasecount" placeholder="" :disabled="true" class="info-input"></el-input>
+				</el-form-item>
+				<el-form-item label="营销人数" label-width="80px">
+          <el-input v-model="supplierBase.sellercount" placeholder="" :disabled="true" class="info-input"></el-input>
+        </el-form-item>
+			</div>
+		</el-form>
+  </div>
+</template>
+
+<script>
+export default {
+	name: 'infomation',
+	props: {
+		supplierBase: {
+			type: Object
+		},
+		BasedataInfo: {
+			type: Object
+		}
+	},
+	data() {
+		return {}
+	}
+}
+</script>
+
+<style lang="stylus">
+.infomation
+  overflow:hidden
+  .info-item-address
+    height:74px
+    .el-form-item__content
+      height:74px!important
+  .info-input-address
+    height:74px!important
+    .el-textarea__inner
+      height:70px!important
+</style>

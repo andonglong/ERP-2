@@ -1,0 +1,186 @@
+<template lang="html">
+  <div class="ident">
+  	<div class="left">
+  	  <p class="ident-title"><span>认证信息</span></p>
+      <div class="upload-box">
+        <span class="upload-title">营业执照</span>
+        <img class="upload-img" :src="cardauthenticate.Businesslicense.url" width="68" height="68">
+        <el-upload
+          :action="actionUrl"
+          list-type="picture-card"
+          :disabled="true"
+          class="upload-inline">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog v-model="dialogVisible" size="tiny">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+      </div>
+      <div class="upload-box">
+        <span class="upload-title">代理证</span>
+        <img class="upload-img" :src="cardauthenticate.AgentCard.url" width="68" height="68">
+        <el-upload
+          :action="actionUrl"
+          :disabled="true"
+          list-type="picture-card"
+          :on-preview="handlePictureCardPreview"
+          :on-remove="handleRemove"
+          class="upload-inline">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog v-model="dialogVisible" size="tiny">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+      </div>
+      <div class="upload-box">
+        <span class="upload-title">其他</span>
+        <img class="upload-img" :src="cardauthenticate.CardOther.url" :alt="cardauthenticate.CardOther.name" width="68" height="68">
+        <el-upload
+          :action="actionUrl"
+          :disabled="true"
+          list-type="picture-card"
+          :on-preview="handlePictureCardPreview"
+          :on-remove="handleRemove"
+          class="upload-inline">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog v-model="dialogVisible" size="tiny">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+      </div>
+  	</div>
+    <div class="right">
+      <p class="ident-title"><span>体系认证</span></p>
+      <div class="upload-box">
+        <span class="upload-title">ISO9001</span>
+        <el-upload
+          :action="actionUrl"
+          :disabled="true"
+          list-type="picture-card"
+          :on-preview="handlePictureCardPreview"
+          :on-remove="handleRemove"
+          class="upload-inline">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog v-model="dialogVisible" size="tiny">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+      </div>
+      <div class="upload-box">
+        <span class="upload-title">IS16949</span>
+        <el-upload
+          :action="actionUrl"
+          :disabled="true"
+          list-type="picture-card"
+          :on-preview="handlePictureCardPreview"
+          :on-remove="handleRemove"
+          class="upload-inline">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog v-model="dialogVisible" size="tiny">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+      </div>
+      <div class="upload-box">
+        <span class="upload-title">ISO14001</span>
+        <el-upload
+          :action="actionUrl"
+          list-type="picture-card"
+          :disabled="true"
+          :on-preview="handlePictureCardPreview"
+          :on-remove="handleRemove"
+          class="upload-inline">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog v-model="dialogVisible" size="tiny">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+      </div>
+      <div class="upload-box">
+        <span class="upload-title">其他</span>
+        <el-upload
+          :action="actionUrl"
+          list-type="picture-card"
+          :disabled="true"
+          :on-preview="handlePictureCardPreview"
+          :on-remove="handleRemove"
+          class="upload-inline">
+          <i class="el-icon-plus"></i>
+        </el-upload>
+        <el-dialog v-model="dialogVisible" size="tiny">
+          <img width="100%" :src="dialogImageUrl" alt="">
+        </el-dialog>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+	name: 'identification',
+  props: {
+    cardauthenticate: {
+      type: Object
+    },
+    structauthenticate: {
+      type: Object
+    }
+  },
+	data() {
+		return {
+      actionUrl: '',
+      dialogVisible: false,
+      dialogImageUrl: ''
+    }
+	},
+  methods: {
+    handleRemove(file, fileList) {
+       console.log(file, fileList)
+     },
+     handlePictureCardPreview(file) {
+       this.dialogImageUrl = file.url
+       this.dialogVisible = true
+     }
+  }
+}
+</script>
+
+<style lang="stylus">
+.ident
+  overflow:hidden
+  .ident-title
+    font-size:14px
+    line-height:36px
+    border-bottom:2px solid #e5e5e5
+    margin-right:63px
+    margin-bottom:30px
+    span
+      display:inline-block
+      width:70px
+      height:100%
+      border-bottom:2px solid #0b92fe
+      margin-bottom:-2px
+  .upload-box
+    overflow:hidden
+    margin-bottom:10px
+    .upload-title
+      color:#5e6d82
+      display:inline-block
+      width:65px
+      vertical-align: top
+    .upload-img
+      vertical-align: top
+      width:68px
+      height:68px
+    .upload-inline
+      display:inline-block
+      margin-right:10px
+    .el-upload--picture-card
+      width:68px
+      height:68px
+      line-height: 68px
+    .el-upload-list--picture-card .el-upload-list__item
+      width:68px
+      height:68px
+      line-height: 68px
+</style>

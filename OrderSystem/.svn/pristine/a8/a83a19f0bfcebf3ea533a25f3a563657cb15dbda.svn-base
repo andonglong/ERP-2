@@ -1,0 +1,29 @@
+<template>
+	<el-row class="tac">
+		<el-col :span="24">
+	    <el-menu default-active="/orderTracking"  router class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
+	      <el-menu-item index="/orderTracking"><i class="el-icon-message"></i>订单跟踪</el-menu-item>
+	      <el-menu-item index="/manage"><i class="el-icon-menu"></i>员工管理</el-menu-item>
+	    </el-menu>
+	 	</el-col>
+	 </el-row>
+</template>
+
+<script>
+	export default {
+    methods: {
+      handleOpen(key, keyPath) {
+        console.log(key, keyPath);
+      },
+      handleClose(key, keyPath) {
+        console.log(key, keyPath);
+      }
+    }
+  }
+</script>
+
+<style>
+	.tac{
+		text-align: left;
+	}
+</style>

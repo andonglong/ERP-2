@@ -1,0 +1,252 @@
+<template>
+  <div>
+    <div class="productDetail-fixed">
+    </div>
+    <div class="productDetail-container">
+      <el-tabs v-model="activeName2" type="card" @tab-click="handleClick">
+        <el-tab-pane label="图纸" name="first">图纸</el-tab-pane>
+        <el-tab-pane label="产品进度" name="second" class="progress">
+          <div class="table_01">
+            <el-table :data="table01Data" border height="false" style="width: 90%; margin:0 auto; " :row-style="{ height: '31px'}">
+              <el-table-column prop="a" label="序号" min-width="76" align="center">
+              </el-table-column>
+              <el-table-column prop="b" label="流程名称" min-width="92" align="center" >
+                <template scope="scope">
+                    <div contenteditable="true" data-id="99999999999999999"  @click="clickA(scope.$index,scope.row,$event)" >{{scope.row.b}}</div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="c" label="预计工时" min-width="92" align="center">
+                <template scope="scope">
+                   <div contenteditable="true" data-id="99999999999999999"  @click="clickA(scope.$index,scope.row,$event)" >{{scope.row.c}}</div>
+                  <!--<el-input :placeholder="scope.row.c" v-model="scope.row.c" style="background-color: transparent;border: 0;"></el-input>-->
+                </template>
+              </el-table-column>
+              <el-table-column prop="d" label="完成数量" min-width="92" align="center">
+                <template scope="scope">
+                   <div contenteditable="true" data-id="99999999999999999"  @click="clickA(scope.$index,scope.row,$event)" >{{scope.row.d}}</div>
+                  <!--<el-input :placeholder="scope.row.d" v-model="scope.row.d" style="background-color: transparent;border: 0;"></el-input>-->
+                </template>
+              </el-table-column>
+              <el-table-column prop="e" label="合格数量" min-width="92" align="center">
+                <template scope="scope">
+                   <div contenteditable="true" data-id="99999999999999999"  @click="clickA(scope.$index,scope.row,$event)" >{{scope.row.e}}</div>
+                  <!--<el-input :placeholder="scope.row.e" v-model="scope.row.e" style="background-color: transparent;border: 0;"></el-input>-->
+                </template>
+              </el-table-column>
+              <el-table-column prop="f" label="状态" min-width="76" align="center">
+              </el-table-column>
+              <el-table-column prop="g" label="完成比例" align="center" class-name="scale">
+                 <template scope="scope">
+                  <div :style="{width: scope.row.g}" class="scaleDiv"><div><span>{{scope.row.g}}</span></div></div>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+          <div class="line"></div>
+          <div class="table_02">
+            <el-table :data="table02Data" border height="false" style="width: 90%; margin:0 auto;" :row-style="{ height: '31px'}">
+              <el-table-column prop="a" label="序号" min-width="76" align="center">
+              </el-table-column>
+              <el-table-column prop="b" label="负责人" min-width="131" align="center">
+              </el-table-column>
+              <el-table-column prop="c" label="完成数量" min-width="131" align="center">
+                <template scope="scope">
+                   <div contenteditable="true" data-id="99999999999999999"  @click="clickA(scope.$index,scope.row,$event)" >{{scope.row.c}}</div>
+                  <!--<el-input :placeholder="scope.row.c" v-model="scope.row.c" style="background-color: transparent;border: 0;"></el-input>-->
+                </template>
+              </el-table-column>
+              <el-table-column prop="d" label="合格数量" min-width="131" align="center">
+                <template scope="scope">
+                   <div contenteditable="true" data-id="99999999999999999"  @click="clickA(scope.$index,scope.row,$event)" >{{scope.row.d}}</div>
+                  <!--<el-input :placeholder="scope.row.d" v-model="scope.row.d" style="background-color: transparent;border: 0;"></el-input>-->
+                </template>
+              </el-table-column>
+              <el-table-column prop="e" label="录入时间" min-width="186" align="center">
+              </el-table-column>
+            </el-table>
+          </div>
+          <div class="footer">
+            <el-button type="primary">保存数据</el-button>
+          </div>
+        </el-tab-pane>
+        <el-tab-pane label="操作记录" name="third">操作记录</el-tab-pane>
+      </el-tabs>
+    </div>
+  </div>
+</template>
+
+<script>
+import $http from '../../../api/http'
+import request from "../../../api/request"
+
+
+export default {
+  data() {
+    return {
+      activeName2: 'second',
+      table01Data: [],
+      table02Data: []
+    }
+
+  },
+  created() {
+    $http.ajax('/api/manage').then(res => {
+      console.log(res)
+    })
+    $http.ajax('/api/productDetail').then(res => {
+      console.log("产品详情")
+      console.log(res)
+      this.table01Data = res.data.data.progress.table01
+      this.table02Data = res.data.data.progress.table02
+
+    })
+  },
+  methods: {
+    handleClick(tab, event) {
+      console.log(tab, event);
+    },
+    clickA(index,row,$event){
+      console.log(index)
+      console.log(row)
+      console.log($event)
+      console.log($event.target.innerHTML)
+      console.log($event.target.dataset)
+      console.log($event.target.dataset.id)
+    }
+  }
+};
+</script>
+
+<style lang="stylus">
+.productDetail-fixed 
+  position: fixed
+  top: 0
+  right: 0
+  left: 0
+  bottom: 0
+  z-index: 30
+  
+.productDetail-container {
+  background-color: #fff
+  position: fixed
+  top: 0
+  right: 0
+  left: 50%
+  bottom: 0
+  z-index: 200
+  min-width: 650px
+
+ .el-tabs__nav-wrap {
+   background-color: #475669
+   height: 64px
+ }
+
+ .el-tabs__nav-scroll {
+   padding-top: 20px
+  height: 44px 
+ }
+
+ .el-tabs--card>.el-tabs__header .el-tabs__item.is-active {
+   height: 44px  
+    background-color: #fff
+ }
+  
+ .el-tabs--card>.el-tabs__header .el-tabs__item {
+    background-color: #EFF2F7;
+    margin-left: 10px;
+ } 
+
+ .el-tabs__item {
+   height: 43px
+    line-height: 43px
+ }
+
+ .line {
+   height: 1px
+    background-color: #BBBBBB
+    margin: 20px 0 
+ }
+ 
+ .el-tabs{
+   height: 100%!important 
+   position: relative
+ }
+ .el-tabs__content{
+   position: absolute
+   top: 80px
+   bottom: 0
+   left: 0
+   right: 0
+
+ }
+
+
+ .progress {
+   height: 100%
+
+   .cell {
+      padding: 0
+    }
+   .el-table td { 
+     height: auto
+
+     
+   } 
+    .el-input__inner{
+       border: 0;
+       background-color: transparent;
+     }
+   .table_01{
+     height: 55% 
+
+     >.el-table{
+       height: 100%
+     }
+    
+     .scale>div{
+       position: absolute
+       top: 0
+       right: 0
+       bottom: 0
+       left: 0
+     }
+     .scaleDiv{
+       background-color: #00FF00
+       height: 100%
+      
+      span {
+        position: absolute
+        top:0
+        right: 0
+        bottom: 0
+        left: 0
+        display: flex
+        align-items: center
+        justify-content: center
+      }
+     }
+   }
+   .table_02{
+     height: 30% 
+
+     >.el-table{
+       height: 100%
+     }
+   }
+   .footer{
+     height: 10%
+     background-color: #EFF2F7 
+     display: flex
+     align-items: center 
+     justify-content: center
+
+     .el-button{  
+       width: 30%
+     } 
+   }
+  
+ }
+ 
+
+}  
+</style>

@@ -1,0 +1,28 @@
+<template>
+    <div class="enquirySheetDetail-container">
+         询价单详情页面
+    </div>
+</template>
+
+<script>
+    export default {
+    data() {
+        return {}
+    },
+    beforeCreate() { },
+    created() { },
+    beforeUpdate() { },
+    updated() { },
+    beforeMount() { },
+    mounted() { },
+    filters: {},
+    methods: {},
+    computed: {},
+    watch: {}
+}
+</script>
+
+<style lang="stylus">
+    // .enquirySheetDetail-container
+
+</style>

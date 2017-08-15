@@ -1,0 +1,114 @@
+<template lang="html">
+  <div class="infomation">
+		<el-form :inline="true" :model="formInline" class="demo-form-inline" label-position="left">
+	  	<div class="left">
+				  <el-form-item label="公司名称" label-width="83px">
+				    <el-input v-model="formInline.user" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+					<el-form-item label="所属区域" label-width="83px">
+				    <el-input v-model="formInline.user" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+					<el-form-item label="成立时间" label-width="83px">
+		        <el-date-picker type="date" placeholder="选择日期" :disabled="true" class="info-inputdata" v-model="formInline.date1"></el-date-picker>
+		      </el-form-item>
+					<el-form-item label="注册资金" label-width="83px">
+				     <el-input-number v-model="formInline.user" :disabled="true" class="info-input info-input-number"></el-input-number><span>元</span>
+				  </el-form-item>
+					<el-form-item label="工商登记号" label-width="83px">
+				      <el-input v-model="formInline.user" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+				  <el-form-item label="公司性质" label-width="83px">
+				    <el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+				      <el-option label="区域一" value="shanghai"></el-option>
+				      <el-option label="区域二" value="beijing"></el-option>
+				    </el-select>
+				  </el-form-item>
+					<el-form-item label="公司性质" label-width="83px">
+				    <el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+				      <el-option label="区域一" value="shanghai"></el-option>
+				      <el-option label="区域二" value="beijing"></el-option>
+				    </el-select>
+				  </el-form-item>
+					<el-form-item label="公司总人数" label-width="83px">
+				    <el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+				      <el-option label="区域一" value="shanghai"></el-option>
+				      <el-option label="区域二" value="beijing"></el-option>
+				    </el-select>
+				  </el-form-item>
+					<el-form-item label="技术人数" label-width="83px">
+				    <el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+				      <el-option label="区域一" value="shanghai"></el-option>
+				      <el-option label="区域二" value="beijing"></el-option>
+				    </el-select>
+				  </el-form-item>
+					<el-form-item label="品管人数" label-width="83px">
+				    <el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+				      <el-option label="区域一" value="shanghai"></el-option>
+				      <el-option label="区域二" value="beijing"></el-option>
+				    </el-select>
+				  </el-form-item>
+	  	</div>
+			<div class="right">
+				<el-form-item label="简称" label-width="80px">
+					<el-input v-model="formInline.user" placeholder="" :disabled="true" class="info-input"></el-input>
+				</el-form-item>
+				<el-form-item label="通讯地址" label-width="80px" class="info-item-address">
+					<el-input  type="textarea" :rows="2" v-model="formInline.user" :disabled="true" placeholder="" class="info-input info-input-address"></el-input>
+				</el-form-item>
+				<el-form-item label="法人代表" label-width="80px">
+					<el-input v-model="formInline.user" placeholder="" :disabled="true" class="info-input"></el-input>
+				</el-form-item>
+				<el-form-item label="公司类别" label-width="80px">
+					<el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+						<el-option label="区域一" value="shanghai"></el-option>
+						<el-option label="区域二" value="beijing"></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="公司规模" label-width="80px">
+					<el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+						<el-option label="区域一" value="shanghai"></el-option>
+						<el-option label="区域二" value="beijing"></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="公司性质" label-width="80px" label-position="left">
+					<el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+						<el-option label="区域一" value="shanghai"></el-option>
+						<el-option label="区域二" value="beijing"></el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="营销人数" label-width="80px">
+					<el-select v-model="formInline.region" placeholder="活动区域" disabled class="info-select">
+						<el-option label="区域一" value="shanghai"></el-option>
+						<el-option label="区域二" value="beijing"></el-option>
+					</el-select>
+				</el-form-item>
+			</div>
+		</el-form>
+  </div>
+</template>
+
+<script>
+export default {
+	name: 'infomation',
+	data() {
+		return {
+			formInline: {
+
+			}
+		}
+	}
+}
+</script>
+
+<style lang="stylus">
+.infomation
+  overflow:hidden
+  .info-item-address
+    height:74px
+    .el-form-item__content
+      height:74px!important
+  .info-input-address
+    height:74px!important
+    .el-textarea__inner
+      height:70px!important
+</style>

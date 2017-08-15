@@ -1,0 +1,267 @@
+<template lang="html">
+  <div class="supplierList-box">
+		<div class="search-box">
+			<el-form :inline="true" :model="form" ref="form" class='form-wrap'>
+				<div class="search-left" :class="[show ? 'search-left-w':'']">
+					<el-form-item label="供应商编码" prop="supplierNumbers" label-width="84px" class='search-item'>
+						<el-input v-model="form.supplierNumbers" class="quotation-input" placeholder="请输入"></el-input>
+					</el-form-item>
+					<el-form-item label="供应商简称" prop="supplierShortName" label-width="140px" class='search-item'>
+						<el-input v-model="form.supplierShortName" class="quotation-input" placeholder="请输入"></el-input>
+					</el-form-item>
+					<el-form-item label="供应商名称" v-show="show" prop="supplierName" label-width="144px" class='search-item'>
+						<el-input v-model="form.supplierName" class="quotation-input" placeholder="请输入"></el-input>
+					</el-form-item>
+					<el-collapse-transition>
+						<div v-if='show'>
+							<el-form-item label="单据状态" prop="documentStatus" label-width="84px" class='search-item'>
+								<el-select v-model="form.documentStatus" class="quotation-input" placeholder="请选择">
+                  <el-option label="全部" value=""></el-option>
+                  <el-option label="创建" value="A"></el-option>
+                  <el-option label="审核中" value="B"></el-option>
+                  <el-option label="已审核" value="C"></el-option>
+                  <el-option label="重新审核" value="D"></el-option>
+								</el-select>
+							</el-form-item>
+							<el-form-item label="禁用状态" prop="forbidStatus" label-width="140px" class='search-item'>
+								<el-select v-model="form.forbidStatus" class="quotation-input" placeholder="请选择">
+                  <el-option label="全部" value=""></el-option>
+                  <el-option label="是" value="B"></el-option>
+                  <el-option label="否" value="A"></el-option>
+								</el-select>
+							</el-form-item>
+							<el-form-item label="创建时间" prop="createdate" label-width="144px" class='search-item'>
+								<el-date-picker v-model="form.createdate" type="daterange" placeholder="选择日期范围" @change="creatDataChange">
+								</el-date-picker>
+							</el-form-item>
+							<el-form-item label="审核时间" prop="approverdate" label-width="84px" class='search-item'>
+								<el-date-picker v-model="form.approverdate" type="daterange" placeholder="选择日期范围" @change="approverDataChange">
+								</el-date-picker>
+							</el-form-item>
+						</div>
+					</el-collapse-transition>
+				</div>
+				<div class="search-right va-middle">
+					<el-form-item class='search-item'>
+						<el-button type="primary" icon="search" @click="search">查询</el-button>
+						<el-button @click="resetForm('form')" class="resetbtn" v-show="show">重置</el-button>
+						<el-button type="text" class="spreadbtn" @click="show = !show">{{show?"收起":"展开"}}<i class="el-icon-d-arrow-left icon-spread" :class="[show ? 'icon-arrow-up' : 'icon-arrow-down']"></i></el-button>
+					</el-form-item>
+				</div>
+			</el-form>
+		</div>
+    <el-button type="primary" class="reload-btn" @click="reload">刷新</el-button>
+		<div class="supplier-table">
+			<el-table :data="tableData" border style="width: 100%" height="600" v-loading="loading" >
+        <el-table-column type="selection" fixed width="55"></el-table-column>
+				<el-table-column type="index" fixed align="center" label="序号" width="66"></el-table-column>
+		    <el-table-column prop="number" fixed align="center" label="供应商编码" width="133">
+          <template scope="scope">
+            <el-button type="text"  @click="toSupplierDetail(scope.row.id)">{{scope.row.number}}</el-button>
+          </template>
+		    </el-table-column>
+		    <el-table-column prop="shortname" align="center" label="供应商简称" width="120">
+		    </el-table-column>
+		    <el-table-column prop="name" align="center" label="供应商名称" width="230">
+          <template scope="scope">
+            <span class="span-font">{{scope.row.name}}</span>
+          </template>
+		    </el-table-column>
+				<el-table-column prop="documentstatus" align="center" label="单据状态" width="120"></el-table-column>
+		    <el-table-column prop="paymentcondition" align="center" label="付款条件" width="136">
+		    </el-table-column>
+		    <el-table-column prop="forbidstatus" align="center" label="禁用状态" width="117">></el-table-column>
+				<el-table-column prop="suppliertrades" align="center" label="主营行业" width="117"></el-table-column>
+		    <el-table-column prop="contactName" align="center" label="联系人" width="138">
+		    </el-table-column>
+		    <el-table-column prop="contactSex" align="center" label="性别" width="78"></el-table-column>
+				<el-table-column prop="contactPost" align="center" label="职务" width="137"></el-table-column>
+				<el-table-column prop="contactTel" align="center" label="电话" width="165"></el-table-column>
+		    <el-table-column prop="contactMobile" align="center" label="手机" width="153"></el-table-column>
+		    <el-table-column prop="contactFax" align="center" label="传真" width="160"></el-table-column>
+				<el-table-column prop="contactEmail" align="center" label="电子邮箱" width="214"></el-table-column>
+		    <el-table-column prop="contactIm" align="center" label="QQ" width="144"></el-table-column>
+		  </el-table>
+		</div>
+		<div class="page-warrpe">
+			<el-pagination class="page-box" @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="form.pageindex" :page-sizes="page_sizes" layout="prev, pager, next,sizes, jumper" :total="Total">
+			</el-pagination>
+		</div>
+	</div>
+</template>
+
+<script>
+import api from 'api/request'
+// import $util from 'common/js/util.js'
+export default {
+	name: 'supplierList',
+	data() {
+		return {
+			form: {
+				supplierNumbers: '',
+				supplierName: '',
+				supplierShortName: '',
+				documentStatus: '',
+				forbidStatus: '',
+				createdate: null,
+        createTimeFrom: null,
+        createTimeTo: null,
+				approverdate: null,
+        approverDateFrom: null,
+        approverDateTo: null,
+        pageindex: 1,
+        pagesize: 100
+			},
+			show: false,
+			tableData: [],
+			loading: false,
+			// 分页
+      page_sizes: [100, 200, 300, 400],
+      Total: 100 // 总条数
+		}
+	},
+	methods: {
+		// form查询
+		creatDataChange(val) {
+      let data = val.split(' - ')
+      this.form.createTimeFrom = data[0]
+      this.form.createTimeTo = data[1]
+    },
+		approverDataChange(val) {
+      let data = val.split(' - ')
+      this.form.approverDateFrom = data[0]
+      this.form.approverDateTo = data[1]
+    },
+		search() {
+      this.getsupplierlist(this.form)
+    },
+		resetForm(formName) {
+      this.form.pageindex = 1
+      this.$refs[formName].resetFields()
+      this.getsupplierlist(this.form)
+    },
+    // 刷新
+    reload() {
+      this.getsupplierlist(this.form)
+    },
+		// table
+		toSupplierDetail(supplierCode) {
+			this.$router.push({path: '/Supplier/SupplierDetail/' + supplierCode})
+		},
+    // 分页
+    handleSizeChange(val) {
+      this.form.pagesize = val
+      this.getsupplierlist(this.form)
+    },
+    handleCurrentChange(val) {
+      this.form.pageindex = val
+      this.getsupplierlist(this.form)
+    },
+    getsupplierlist(data) {
+      let _t = this
+      this.loading = true
+      api.supplier.getsupplierlist(data).then(res => {
+        _t.loading = false
+        if (res.data.code == 200) {
+          _t.tableData = _t.supplierData(res.data.data.rows)
+          _t.Total = res.data.data.totalCount
+        }
+      })
+    },
+    supplierData(data) {
+      if (data == null) {
+        return []
+      }
+      for (var i = 0; i < data.length; i++) {
+        let contactList = []
+        if (data[i].contact != null && data[i].contact != '') {
+          contactList = data[i].contact.split('$')
+        }
+        data[i].contactName = contactList[0]
+        data[i].contactSex = contactList[1]
+        data[i].contactPost = contactList[2]
+        data[i].contactTel = contactList[3]
+        data[i].contactMobile = contactList[4]
+        data[i].contactFax = contactList[5]
+        data[i].contactEmail = contactList[6]
+        data[i].contactIm = contactList[7]
+      }
+      return data
+    }
+	},
+	created() {
+		this.$store.state.adminleftnavnum = '/Supplier/SupplierList'
+    this.getsupplierlist(this.form)
+	}
+}
+</script>
+
+<style lang="stylus">
+.supplierList-box
+	background-color:#fff
+	margin-left:46px
+	.reload-btn
+		width:80px
+		height:30px
+		padding:0
+		line-height:0
+		margin:30px 0 30px 0
+	.search-box
+		min-width:1450px
+		padding-top:40px
+		.form-wrap .search-left .search-item.el-form-item
+			margin-right:0px
+		.form-wrap
+			overflow:hidden
+			font-size:0
+			.search-left.search-left-w
+				width:1150px
+			.search-left
+				display:inline-block
+				width:750px
+				margin-left:0
+				vertical-align: middle
+				.el-form-item__label
+					color:#1f2d3d
+					font-size:14px
+				.quotation-input
+					width:260px
+			.search-right
+				display:inline-block
+				/*width:210px*/
+				font-size:0
+				.resetbtn
+					margin-left:6px
+					width:80px
+				.spreadbtn
+					margin-left:20px
+				.search-item
+					margin-left: 40px
+					.icon-arrow
+						color:#20a0ff
+						transition:0.7s
+						position:absolute
+						top:50%
+						margin-top:-7px
+						right:5px
+						&:hover
+							color:#4db3ff
+					.icon-arrow-down
+						transform: rotateZ(-90deg)
+					.icon-arrow-up
+						transform: rotateZ(90deg)
+					.icon-spread
+						margin-left:11px
+						font-size:12px
+			.el-select .el-input__inner
+				width:260px!important
+	.supplier-table
+		.el-table th
+			background-color:#eff2f7
+		.el-table__header-wrapper .el-table__header .cell,
+		.el-table__fixed-header-wrapper .el-table__header .cell
+			line-height:66px
+		.el-table .cell
+			line-height:54px
+			color:#5e6d82
+</style>

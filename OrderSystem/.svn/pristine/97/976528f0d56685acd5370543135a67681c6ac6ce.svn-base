@@ -1,0 +1,428 @@
+<template>
+	<div class="detail-box">
+		<el-card class="box-card">
+			<div class="nav">
+				<el-breadcrumb separator="/">
+				  <el-breadcrumb-item :to="{ path: '/Quotation/quotation' }">报价需求单</el-breadcrumb-item>
+				  <el-breadcrumb-item>{{$route.params.demandNumber}}</el-breadcrumb-item>
+				</el-breadcrumb>
+			</div>
+		</el-card>
+		<div class="main">
+			<div class="btn-box">
+				<el-button type="primary" @click="Result">确认建议售价</el-button>
+				<el-button @click="Save">保存</el-button>
+				<el-button @click="Export">导出</el-button>
+			</div>
+			<div class="tabs-box">
+				<el-tabs v-model="activeName" @tab-click="handleClick">
+				  <el-tab-pane label="基本信息" name="first">
+				  	<el-card class="tabs-box-card">
+				    	<div class="info-box">
+				    		<ul class="info-lists">
+				    			<li class="info-list"><span>报价需求单编号：</span><span>P201705100004C02</span></li>
+				    			<li class="info-list"><span>报价单编号：</span><span>P201705100004</span></li>
+				    			<li class="info-list"><span>询价时间：</span><span>2016-09-21  08:50:08</span></li>
+				    			<li class="info-list"><span>要求报价时间：</span><span>2</span></li>
+				    		</ul>
+				    		<ul class="info-lists">
+				    			<li class="info-list"><span>采购询价员：</span><span>Python</span></li>
+				    			<li class="info-list"><span>销售员：</span><span>Ryan</span></li>
+				    			<li class="info-list"><span>产品负责人：</span><span>Aden</span></li>
+				    			<li class="info-list"><span>报价员：</span><span>Ryan</span></li>
+				    		</ul>
+				    		<ul class="info-lists">
+				    			<li class="info-list"><span>备注：</span><span></span></li>
+				    		</ul>
+				    	</div>
+				    </el-card>
+				    </el-tab-pane>
+				    <el-tab-pane label="其他" name="second">
+				    	<el-card class="tabs-box-card">
+					    	<div class="info-box">
+					    		<ul class="info-lists info-other-lists">
+					    			<li class="info-list"><span>创建人：</span><span>Python</span></li>
+					    			<li class="info-list"><span>修改人：</span><span>Ryan</span></li>
+					    			<li class="info-list"><span>确认人：</span><span>Ryan</span></li>
+					    			<li class="info-list"><span>报价要求时间：</span><span>-</span></li>
+					    		</ul>
+					    		<ul class="info-lists info-other-lists">
+					    			<li class="info-list"><span>创建时间：</span><span>2017-05-13 17:39:28</span></li>
+					    			<li class="info-list"><span>修改时间：</span><span>2016-09-21  08:50:08</span></li>
+					    			<li class="info-list"><span>确认时间：</span><span>-</span></li>
+					    			<li class="info-list"><span>报价员：</span><span>-</span></li>
+					    		</ul>
+					    	</div>
+				    	</el-card>		
+				    </el-tab-pane>
+				</el-tabs>
+			</div>
+			<div class="main-tabs">
+				  <el-tabs v-model="activeName2" @tab-click="handleClick2" :row-class-name="tableRowClassName">
+				    <el-tab-pane label="明细信息" name="first">
+				    	<div class="main-info">
+				    		<div class="btn-box">
+									<div class="info-pos">
+										<el-button type="primary" class='supplier-btn' @click="Result">向供应商询价</el-button>
+										<el-button type="primary" class="supplier-tip-btn" :icon="showTipbtn?'arrow-up':'arrow-down'" @click="showTipbtn = !showTipbtn"></el-button>
+										<transition name="el-zoom-in-top">
+							        <ul class="info-por" v-show="showTipbtn">
+												<li @click="handleTipsupplier">提醒供应商报价</li>
+											</ul>
+							     </transition>
+									</div>
+									<div class="info-pos info-border">
+										<el-button class='supplier-btn' @click="handleQuotainExcellent">采用最优报价</el-button>
+										<el-button class="supplier-tip-btn" :icon="showChosebtn ? 'arrow-up':'arrow-down'" @click="showChosebtn = !showChosebtn"></el-button>
+										<transition name="el-zoom-in-top">
+							        <ul class="info-por" v-show="showChosebtn">
+												<li @click="handleQuotainNear">采用最近报价</li>
+												<li @click="handleQuotainLow">采用最低报价</li>
+											</ul>
+							      </transition>
+									</div>
+									<div class="info-pos">
+										<el-button class='upload-btn' @click="handleImport">导入</el-button>
+										<el-button class='upload-btn' @click="handleExport">导出</el-button>
+										<el-button class='upload-btn' @click="handleDownload">下载图纸</el-button>
+									</div>
+								</div>
+								<div class="table-box">
+									<el-table v-loading="listLoading" :data="tableData" border style="width: 100%" height="600" 
+										:row-class-name="tableRowClassName"
+										@selection-change="handleSelectionChange">
+										<el-table-column type="selection" width="55"></el-table-column>
+										<el-table-column type="index" width="65" label="序号">
+    								</el-table-column>
+								    <el-table-column align="center" prop="productCode" sortable label="产品编码" width="153">
+								    	<template scope="scope">
+								    		<span  class="c20a0ff" @click="toquotationDetail(scope.row.productCode)">{{scope.row.productCode}}</span>
+								    	</template>
+								    </el-table-column>
+								    <el-table-column align="center" prop="productName" sortable label="产品名称" width="153">
+								    </el-table-column>
+								    <el-table-column align="center" prop="quotationUnit" label="报价单位" width="153">
+								    </el-table-column>
+								    <el-table-column align="center" prop="quotationNumber" label="报价数量" width="153">
+								    </el-table-column>
+								    <el-table-column align="center" prop="statu" label="产品询价状态" width="188">
+								      <template scope="scope">
+								        <span class="icon-dot icon-statu" :class="quotedStatu(scope.row.statu)">{{scope.row.statu}}</span>
+								      </template>
+								    </el-table-column>
+								    <el-table-column align="center" prop="mintaxCost" sortable label="建议最低含税售价" width="188">
+								    	<template scope="scope">
+								    		<el-input-number v-model="scope.row.mintaxCost" :debounce="100" :controls="false" class="table-input"></el-input-number>
+								    	</template>	
+								    </el-table-column>
+								    <el-table-column align="center" prop="taxCost" label="建议含税售价*" width="137">
+								    	<template scope="scope">
+								    		<el-input-number v-model="scope.row.taxCost" :debounce="100" :controls="false" class="table-input"></el-input-number>
+								    	</template>
+								    </el-table-column>
+								    <el-table-column align="center" prop="minorderQuantity" label="最小订购量" width="137">
+								    	<template scope="scope">
+								    		<el-input-number v-model="scope.row.minorderQuantity" :debounce="100" :controls="false" class="table-input"></el-input-number>
+								    	</template>
+								    </el-table-column>
+								    <el-table-column align="center" prop="deliveryTime" label="货期（天 ）" width="137">
+								    	<template scope="scope">
+								    		<el-input-number v-model="scope.row.deliveryTime" :debounce="100" :controls="false" class="table-input"></el-input-number>
+								    	</template>
+								    </el-table-column>
+								    <el-table-column align="center" prop="unitPrice" label="含税单价" width="137">
+								    	<template scope="scope">
+								    		<el-input-number v-model="scope.row.unitPrice" :debounce="100" :controls="false" class="table-input"></el-input-number>
+								    	</template>
+								    </el-table-column>
+								    <el-table-column align="center" prop="isFreight" label="是否包含运费" width="137">
+								    	<template scope="scope">
+								    		<el-checkbox v-model="scope.row.isFreight">包含</el-checkbox>
+								    	</template>
+								    </el-table-column>
+								    <el-table-column align="center" prop="mark" label="工程备注" width="260">
+								    	<template scope="scope">
+								    		<el-input-number v-model="scope.row.mark" :debounce="100" :controls="false" class="table-input"></el-input-number>
+								    	</template>
+								    </el-table-column>
+								    <el-table-column align="center" label="操作" width="168">
+								    	<template scope="scope">
+								        <el-button @click="Checkquotation(scope.row.productCode)" :disabled="scope.row.historicalQuote" type="text" size="small">查看历史报价</el-button>
+								      </template>
+								    </el-table-column>
+								  </el-table>
+								</div>
+				    	</div>
+				    </el-tab-pane>
+				    <el-tab-pane label="供应商报价" name="second">配置管理</el-tab-pane>
+				  </el-tabs>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		name:'quotationDetail',
+		data() {
+			return {
+				activeName:"first",
+				activeName2:'first',
+				showTipbtn:false,
+				showChosebtn:false,
+				listLoading:false,
+				filters:[{ value:'1', text:'待报价'},{value: '2',text: '已报价'}, {value: '3',text: '已询价'}, {value: '4',text: '已作废'}],
+				tableData:[{
+					productCode:'SRDSB674ZZ',
+					productName:'产品名称',
+					quotationUnit:'pcs',
+					quotationNumber:20,
+					statu:1,
+					mintaxCost:'',
+					taxCost:'',
+					minorderQuantity:'',
+					deliveryTime:'',
+					unitPrice:'',
+					isFreight:false,
+					mark:'备着',
+					historicalQuote:false,
+				},{
+					productCode:'SRDSB674ZZ',
+					productName:'产品名称',
+					quotationUnit:'pcs',
+					quotationNumber:20,
+					statu:2,
+					mintaxCost:'',
+					taxCost:'',
+					minorderQuantity:'',
+					deliveryTime:'',
+					unitPrice:'',
+					isFreight:true,
+					mark:'备着',
+					historicalQuote:true,
+				}]
+			}
+		},
+		methods: {
+			Result() {
+				
+			},
+			Save() {
+				
+			},
+			Export() {
+				
+			},
+			handleClick(tab, event) {
+				console.log(tab, event);
+			},
+			handleClick2(tab, event) {
+				console.log(tab, event);
+			},
+			handleQuotainExcellent() {
+				
+			},
+			handleImport() {
+				
+			},
+			handleExport() {
+				
+			},
+			handleDownload() {
+				
+			},
+			handleTipsupplier() {
+				
+			},
+			handleQuotainNear() {
+				
+			},
+			handleQuotainLow() {
+				
+			},
+			toquotationDetail(val) {
+				console.log(val)
+			},
+			tableRowClassName(row, index) {
+				if (index%2===0) {
+          return 'info-row-bg';
+        } else{
+          return 'positive-row-bg';
+        }
+			},
+			handleSelectionChange() {
+				
+			},
+			Checkquotation(val) {
+				console.log(val)
+			},
+			quotedStatu(satau) {
+				if(satau == "1"){
+					return "icon-statu-a"
+				}else if(satau == "2") {
+					return "icon-statu-b"
+				}else if(satau == "3") {
+					return "icon-statu-c"
+				}else{
+					return "icon-statu-d"
+				}
+			}
+		}
+	}
+</script>
+
+<style lang="stylus">
+	@import url("../../../common/style/public.css");
+	.detail-box
+		padding:40px 46px
+		.box-card
+			background-color:#f8f8f8
+			.el-breadcrumb
+				font-size:14px
+				color:#5e6d82
+				.el-breadcrumb__item:last-child
+					font-size:16px
+		.main
+			margin-top:30px
+			background-color:#fff
+			.btn-box
+				margin-bottom:40px
+			.el-tabs__item
+				font-size:16px
+				line-height:56px
+				height:56px
+			.el-tabs__header
+				margin-bottom:30px
+			.tabs-box
+				.tabs-box-card
+					background-color:#f8f8f8
+					margin: 0 2px 4px 0
+				.info-box
+					padding:10px
+					.info-lists
+						overflow:hidden
+						width:100%
+						min-width:1120px
+						.info-list
+							float:left
+							font-size:0
+							line-height:30px
+							&:nth-child(1)
+								width:356px
+							&:nth-child(2)
+								width:290px
+							&:nth-child(3)
+								width:320px
+							&:nth-child(4)
+								width:150px
+							span
+								font-size:14px
+								color:#5e6d82
+			.main-tabs
+				margin-top:20px
+				.el-tabs__content
+					overflow:inherit
+				.info-border
+					border:1px solid #d1dbe5
+					border-radius:5px
+					&:hover
+						border-color:#0189ff
+				.info-pos
+					display:inline-block
+					position:relative
+					font-size:0
+					margin-right:20px
+					.upload-btn
+						width:104px
+						height:30px
+						vertical-align: middle
+						padding:0
+						line-height:30px
+						margin-left:20px
+						&:nth-child(1)
+							margin-left:0px
+					.supplier-btn
+						width:104px
+						height:30px
+						padding:0
+						line-height:30px
+						border:0
+						border-radius:5px 0 0 5px
+						vertical-align: middle
+					.supplier-tip-btn
+						width:30px
+						height:30px
+						border:0
+						border-radius:0 5px 5px 0 
+						margin-left:0
+						text-align:center
+						vertical-align: middle
+						margin:0
+						padding:0
+					.info-por
+						position:absolute
+						width:132px
+						border:1px solid #d1dbe5
+						top:35px
+						left:0
+						text-align:center
+						z-index:99
+						li
+							font-size:14px
+							width:100%
+							height:30px
+							line-height:30px
+							margin:4px 0
+							background-color:#e4e8f1
+							color:#1f2d3d
+							cursor: pointer
+							&:hover
+								background-color:#20a0ff
+								color:#fff
+				.table-box
+					.info-row-bg
+						background-color:#f8f8f8
+					.positive-row-bg
+						background-color:#fff
+					.c20a0ff
+						cursor:pointer
+					.el-table th
+						background-color:#eff2f7
+					.el-table__header-wrapper .el-table__header .cell,
+					.el-table__fixed-header-wrapper .el-table__header .cell
+						line-height:70px
+					.el-table .cell
+						line-height:54px
+					.table-input .el-input>input
+						border:0
+						border-radius:0
+						background-color:transparent
+						text-align:center
+						color:#666
+						height:54px
+						padding:0
+						&:focus
+							border:1px solid #20a0ff
+					.el-input-number
+						width:100%
+					.el-table .cell
+						padding-left:0
+						padding-right:0
+						text-align:center
+					.icon-dot
+						&:before
+							content:''
+							display:inline-block
+							width:7px
+							height:7px
+							border-radius:50%
+							margin-right:7px
+					.icon-statu-a:before
+						background-color:#ff4949
+					.icon-statu-b:before
+						background-color:#13ce66
+					.icon-statu-c:before
+						background-color:#20a0ff
+					.icon-statu-d:before
+						background-color:#999999
+</style>

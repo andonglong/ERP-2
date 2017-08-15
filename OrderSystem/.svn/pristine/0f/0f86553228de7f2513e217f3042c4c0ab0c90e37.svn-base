@@ -1,0 +1,986 @@
+<template>
+	<div class="order-box">
+		<!--头部筛选-->
+		<div class="search-box">
+			<el-form ref="form" :model="form" :inline="true" class='form-wrap'>
+			  <div class="search-left">
+			  	<el-form-item label="产品型号" prop='productmodel' label-width="85px" class='search-item'>
+	  				<el-input v-model="form.productmodel" class="search-item-input"></el-input>
+				  </el-form-item>
+				  <el-form-item label="客户名称" prop='clientname' label-width="85px"  class='search-item'>
+	  				<el-input v-model="form.clientname" class="search-item-input"></el-input>
+				  </el-form-item>
+					<el-form-item label="下单日期" prop='createtime' label-width="85px" class='search-item'>
+				    <el-date-picker
+				      v-model="form.createtime"
+				      type="daterange"
+				      placeholder="选择日期范围"
+				      @change="createdateChange">
+				    </el-date-picker>
+				  </el-form-item>
+				  
+					<el-collapse-transition>
+	        	<div v-if='show'>
+	        		<el-form-item label="产品名称" prop='productname' label-width="85px" class='search-item'>
+			  				<el-input v-model="form.productname" class="search-item-input"></el-input>
+						  </el-form-item>
+				  		<el-form-item label="客户订单号" prop='outorderid' label-width="85px" class='search-item'>
+			  				<el-input v-model="form.outorderid" class="search-item-input"></el-input>
+						  </el-form-item>
+						  <el-form-item label="交货日期" prop='deliverydatetime' label-width="85px"  class='search-item'>
+						    <el-date-picker
+						      v-model="form.deliverydatetime"
+						      type="daterange"
+						      placeholder="选择日期范围"
+						      @change="deliverydateChange">
+						    </el-date-picker>
+						  </el-form-item>
+						  <el-form-item label="跟单号" prop='inorderid' label-width="85px"  class='search-item'>
+			  				<el-input v-model="form.inorderid" class="search-item-input"></el-input>
+						  </el-form-item>
+						  <el-form-item label="图纸" prop='ispicture' label-width="85px"  class='search-item'>
+						  	<el-select v-model="form.ispicture" placeholder="请选择" class="search-item-input">
+							    <el-option
+							      v-for="item in [{value: '',label: '全部'},{value: '1',label: '有图'},{value: '0',label: '无图'}]"
+							      :key="item.value"
+							      :label="item.label"
+							      :value="item.value">
+							    </el-option>
+							  </el-select>
+						  </el-form-item>
+        		 	<el-form-item label="订单状态" prop='orderitemstatus' label-width="85px" class='search-item'>
+	        		 	<el-select v-model="form.orderitemstatus" placeholder="请选择" class="search-item-input">
+							    <el-option
+							      v-for="item in [{value: '',label: '全部'},{value: '正常',label: '正常'},{value: '关闭',label: '关闭'}]"
+							      :key="item.value"
+							      :label="item.label"
+							      :value="item.value">
+							    </el-option>
+							  </el-select>
+						  </el-form-item>
+						  
+						  <el-form-item label="流程名称" prop='technologyname' label-width="85px"  class='search-item'>
+			  				<el-input v-model="form.technologyname" class="search-item-input"></el-input>
+						  </el-form-item>
+						  <el-form-item label="流程状态" prop='technologystatus' label-width="85px"  class='search-item'>
+						  	<el-select v-model="form.technologystatus" placeholder="请选择" class="search-item-input">
+							    <el-option
+							      v-for="item in technologystatusArry"
+							      :key="item.value"
+							      :label="item.label"
+							      :value="item.value">
+							    </el-option>
+							  </el-select>
+						  </el-form-item>
+	        	</div>
+	     		</el-collapse-transition>
+				</div>
+			 	<div class="search-right">
+				  <el-form-item class='search-item'>
+				    <el-button type="primary" @click="onSubmit" >查询
+				    </el-button><el-button @click="onRest('form')">重置</el-button>
+				  </el-form-item>
+			 	</div>
+			</el-form>
+			<div class="search-silder-btn" @click="show = !show">
+		  	<i class="el-icon-d-arrow-left icon-arrow" :class="[show ? 'icon-arrow-up' : 'icon-arrow-down']" ></i>
+		  </div>
+		</div>
+		<!--功能列表区-->
+		<div class="order-option">
+			<div class="order-option-defined">
+				<el-button class="order-option-defined-title" @click="showOption = !showOption">自定义列</el-button>
+				<transition name="el-zoom-in-top">
+      		<div class="order-option-box" v-if="showOption">
+      			<div class="order-option-list">
+							<el-tree class="order-option-tree" 
+								:data="optionData" show-checkbox node-key="id"  
+								:default-checked-keys="checkedArr" 
+								:props="defaultProps"
+								@node-click="getCheckedNodes">
+							</el-tree>
+						</div>
+						<div class="option-btn">
+								<el-button @click="showOption = !showOption">取消</el-button>
+								<el-button type="primary" @click="optionConfirm">确定</el-button>
+						</div>
+      		</div>
+   			</transition>
+			</div>
+			<el-pagination class="page-box"
+	      @size-change="handleSizeChange"
+	      @current-change="handleCurrentChange"
+	      :current-page="1"
+	      :page-sizes="page_sizes"
+	      :page-size="page_sizes[0]"
+	      layout="total, sizes, prev, pager, next, jumper"
+	      :total="Total">
+	    </el-pagination>
+	    <el-button class="import-order" @click="dialogUploadorder = true">导入订单</el-button>
+	    <el-button class="import-order" @click="exportExcel">导出Excel</el-button>
+	    <!--<el-button class="import-order">导入Excel</el-button>-->
+	    <el-button class="import-order" @click="printPage">打印二维码</el-button>
+	    <div class="mark-expedited">
+	    	<el-button class="import-order" @click="markUrgent('false')">标记加急</el-button>
+	    	<el-button class="import-order cancel-expedited" @click="markUrgent('true')">取消加急</el-button>
+	    </div>
+	    <div class="mark-expedited">
+	    	<el-button class="import-order" @click="hardClosed('true')">强制关闭</el-button>
+	    	<el-button class="import-order cancel-expedited" @click="hardClosed('false')">取消关闭</el-button>
+	    </div>
+	    <el-button class="import-order" @click="saveData">保存数据</el-button>
+		</div>
+		<!--列表区域-->
+		<div class="order-table">
+			<div class="order-table-header">
+				<el-table v-loading="listLoading" element-loading-text="拼命加载中" 
+					:data="tableData3" border highlight-current-row style="width: 100%" height="700" empty-text=" " 
+					:default-sort = "{prop: 'date', order: 'descending'}"
+					@selection-change="handleSelectionChange">
+			    <el-table-column fixed type="selection" align="center" width="50"></el-table-column>
+			    <el-table-column fixed type="index" align="center" label="序号" width="57"></el-table-column>
+			    <el-table-column fixed prop="createtime" sortable align="center" label="下单日" width="106"></el-table-column>
+			    <el-table-column fixed prop="outorderid" align="center" label="客户订单号" width="133"></el-table-column>
+			    <el-table-column fixed prop="productname" align="center" label="产品名称" width="120"></el-table-column>
+			    <el-table-column fixed prop="productmodel" align="center" label="产品型号" width="164">
+			    	<template scope="scope">
+			    		<div class="price-box">
+			    			<i class="icon-photo" v-show="scope.row.ispicture"></i>
+			    			<div class="icon-tip-box">
+			    				<span class="icon-urgent" v-show="scope.row.isurgent==1">加急</span>
+			    				<span class="icon-repetition bgc2" v-show="scope.row.repeatamount>1">重复</span>
+			    			</div>
+			    			<span class='font-color'>{{scope.row.productmodel}}</span>
+			    		</div>
+			    	</template>
+			    </el-table-column>
+			    <el-table-column fixed prop="orderamount" align="center" sortable label="订单数量" width="113">
+			    	<template scope="scope">
+			    		<!--<div class="input-shade">{{scope.row.planamount}}</div>-->
+       				<el-input v-model="scope.row.orderamount" class="table-input" placeholder=""></el-input>
+      			</template>
+			    </el-table-column>
+			    <el-table-column fixed prop="planamount" align="center" sortable label="计划数量" width="115" class-name="bgcolor">
+			    	<template scope="scope">
+       				<el-input v-model="scope.row.planamount" class="table-input" placeholder=""></el-input>
+      			</template>
+			    </el-table-column>
+			    <el-table-column fixed prop="deliverydatetime" align="center" sortable label="交货日期" width="138" class-name="bgcolor">
+			    	<template scope="scope">
+			    		<el-date-picker v-model="scope.row.deliverydatetime" class="table-date" type="date" 
+			    			:clearable="false" size="small" editable placeholder="选择日期" 
+			    			@change="deliverydatetimeChange"
+			    			format="yyyy-MM-dd"
+			    			:picker-options="pickerOptions"></el-date-picker>
+							<div class="icon-tip-box">
+								<span class="icon-repetition" :class="scope.row.dateDiff.name">{{scope.row.dateDiff.num}}</span>
+		    				<!--<span class="icon-repetition" :style="{color:scope.row.dateDiff.color}">{{scope.row.dateDiff.dec}}</span>-->
+		    			</div>
+			    	</template>
+			    </el-table-column>
+			    <el-table-column prop="inorderid" align="center" sortable label="跟单号" width="146"></el-table-column>
+			    <el-table-column prop="serialno" align="center" label="产品序号" width="87"></el-table-column>
+			    <el-table-column prop="clientname" align="center" label="客户名称" width="237"></el-table-column>
+			    <el-table-column prop="price" align="center" sortable label="单价" width="86" class-name="bgcolor">
+			    	<template scope="scope">
+			    		<!--<div class="input-shade">{{scope.row.planamount}}</div>-->
+       				<el-input v-model="scope.row.price" class="table-input" placeholder=""></el-input>
+      			</template>
+			    </el-table-column>
+			    <el-table-column prop="totle" align="center" sortable label="总金额" width="86"></el-table-column>
+			    <el-table-column prop="technologyroute" align="center" label="工艺路线" width="330" class-name="bgcolor">
+			    	<template scope="scope">
+			    		<div>
+			    			<el-input v-model="scope.row.technologyroute" class="table-input" placeholder=""></el-input>
+			    			<span class="icon iconfont icon-jiagong technologyroute-icon" @click="showTechnologyroute(scope.row)"></span>
+			    		</div>
+			    	</template>
+			    </el-table-column>
+			    <el-table-column prop="technologyamount" align="center" sortable label="工序数" width="76" class-name="bgcolor"></el-table-column>
+			    <el-table-column prop="technologyamount" align="center" sortable label="工艺路线完成比" width="169">
+			    	<template scope="scope">
+			    		<span class="completePercent">{{scope.row.technologyamount}}</span>
+			    		<span class="bgpercent" :style="{width:scope.row.technologyamount}"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    	</template>
+			    </el-table-column>
+			    <el-table-column prop="technologyname" align="center" label="当前流程名称" width="162">
+			    	<template scope="scope">
+			    		<div class="price-box">
+			    			<div class="icon-tip-box">
+			    				<span class="icon-urgent" v-show="scope.row.Isout==1">外协</span>
+			    			</div>
+			    			<span class='font-color'>{{scope.row.technologyname}}</span>
+			    		</div>
+			    	</template>
+			    </el-table-column>
+			    <el-table-column prop="completeamount" align="center" label="完成数量" width="130" class-name="bgcolor">
+			    	<template scope="scope">
+			    		<!--<div class="input-shade">{{scope.row.planamount}}</div>-->
+       				<el-input v-model="scope.row.completeamount" class="table-input" placeholder=""></el-input>
+      			</template>
+			    </el-table-column>
+			    <el-table-column prop="qualifiedamount" align="center" label="合格数量" width="130" class-name="bgcolor">
+			    	<template scope="scope">
+			    		<!--<div class="input-shade">{{scope.row.planamount}}</div>-->
+       				<el-input v-model="scope.row.qualifiedamount" class="table-input" placeholder=""></el-input>
+      			</template>
+			    </el-table-column>
+			    <el-table-column prop="technologystatus" align="center" label="状态" width="97" class-name="bgcolor">
+			    	<template scope="scope">
+			    		<el-select v-model="scope.row.technologystatus" placeholder="请选择" class="search-item-input">
+							    <el-option
+							      v-for="item in technologyitemstatus"
+							      :key="item.value"
+							      :label="item.label"
+							      :value="item.value">
+							    </el-option>
+							  </el-select>
+						  </el-form-item>
+			    	</template>
+			    </el-table-column>
+			    <el-table-column prop="completePercent" align="center" label="完成比例" width="130">
+			    	<template scope="scope">
+			    		<span class="completePercent">{{scope.row.completePercent}}</span>
+			    		<span class="bgpercent" :style="{width:scope.row.completePercent}"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    		<span class="bgline"></span>
+			    	</template>
+			    </el-table-column>
+			    <el-table-column prop="lasttime" align="center" sortable label="最近操作时间" width="182">
+			    	<template scope="scope">
+			    		<span>{{scope.row.lasttime | formatLasttime}}</span>
+			    		<span class="lasttime-tip" v-show="scope.row.logcount>0">{{scope.row.logcount}}</span>
+			    	</template>
+			    </el-table-column>
+  			</el-table>
+				<div class="order-empty" v-if="orderEmptyTip">
+					<p v-show="EmptyTip"><i class="order-empty-icon"></i>还未导入订单，立即	<span class="font-color" @click="dialogUploadorder = true">导入订单</span></p>
+					<p v-show="!EmptyTip"><i class="el-icon-information empty-icon-info"></i>抱歉，没有匹配的结果</span></p>
+				</div>
+			</div>
+		</div>
+		<!--固定底部-->
+		<div class="order-foot">
+			<v-foot></v-foot>
+		</div>
+		<!--页面浮层-->
+		<div class="tipbox">
+			<el-dialog title="导入订单" :visible.sync="dialogUploadorder" class="dialog-upload">
+			  <v-uploadorder :dialogUploadorder='dialogUploadorder' v-on:listenUploadorder="Uploadorder"></v-uploadorder>
+			</el-dialog>
+			
+			<el-dialog title="工艺路线" :visible.sync="dialogTechnologyroute" class="dialog-technology">
+			 	<div v-if="dialogTechnologyroute">
+			 		 <v-technologyroute :TechnologyrouteInfo='TechnologyrouteInfo' v-on:listenTechnologyroute="Technologyroute"></v-technologyroute>
+			 	</div>
+			</el-dialog>
+		</div>
+	</div>
+</template>
+
+<script>
+	import api from 'api/request'
+	import base from './order'
+	import foot from './footer'
+	import uploadorder from './uploadorder'
+	import technologyroute from './technologyroute'
+	export default {
+    data() {
+      return {
+//筛选区域
+        form: {
+          productmodel: '',
+          productname:'',
+          clientname:'',
+          outorderid:'',
+          inorderid:'',
+          ispicture:'',
+          createtime:'',
+          deliverydatetime:'',
+          startcreatetime:null,
+          endcreatetime: null,
+          startdeliverydatetime:null,
+          enddeliverydatetime:null,
+          orderitemstatus:'',
+          technologyname:'',
+          technologystatus:'',
+          companyid:'',
+          factoryid:'',
+          sessionid:'',
+//        pageindex:'1',
+//        pagesize:"10"
+        },
+        technologystatusArry:[{value: '',label: '全部'},{value: '0',label: '待来料'},{value: '1',label: '待处理'},{value: '2',label: '进行中'},{value: '3',label: '已完成'}],
+        technologyitemstatus:[{value: '0',label: '待来料'},{value: '1',label: '待处理'},{value: '2',label: '进行中'},{value: '3',label: '已完成'}],
+        show: false,
+//功能列表区
+			//自定义下拉框数据
+        optionData: [],
+        checkedArr:[],
+        defaultProps: {
+          children: 'children',
+          label: 'label'
+        },
+        showOption:false,
+      //分页
+      	page_sizes:[10,20,30,50,100,200,500,1000],
+      	Total:0,		//总条数
+      //导入订单
+      	dialogUploadorder:false,
+      	dialogTechnologyroute:false,
+//表格
+      	tableData3: [],
+        listLoading:false,
+        multipleSelection: [],    //存储选中的行
+        pickerOptions: {
+          disabledDate(time) {
+            return time.getTime() < Date.now() - 8.64e7;
+          }
+        },
+        orderDate:"",
+      	EmptyTip:true,
+      	TechnologyrouteInfo:null,
+      }
+    },
+    computed:{
+    	orderEmptyTip() {
+    		return !this.listLoading && this.tableData3.length == 0
+    	},
+    },
+    methods: {
+//头部筛选
+		//查询
+			//选择下单日期
+			createdateChange(val) {
+				let data = val.split(" - ")
+				this.form.startcreatetime = data[0]
+				this.form.endcreatetime = data[1]
+			},
+			//选择交货日期
+			deliverydateChange(val) {
+				let data = val.split(" - ")
+				this.form.startdeliverydatetime = data[0]
+				this.form.enddeliverydatetime = data[1]
+			},
+			//查询按钮
+      onSubmit() {
+      	this.EmptyTip = false
+      	this.getOrderList(this.form)
+      },
+			//重置按钮
+      onRest(formName) {
+      	this.$refs[formName].resetFields()
+      	this.getOrderList(this.form)
+      },
+      
+//功能区
+		//自定义列
+			getCheckedNodes(data) {
+				console.log(data)
+			},
+			optionConfirm() {
+				
+			},
+		//分页
+			handleSizeChange(val){
+				this.form.pagesize = val
+				this.getOrderList(this.form)
+			},
+      handleCurrentChange(val) {
+      	this.form.pageindex = val
+      	this.getOrderList(this.form)
+      },
+      //导入订单浮层
+      Uploadorder(data){
+    		this.dialogUploadorder = data
+    	},
+    	//工艺路线 组件回调
+    	Technologyroute(data){
+    		this.dialogTechnologyroute = false
+    	},
+    	//导出Excel
+    	exportExcel() {
+    		if(base.checkChoseorder(this.multipleSelection.length)){
+	  			console.log('导出Excel')
+	  		}
+    	},
+    	//打印二维码
+    	printPage() {
+	  		if(base.checkChoseorder(this.multipleSelection.length)){
+	  			console.log('打印二维码')
+	  			let detailinfo = ""
+	  			this.multipleSelection.map((value,index,arr) => {
+	  				if(index == arr.length-1){
+							detailinfo +="inorderid="+ value.inorderid +"*"+"productmodel="+ value.productmodel +"*"+"serialno="+ value.serialno
+						}else{
+							detailinfo += "inorderid="+ value.inorderid +"*"+"productmodel="+ value.productmodel +"*"+"serialno="+ value.serialno +"$"
+						}
+	  			})
+	  			this.$router.push({ path: '/Print/'+detailinfo });
+	  		}
+    	},
+    	//是否加急
+    	markUrgent(bool) {
+    		var _t = this
+    		if(base.checkChoseorder(this.multipleSelection.length)){
+    			let parms = {
+    				companyid:this.form.companyid,
+    				factoryid:this.form.factoryid,
+    				sessionid:this.form.sessionid,
+    				productmodel:this.multipleSelection[0].productmodel,
+    				serialno:this.multipleSelection[0].serialno,
+    				inorderid:this.multipleSelection[0].inorderid,
+    				isurgent:null
+    			}
+    			if(bool==="true"){
+    	//取消加急
+	    			this.urgentTip("取消加急",function(){
+	    				parms.isurgent = 0
+	    				_t.updateorderforurgent(parms)
+	    			})
+	    		}else{
+	    //标记加急
+	    			this.urgentTip("标记加急",function(){
+	    				parms.isurgent = 1
+	    				_t.updateorderforurgent(parms)
+	    			})
+	    		}
+    		}
+    	},
+    	updateorderforurgent(parms) {
+    		var _t = this
+    		api.order.updateorderforurgent(parms).then(res => {
+					if(res.data.code==200){
+						_t.$message({
+		          message: '更新成功',
+		          type: 'success',
+		          onClose:function(){
+		          	location.reload()
+		          }
+		       })
+					}
+				})
+    	},
+    	urgentTip(message,callback){
+    		this.$confirm('确定要'+message+'所选产品吗?', message, {
+	          confirmButtonText: '确定',
+	          cancelButtonText: '取消',
+	          type: 'warning'
+	       }).then(() => {
+	       		callback()
+	        }).catch(() => {
+        	});
+    	},
+    	//关闭按钮
+    	hardClosed(bool) {
+    		var _t = this
+    		if(base.checkChoseorder(this.multipleSelection.length)){
+    			let parms = {
+    				companyid:this.form.companyid,
+    				factoryid:this.form.factoryid,
+    				sessionid:this.form.sessionid,
+    				inorderid:this.multipleSelection[0].inorderid,
+    				productmodel:this.multipleSelection[0].productmodel,
+    				serialno:this.multipleSelection[0].serialno,
+    				orderitemstatus:0
+    			}
+    			if(bool=="true"){
+	    	//强制关闭
+	    			this.urgentTip("强制关闭",function(){
+	    				parms.orderitemstatus = 1
+	    				_t.updateorderforstatus(parms)
+	    			})
+	    		}else {
+	    	//取消关闭
+	    			this.urgentTip("取消关闭",function(){
+	    				parms.orderitemstatus = 0
+	    				_t.updateorderforstatus(parms)
+	    			})
+	    		}
+    		}
+    	},
+    	updateorderforstatus(parms){
+    		var _t = this
+    		api.order.updateorderforstatus(parms).then(res => {
+					if(res.data.code==200){
+						_t.$message({
+		          message: '成功',
+		          type: 'success',
+		          onClose:function(){
+		          	location.reload()
+		          }
+		       })
+					}
+				})
+    	},
+    	//保存数据
+    	saveData() {
+    		var _t = this
+    		let query = {}
+    		query.companyid = this.form.companyid
+    		query.factoryid = this.form.factoryid
+    		query.inorderid = this.multipleSelection[0].inorderid
+    		query.serialno = this.multipleSelection[0].serialno
+    		query.productmodel = this.multipleSelection[0].productmodel
+    		query.orderamount = this.multipleSelection[0].orderamount
+    		query.planamount = this.multipleSelection[0].planamount
+    		query.technologystatus = this.multipleSelection[0].technologystatus	//状态
+    		query.qualifiedamount = this.multipleSelection[0].qualifiedamount
+    		query.completeamount = this.multipleSelection[0].completeamount
+    	
+    		let d = new Date(this.multipleSelection[0].deliverydatetime)
+				this.multipleSelection[0].deliverydatetime = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+				
+    		query.deliverydatetime = this.multipleSelection[0].deliverydatetime
+    		query.sessionid = this.form.sessionid
+    		api.order.upodateorders(query).then(res => {
+    			if(res.data.code==200){
+    				_t.$message({
+		          message: '保存成功',
+		          type: 'success',
+		          onClose:function(){
+		          	location.reload()
+		          }
+		       })
+    			}else{
+    				console.log(res.data.data)
+    				this.$alert('保存失败', '提示', {
+		          confirmButtonText: '确定',
+		          callback: action => {
+		            
+		          }
+        		});
+    			}
+    		})
+    	},
+//表格区
+			//select
+			handleSelectionChange(val) {
+				this.multipleSelection = val;
+			},
+			showTechnologyroute(row) {
+				this.TechnologyrouteInfo = {
+					companyid:row.companyid,
+					factoryid:row.factoryid,
+					inorderid:row.inorderid,
+					productmodel:row.productmodel,
+					serialno:row.serialno
+				}
+				this.dialogTechnologyroute = true
+			},
+			//交货日期
+			deliverydatetimeChange(val) {
+				console.log(val)
+			},
+//数据请求
+			getOrderList(pram) {
+				var _t = this
+				this.listLoading = true
+	    	api.order.getorders(pram)
+	      	.then(res => {
+	         	if(res.data.code==200){
+	         		_t.listLoading = false
+		    			let arr = res.data.datalist
+			    		for(let i = 0;i<arr.length;i++){
+			    			arr[i].createtime =  arr[i].createtime.split(" ")[0]   //去掉时分秒
+			    			arr[i].totle = arr[i].price * arr[i].orderamount
+			    			arr[i].dateDiff = base.checkDateDiff(arr[i])
+			    			let per = Math.round(arr[i].qualifiedamount / arr[i].orderamount * 10000) / 100.00
+			    			arr[i].completePercent = isNaN(per)? '0': per + "%"
+			    		}
+			    		_t.Total = res.data.datasum
+			    		_t.tableData3 = arr
+			    	}else{
+		    			_t.$alert(data.errorMessage, '错误提示', {
+		          	confirmButtonText: '确定',
+		        	})
+			    	}
+	     	})
+			},
+			//自定义下拉框
+			checkList(data) {
+				var checkArr = []
+				for(let i=0; i<data.length; i++){
+					if(data[i].checked === "true"){
+						checkArr.push(data[i].id)
+					}
+					if(data[i].children !=undefined && data[i].children.length>0){
+						for(let j=0; j<data[i].children.length; j++){
+							if(data[i].children[j].checked === "true"){
+									checkArr.push(data[i].children[j].id)
+							}
+						}
+					}
+				}
+				this.optionData = data
+				this.checkedArr = checkArr
+			}
+    },
+    created() {
+			let query = this.form
+			let userInfo = JSON.parse(sessionStorage.getItem('userInfo'))
+			let sessionid = sessionStorage.getItem('token')
+			if(userInfo == null || sessionid == null){
+				this.$router.push('/');
+			}
+			this.form.companyid = userInfo.companyId
+			this.form.factoryid = userInfo.factoryId
+			this.form.sessionid = sessionid
+				
+    	this.getOrderList(query)
+    	this.checkList(base.checkList())
+    },
+    filters: {
+      formatLasttime(time) {
+        let date = time.split(':') 
+        date.pop()
+        return date.join(":")		//去掉秒
+      }
+    },
+    components:{
+    	'v-foot':foot,
+    	'v-uploadorder':uploadorder,
+    	'v-technologyroute':technologyroute
+    }
+  }
+</script>
+
+<style lang="stylus">
+	btn()
+		margin:0
+		padding:0
+		text-align:center
+		width:80px
+		height:28px
+		line-height:28px
+		border-radius:0
+		font-size:14px
+		vertical-align: middle
+	txt-hid()
+		overflow:hidden
+		text-overflow:ellipsis
+		white-space: nowrap;
+	.order-box
+		background-color:#fff
+		min-width:1200px
+		margin-left:10px
+		.order-foot
+			height:84px
+			width:100%
+			background-color:#1f2d3d
+		.order-table
+			width:100%
+			height:700px
+			font-size:16px
+			color:#666666
+			.order-table-header
+				position:relative
+				.icon-photo
+					position:absolute
+					left:0
+					top:0
+					display:inline-block
+					width:31px
+					height:31px
+					background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB8AAAAfCAYAAAAfrhY5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6MTZGRjFGNTY1QTVEMTFFNzhBQjE4MEY5QUYwQkREMjkiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6MTZGRjFGNTc1QTVEMTFFNzhBQjE4MEY5QUYwQkREMjkiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDoxNkZGMUY1NDVBNUQxMUU3OEFCMTgwRjlBRjBCREQyOSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDoxNkZGMUY1NTVBNUQxMUU3OEFCMTgwRjlBRjBCREQyOSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/PlfFDTQAAAJ9SURBVHjaYnQPy/zPMDCgkWmgLAbiBqaBshjEYBooi0GABVnGSFuVwcvVBsL5D0oK/xn+w9kIMRDYtHkbw/kbDxlYOHjJshjDchU5EQZNNSWGjUCDwXxlJYavX78yPH/xEsUUf18vhtt37jKcPnOegYmZlYGJlYNki3EG+8LFKxiOHz/FYGJixKCoqAB2BAxfv34Trg4UBr8+vWb4//cPyRbjtFxNRYmho62B4fu3bwzHjp9kuHP3HlhcW0uD4cOHjyhq////B3TASzBNisUYwQ4Dbq5ODEuWrWSQkpRkcHF2ZHj9+jWDqKgoQ0VVA8OtO/cw1P8D+vw3MATY+MWJthin5adOn2UwMzVm0NXVBvO5ubkZuLk4waEBksMG/v7+wfD7yzsGVh4hoizGaXlEeDDDq1evGbi4uBi+AYMexL58+SrDs+fPwaGBCzAyMRFtMU7Li0prGIICvBnOnD3PoKGuxvD5yxcGSQlxhnUbtoLlnRztMPSwcvEzsHAJNL6/cahBUMOOgWzLRYSFGGysLRkU5OUYOIG+ByU8EMjJTGGYMn0OXotJKXGwWi4kKMAwY+Y8MFtAgJ9BRkYKHtygnEANi7FaDvIpKGHhAqAgB6mh1GIMy0EFy+fPn+FxiwuA0sP1248oshjD8vsvPgCLza0ENW3edYRiizFKOFAlwcYvxsDIiLuyozSo8RavTKycDOwCEsAKg4WmFuMs2xmBNRWbgCQDM1JtRW2LcWY1sAOAQQ8qq0FFJqjkorbFeC2H+xhaVlPbYqIsh5XVxBaZFMc5KdUirSynqcX4LKe5xbgsp4vF2Cynm8XoltPVYmTL6W4xzPIBsRgEAAIMADRQ3ylRsMcGAAAAAElFTkSuQmCC")
+					background-repeat: no-repeat
+					background-size:100%
+				.icon-tip-box
+					position:absolute
+					right:0
+					top:0
+					font-size:0
+					height:20px
+				.icon-urgent,.icon-repetition
+					display:inline-block
+					height:20px
+					line-height:20px
+					font-size:12px
+					padding:0 5px
+					color:#fff
+				.icon-urgent
+					background-color:#ff4949
+					vertical-align: top
+				.icon-repetition
+					margin-left:5px
+					vertical-align: top
+				.icon-repetition.bgc2
+					background-color:#20a0ff
+				.icon-repetition.bgc5
+					background-color:#f7ba2a
+				.icon-repetition.bgc7
+					background-color:#ff4949
+				.icon-repetition.bgc9
+					background-color:#999999
+				.table-input>input
+					border:0
+					border-radius:0
+					background-color:transparent
+					text-align:center
+					color:#666
+				.input-shade
+					position:absolute
+					right:0
+					top:0
+					left:0
+					bottom:0
+					text-align:center
+					line-height:70px
+					/*z-index:99*/
+				.table-date>input
+					border:0
+					border-radius:0
+					background-color:transparent
+					color:#666
+				.table-date.el-date-editor.el-input
+					width:120px
+				.technologyroute-icon
+					position:absolute
+					font-size:70px
+					line-height:90px
+					top:0
+					bottom:0
+					right:0
+					transition:transform 0.25s ease-out
+					transform-origin:center
+					&:hover
+						color:#20a0ff
+						cursor:pointer
+						transform:rotateZ(45deg)
+				.completePercent
+					position:absolute
+					top:50%
+					left:50%
+					z-index:10
+					color:#333333
+					transform:translate(-50%,-50%)
+				.bgpercent
+					position:absolute
+					display:inline-block
+					top:0
+					left:0
+					height:100%
+					background-color:#00ff00
+					z-index:8
+				.bgline
+					position:absolute
+					top:0
+					bottom:0
+					height:100%
+					width:1px
+					background-color:#fff
+					opacity:0.2
+					left:10%
+					z-index:9
+				.lasttime-tip
+					position:absolute
+					display:inline-block
+					top:4px
+					right:10px
+					background-color:#ff0000
+					color:#fff
+					width:20px
+					height:20px
+					text-align:center
+					line-height:20px
+					border-radius:50%
+			.font-color
+				color:#20a0ff
+				cursor:pointer
+				&:hover
+					color:#4db3ff
+			.order-empty
+				position:absolute
+				left:50%
+				top:150px
+				transform: translateX(-50%)
+				z-index:999
+				.empty-icon-info
+					margin-right:10px
+			.el-table__fixed, .el-table__fixed-right
+				box-shadow: none
+				z-index:11
+			.el-table
+				font-size:14px
+				color:#666
+			.el-table__fixed-header-wrapper thead div
+				color:#333
+			.el-table .cell
+				line-height:70px
+			.el-table	.el-table__header .cell
+				line-height:31px
+			.el-table .cell, .el-table th>div
+				padding-left:0
+				padding-right:0
+			.el-select .el-input__inner
+				border: 0
+				background-color: transparent
+				padding-right: 20px
+				text-align:center
+			.el-table th
+				background-color:#eef1f6
+		.order-option
+			min-width:1295px
+			margin-bottom:-1px
+			font-size:0
+			background-color:#f8fafe
+			padding-top:5px
+			.order-option-defined
+				position: relative
+				display:inline-block
+				width:80px
+				text-align:center
+				vertical-align: bottom
+				.order-option-defined-title
+					btn()
+					border-color:#dfe6ec
+				.order-option-box
+					position:absolute
+					left:0px
+					top:27px
+					z-index:999
+					border: 1px solid #d1dbe5
+					background-color: #fff
+					.order-option-list
+						height:300px
+						width:200px
+						text-align:left
+						overflow-y:scroll
+						.order-option-tree
+							width:100%
+							border:0
+					.option-btn
+						padding:10px
+						border-top:1px solid #d1dbe5
+						button
+							&:nth-child(2)
+								margin-left:30px
+			.page-box
+				margin:0 40px 0 65px
+				display:inline-block
+			.import-order
+				btn()
+				border-color:#dfe6ec
+				vertical-align: bottom
+				margin-right:10px
+				&:last-child
+					margin-right:0
+			.mark-expedited
+				position:relative
+				display:inline-block
+				vertical-align: bottom
+				z-index:999
+				.cancel-expedited
+					border-color:#dfe6ec
+					position:absolute
+					background-color:#fff
+					z-index:999
+					top:0px
+					left:0
+					opacity:0
+					transition: all .2s ease-out
+				&:hover
+					.cancel-expedited
+						top:27px
+						opacity:1
+		.search-box
+			padding-top:20px
+			position:relative
+			&:after
+				content:""
+				display:block
+				height:0
+				clear:both
+				visibility:hidden
+			.form-wrap
+				font-size:14px
+				&:after
+					content:""
+					display:block
+					height:0
+					clear:both
+					visibility:hidden
+				.search-left
+					display:inline-block
+					margin-left:30px
+					vertical-align: middle
+					width:945px
+					.search-item
+						display:inline-block
+						font-size:0
+						margin-right:30px
+						&:nth-child(3n)
+							margin-right:0px
+						&.el-form-item
+							margin-bottom:10px
+						.search-item-input>input
+							width:180px
+						.el-select .el-input__inner
+							width:180px
+						.el-date-editor--daterange.el-input
+							width:260px
+				.search-right
+					display:inline-block
+					position:relative
+					vertical-align: middle
+					.search-item
+						font-size:0
+						margin-left:34px
+						&.el-form-item
+							margin-bottom:10px
+		.search-silder-btn
+			position:absolute
+			top:0
+			right:0
+			width:30px
+			height:100%
+			text-align:center
+			cursor: pointer
+			&:hover
+				background-color:#e5e9f2
+		.icon-arrow
+			color:#20a0ff
+			transition:0.7s
+			position:absolute
+			top:50%
+			margin-top:-7px
+			right:5px
+			&:hover
+				color:#4db3ff
+		.icon-arrow-down
+			transform: rotateZ(-90deg)
+		.icon-arrow-up
+			transform: rotateZ(90deg)
+		.bgcolor
+			/*background-color:red*/
+			background-color:#f8fafe
+		.el-input__inner
+			color:#333
+		.tipbox
+			.el-dialog__body
+				padding: 20px 20px 10px
+		.dialog-upload
+			.el-dialog--small
+				width:620px
+		.dialog-technology
+			.el-dialog--small
+				width:700px
+</style>

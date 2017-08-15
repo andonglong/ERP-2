@@ -1,0 +1,105 @@
+<template>
+	<div class="main">
+		<div class="header-box">
+			<div class="header-left f_l">
+				<p class="company-name">深圳市仕瑞达设备有限公司</p>
+			</div>
+			<div class="user-info f_r txt_r">
+				<ul class="user-navbar f_r">
+					<li class="navbar-item"><span>退出</span></li>
+					<li class="navbar-item"><span>头像</span></li>
+					<li class="navbar-item">
+						<a href="javascript">张三</a>
+						<ul class="dropdown-menu">
+							<li>设置</li>
+							<li>修改密码</li>
+						</ul>
+					</li>
+				</ul>
+			</div>
+		</div>
+			<div class="main-box">
+				<div class="nav-box">
+					<v-nav></v-nav>
+				</div>
+				<div class="contont-box">
+			  	<transition name="fade" mode="out-in">
+							<router-view></router-view>
+					</transition>
+				</div>
+			</div>
+		</div>
+</template>
+
+<script>
+	import nav from '../components/nav/nav'
+	export default {
+    data() {
+      return {
+        
+      };
+    },
+    methods: {
+    	
+    },
+    components:{
+    	'v-nav':nav
+    }
+  }
+</script>
+
+<style lang="stylus">
+	.f_l
+		float:left
+	.f_r
+		float:right	
+	.txt_c
+		text-align:center
+	.txt_r
+		text-align:right
+	.main
+		font-size:14px
+		color:#2c3e50
+		text-align:left
+	.header-left,.user-info
+		width:50%
+		height:50px
+		line-height:50px
+	.header-box
+		height: 50px
+		width: 100%
+		min-width: 1200px
+		background-color:#2e3e4e
+		.header-left
+			color:#fff
+			.company-name
+				padding:0 15px
+		.user-info
+			color:#fff
+			.user-navbar
+				list-style:none
+				overflow:hidden
+				.navbar-item
+					float:left
+					margin-right:10px
+					&:last-child
+						margin-right:0
+					.dropdown-menu
+						display:none	
+	.main-box
+		position: absolute
+		width: 100%
+		top: 50px
+		bottom: 0
+	.nav-box
+		position: absolute
+		left: 0
+		top: 0
+		bottom: 0
+		width: 200px
+		background-color: #eef1f6
+	.contont-box
+		margin-left: 200px
+		overflow: hidden
+		height: 100%!important
+</style>

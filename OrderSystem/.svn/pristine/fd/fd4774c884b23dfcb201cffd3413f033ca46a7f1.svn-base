@@ -1,0 +1,211 @@
+<template>
+  <div v-show="productDetailData.show" style="position: relative;">
+    <!--<div class="productDetail-fixed">
+                    </div>-->
+    <div class="productDetail-container">
+      <el-tabs v-model="activeName" type="card" @tab-click="handleClick">
+        <el-tab-pane label="图纸" name="first" id="drawing">
+          <v-drawing :drawingData="drawingData"></v-drawing>
+        </el-tab-pane>
+        <el-tab-pane label="产品进度" name="second" class="progress" id="progress">
+          <v-progress :progressData="progressData"></v-progress>
+        </el-tab-pane>
+        <el-tab-pane label="操作记录" name="third" class="record" id="record">
+          <v-record :recordData="recordData"></v-record>
+        </el-tab-pane>
+      </el-tabs>
+  
+      <div></div>
+      <i class="el-icon-close header-close" @click="CloseProductDetail"></i>
+    </div>
+  
+  </div>
+</template>
+
+<script>
+import drawing from './drawing'
+import progress from './progress'
+import record from './record'
+import $http from 'api/http'
+import request from "api/request"
+import $util from "common/js/util.js"
+import api from "api/request.js"
+
+
+export default {
+  props: ['productDetailData', 'drawingData', 'progressData', "recordData"],
+  data() {
+    return {
+      activeName: 'second',
+    }
+
+  },
+  components: {
+    "v-progress": progress,
+    "v-drawing": drawing,
+    "v-record": record
+  },
+  created() {
+    // this.fetchRecordData(this.RecordPageIndex)
+    console.log("创建产品详情")
+    console.log(this.productDetailData)
+
+    console.log("创建产品详情2")
+    console.log(this.drawingData)
+  },
+  // mounted(){
+  //  let _this = this 
+  //  let recordScroll = document.querySelectorAll('.record')
+  //   recordScroll[0].addEventListener('scroll', function(e){
+  //     e = e || window.event
+  //     let distance =  e.target.scrollHeight - e.target.scrollTop -  e.target.offsetHeight;
+  //     _this.distance = distance
+  //     if(distance<30){
+  //       _this.RecordPageIndex ++
+  //       _this.fetchRecordData(_this.RecordPageIndex)
+  //     }
+  //   })
+  // },
+  beforeUpdate() {
+    console.log("beforeUpdate")
+    console.log(this.productDetailData)
+    this.activeName = this.productDetailData.currentTab
+
+    let obj = this.productDetailData
+    this.drawingData.inorderid = obj.inorderid
+    this.drawingData.productmodel = obj.productmodel
+    this.drawingData.productserialno = obj.productserialno
+
+  },
+  updated() {
+    console.log("数据更新前")
+
+  },
+  mounted() {
+    console.log("详情挂载")
+  },
+  methods: {
+    handleClick(tab, event) {
+      console.log("选择tab")
+      let obj = this.productDetailData
+      if (!obj.inorderid) {
+        return;
+      }
+      let param = { inorderid: obj.inorderid, productmodel: obj.productmodel, productserialno: obj.productserialno }
+      if (tab.$el.id == "drawing") {
+        console.log("进入图纸")
+        param.source = 0
+        param.filetype = 0
+        console.log(param)
+        //图纸数据
+        api.order.getdrawingsheetbyorderid(param).then(res => {
+          this.drawingData.ImgUrlArray = res.data.data
+          
+          //附件数据
+          param.filetype = 1
+          api.order.getdrawingsheetbyorderid(param).then(res => {
+            console.log("附件数据")
+            this.drawingData.uploadRecord = res.data.data.length ? res.data.data.reverse() : res.data.data
+          })
+        })
+
+      }
+      if (tab.$el.id == "progress") {
+        console.log("点击tab产品进度")
+        api.order.gettechnologysbyorderid(param).then(res => {
+          this.progressData.table01Data = res.data.data
+          this.progressData.table02Data = []
+        })
+      }
+      if (tab.$el.id == "record") {
+        console.log("进入操作记录")
+        api.order.getoperationlog(param).then(res => {
+          this.recordData.data = [{ "companyid": "10018", "factoryid": "1122", "inorderid": "166196091", "operationcentent": "ddd", "operationtime": 1499827018000, "productmodel": "SVCK42", "serialno": "1", "username": "maxwell" }]
+        })
+      }
+    },
+    CloseProductDetail() {
+      this.$emit('connect')
+    }
+
+  }
+};
+</script>
+
+<style lang="stylus">
+.productDetail-fixed 
+  position: fixed
+  top: 0
+  right: 0
+  left: 0
+  bottom: 0
+  z-index: 30
+  background-color: rgba(0,0,0,0.6)
+  
+.productDetail-container 
+    background-color: #fff
+    position: fixed
+    top: 0
+    right: 0
+    bottom: 0
+    z-index: 1002
+    min-width: 700px
+    width: 50%
+    box-shadow: 0px 0px 8px #8492A6
+
+    .header-close
+      position: absolute
+      top: 0
+      right: 0
+      margin: 16px 20px 0 0 
+      color: #d3dce6
+      font-size: 31px
+      cursor: pointer
+    
+    .el-tabs__nav-wrap 
+      background-color: #475669
+      height: 64px
+    
+
+    .el-tabs__nav-scroll 
+      padding-top: 20px
+      height: 44px 
+    
+    .el-tabs--card>.el-tabs__header .el-tabs__item.is-active 
+      height: 44px  
+      background-color: #fff
+      
+    .el-tabs--card>.el-tabs__header .el-tabs__item 
+        background-color: #EFF2F7;
+        margin-left: 10px;
+
+    .el-tabs__item 
+      height: 43px
+      line-height: 43px
+
+    .line 
+      height: 1px
+      background-color: #BBBBBB
+      margin: 20px 0 
+    
+    .el-tabs
+      height: 100%!important 
+      position: relative
+    
+    .el-tabs__content 
+      position: absolute
+      top: 64px
+      bottom: 0
+      left: 0
+      right: 0
+
+    .el-tab-pane 
+      height: 100%
+    
+    .record
+      overflow-y: auto
+
+
+
+ 
+</style>

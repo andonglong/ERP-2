@@ -1,0 +1,86 @@
+<template>
+<div class="main">
+  <v-header></v-header>
+  <div class="app-wrapper" :class="{hideSidebar:!sidebar}">
+    <div class="sidebar-wrapper">
+      <v-nav class="sidebar-container" :sidebar='sidebar' v-on:listenSidebar="showSidebar"></v-nav>
+    </div>
+    <div class="main-container">
+      <transition name="fade" mode="out-in">
+        <router-view></router-view>
+      </transition>
+    </div>
+  </div>
+</div>
+</template>
+
+<script>
+import nav from '../components/nav/nav'
+import header from '../components/header/header'
+export default {
+  data() {
+    return {
+      sidebar: true
+    }
+  },
+  components: {
+    'v-nav': nav,
+    'v-header': header
+  },
+  methods: {
+    showSidebar (data) {
+      this.sidebar = data
+    }
+  }
+}
+</script>
+
+<style lang="stylus">
+.main
+  font-size:14px
+  color:#2c3e50
+  text-align:left
+.app-wrapper
+  position: relative
+  height: 100%
+  width: 100%
+  min-width:1250px
+  box-sizing: border-box
+  &.hideSidebar
+    .sidebar-wrapper
+      transform: translate(-140px, 0)
+      .sidebar-container
+        transform: translate(133px, 0)
+      /*&:hover
+        transform: translate(0, 0)
+        .sidebar-container
+          transform: translate(0, 0)*/
+      .icon-nav
+      	right:133px
+    .main-container
+      margin-left: 40px
+  .sidebar-wrapper
+    position: fixed
+    top: 60px
+    bottom: 0
+    left: 0
+    z-index: 10
+    width: 180px
+    overflow: hidden
+    transition: all .2s ease-out
+    z-index:99999
+  .sidebar-container
+    transition: all .2s ease-out
+    position: absolute
+    top: 0
+    bottom: 0
+    left: 0
+    right: 0px
+    overflow-y: auto
+    height: 100%
+    z-index:99999
+  .main-container
+    height: 100%
+    transition: all .2s ease-out
+    margin:60px 0 0 180px
+</style>

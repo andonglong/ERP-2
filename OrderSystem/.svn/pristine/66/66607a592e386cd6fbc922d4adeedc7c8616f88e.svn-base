@@ -1,0 +1,45 @@
+<template>
+    <div class="record-container">
+        <div class="info-box" v-for="item in items">
+            <div>{{item.img}}</div>
+            <div>
+                <div>{{item.name}}</div>
+                <div>{{item.info}}</div>
+            </div>
+            <div>{{item.data}}</div>
+        </div>
+    </div>
+</template>
+    
+ <script>
+import $http from "api/http.js"
+export default {
+    data() {
+        return {
+            items: []
+        }
+    },
+    created() {
+       $http.ajax("/api/record").then(res => {
+           console.log(res)
+           this.items =  res.data.data
+       })
+    }
+}
+</script>
+
+ <style lang="stylus">
+    .record-container
+        width: 93%
+        margin: 0 auto
+        .info-box
+           display: flex
+           justify-content: flex-start
+           align-items: center 
+           min-height: 106px
+           background-color: #f8f8f8
+           border-top: 1px solid #e5e5e5
+           border-bottom: 1px solid #e5e5e5    
+
+ </style>
+    

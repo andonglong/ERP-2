@@ -1,0 +1,48 @@
+
+import orderTracking from '../components/orderTracking/orderList'
+import login from '../components/login/login'
+import manage from '../components/manage/manage'
+import NotFound from '../components/404'
+import Home from '../components/Home'
+
+
+let routes = [
+    {
+        path: '/',
+        component: login,
+        name: '',
+        hidden: true
+    },
+    {
+        path: '/404',
+        component: NotFound,
+        name: '',
+        hidden: true
+    },
+    //{ path: '/main', component: Main },
+    {
+        path: '/Track',
+        component: Home,
+        name: '订单跟踪',
+        iconCls: 'el-icon-message',//图标样式class
+        children: [
+            { path: 'order', component: orderTracking, name: '主页', hidden: true }
+        ]
+    },
+    {
+        path: '/Custom',
+        component: Home,
+        name: '客户管理',
+        iconCls: 'el-icon-message',//图标样式class
+        children: [
+            { path: 'manage', component: manage, name: 'manage',hidden: true }
+        ]
+    },
+    {
+        path: '*',
+        hidden: true,
+        redirect: { path: '/404' }
+    }
+];
+
+export default routes;

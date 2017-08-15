@@ -1,0 +1,528 @@
+<template>
+  <div class="drawing-box">
+    <div class="drawing-container">
+      <!--startprint-->
+      <div class="container-up">
+        <div class="drawing-header jc-end">
+          <el-button  :disabled='!drawingData.ImgUrlArray.length' @click="printImg()">打印图纸</el-button>
+  
+          <el-upload class="upload-Img" ref="uploadImg" name="uploaddrawingsheet" :action="uploadActionUrl()" multiple :headers="headersObj" :data="uploadData" :show-file-list="false" :on-change="uploadChange" :on-progress="uploadImgProgress" :on-success="uploadImgSuccess" :before-upload="uploadImgBefore">
+            <el-button>上传图片</el-button>
+          </el-upload>
+  
+          <el-upload class="upload-Img" ref="replaceImg" name="uploaddrawingsheet" :action="replaceActionUrl()" :headers="headersObj" :data="replaceData" :show-file-list="false" :on-change="replaceImgChange" :on-progress="replaceImgProgress" :on-success="replaceImgSuccess" :before-upload="replaceImgBefore">
+            <el-button :disabled='!drawingData.ImgUrlArray.length'>替换图纸</el-button>
+          </el-upload>
+  
+          <el-button :disabled='!drawingData.ImgUrlArray.length' @click="DetelCurrentImg()">删除图纸</el-button>
+        </div>
+        <div>
+          <ul class="el-upload-list el-upload-list--text" style="margin-bottom: 10px">
+            <transition-group name="list" tag="p">
+              <li :class="[listItem,uploadStatus]" v-for="(item,index) in uploadImgList" v-bind:key="item">
+                <a class="el-upload-list__item-name">
+                  <i class="el-icon-document"></i>
+                  <span class="ImgName inblock ell va-top">{{item.name}}</span>
+                </a>
+                <label class="el-upload-list__item-status-label">
+                  <i class="el-icon-upload-success el-icon-circle-check">
+                  </i>
+                </label>
+                <i class="el-icon-close" @click="clickClose(item,index)"></i>
+                <span class="progress-text">{{item.percentage | toInt }}</span>
+                <div class="progress-box">
+                  <div class="progress-line" :style="{ width: item.percentage + '%'  }"></div>
+                </div>
+              </li>
+            </transition-group>
+          </ul>
+        </div>
+        <div class="img-box">
+          <div v-if="!drawingData.ImgUrlArray.length">
+            <div class="text-center">
+              <i class="el-icon-picture" style="font-size:100px;color:#e6e6e7;"></i>
+            </div>
+            <div class="c999 mg-t10">图纸，按照该大小等比例放到最大</div>
+          </div>
+          <img  v-else :src="drawingData.ImgUrlArray[CurrentImgIndex]? drawingData.ImgUrlArray[CurrentImgIndex].drawingsheet : ''">
+        </div>
+        <div class="ImgUrlArray jc-center" >
+
+          <img v-for="(item,index) in drawingData.ImgUrlArray" :src="item.drawingsheet" :class="CurrentImgIndex == index ? 'activeImg':''" @click="choseCurrentImg(item.drawingsheet,index)">
+        </div>
+        <el-input type="textarea" v-model="uploadFileData.remark" :maxlength='150' placeholder="有问题，写备注"></el-input>
+        <div class="upload-box">
+          <el-upload class="upload-file" ref="uploadFile" name="uploaddrawingsheet" :action="uploadActionUrl()" multiple :headers="headersObj" :data="uploadFileData" :auto-upload="false" :file-list="uploadFileList" :on-change="uploadFileChange" :before-upload="uploadFileBefore" :on-progress="uploadFileProgress" :on-success="uploadFileSuccess">
+            <el-button type="primary" slot="trigger" class="uploadBtn">+ 上传文件</el-button>
+            <div class="upload-abs">
+              <el-button type="primary" @click="publish()">发布</el-button>
+            </div>
+          </el-upload>
+        </div>
+      </div>
+      <!--endprint-->
+      <div class="container-line"></div>
+      <div class="container-down noprint">
+        <div class="upload-record" v-for=" (item,index) in drawingData.uploadRecord">
+          <div class="date">
+            <span>{{ item.creattime | formatDate }}</span>
+          </div>
+          <div class="info-box">
+            <div class="Avatar">
+              <img :src="item.img">
+            </div>
+            <div class="info">
+              <div class="name">{{item.username ? item.username : index}}</div>
+              <div class="fs14 c666 mg-b10 word-break">{{item.remark}}</div>
+              <div class="fileIcon">
+                <img src="/static/images/file-icon.png" width="30">
+              </div>
+              <div>
+                <a :href="item.drawingsheet" target="_blank" class="c20a0ff word-break">{{item.drawingsheet | getImgName }}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="loading">
+          <i class="el-icon-loading" v-if="LoadingText != '没有更多'"></i>
+          <span>{{LoadingText}}</span>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+</template>
+
+<script>
+import axios from 'axios'
+import $http from "api/http.js"
+import api from "api/request.js"
+import $util from "common/js/util.js"
+
+export default {
+  props: ['drawingData'],
+  data() {
+    return {
+      LoadingText: "加载中...",
+      // PageIndex: 1,
+      Pagesize: 10,
+      ImgList: [{
+        name: 'hduiashgduidsauygsauydgasuygd',
+        suffix: '.png'
+      }],
+      listItem: 'el-upload-list__item',
+      uploadStatus: 'is-ready',
+      // 上传
+      headersObj: {
+        sessid_id: ''
+      },
+      uploadData: {
+        inorderid: '',
+        productmodel: '',
+        serialno: '',
+        uploaddrawingsheet: '',
+        source: 0,
+        filetype: 0
+      },
+
+      uploadFileData: {
+        inorderid: '',
+        productmodel: '',
+        serialno: '',
+        uploaddrawingsheet: '',
+        remark: '',
+        source: 0,
+        filetype: 1
+      },
+      //替换
+      replaceData: {
+        inorderid: '',
+        productmodel: '',
+        productserialno: '',
+        drawingsheet: '',
+        uploaddrawingsheet: ''
+      },
+
+      //删除
+      detelData: {
+        inorderid: '',
+        productmodel: '',
+        serialno: '',
+        drawingsheet: ''
+      },
+      uploadImgList: [],
+      uploadFileList: [],
+      ImgUrlArray: [],
+      // ImgUrlArray: [],
+      CurrentImgIndex: 0,
+    }
+  },
+  beforeUpdate() {
+    let obj = this.drawingData
+    this.uploadData.inorderid = obj.inorderid
+    this.uploadData.productmodel = obj.productmodel
+    this.uploadData.serialno = obj.productserialno
+
+    this.replaceData.inorderid = obj.inorderid
+    this.replaceData.productmodel = obj.productmodel
+    this.replaceData.productserialno = obj.productserialno
+
+    this.detelData.inorderid = obj.inorderid
+    this.detelData.productmodel = obj.productmodel
+    this.detelData.serialno = obj.productserialno
+
+    this.uploadFileData.inorderid = obj.inorderid
+    this.uploadFileData.productmodel = obj.productmodel
+    this.uploadFileData.serialno = obj.productserialno
+    
+  },
+  updated() { },
+  created() { },
+  mounted() {
+    let _this = this
+    let recordScroll = document.querySelectorAll('.drawing-box')
+
+    recordScroll[0].addEventListener('scroll', function (e) {
+      e = e || window.event
+      let distance = e.target.scrollHeight - e.target.scrollTop - e.target.offsetHeight;
+      if (distance < 10) {
+        let PageIndex = _this.drawingData.uploadRecordPageIndex = ++_this.drawingData.uploadRecordPageIndex
+        if ((_this.drawingData.uploadRecordDataSum - PageIndex * _this.Pagesize) < -10) {
+          setTimeout(() => { _this.LoadingText = '没有更多' }, 500)
+          return;
+        }
+        _this.fetchAffixData(PageIndex, _this.Pagesize)
+      }
+    })
+    this.headersObj.sessid_id = sessionStorage.getItem('token');
+  },
+  filters: {
+    formatDate: function (value) {
+      return $util.DateFormat(value, "yyyy/MM/dd hh:mm:ss")
+    },
+    getImgName: function (value) {
+      let index = value.lastIndexOf("/") + 1
+      return value.substring(index)
+    },
+    toInt(value) {
+      return parseInt(value) + "%"
+    }
+  },
+  methods: {
+    clickClose(item, index) {
+      this.uploadImgList.splice(index, 1)
+    },
+    // 上传图片 start
+    uploadActionUrl() {
+      return process.env.BASE_URL + 'cloudfactory/erp/order/uploaddrawingsheet'
+    },
+    uploadChange(file, fileLIst) {
+      this.uploadData.uploaddrawingsheet = file.url
+    },
+    uploadImgProgress(event, file, fileList) {
+      this.uploadImgList = fileList
+    },
+    uploadImgSuccess(response, file, fileList) {
+      this.fetchDrawing("upload")
+      this.uploadStatus = "is-success"
+    },
+    uploadImgBefore(file) {
+      const isJPG = (file.type === 'image/jpeg') || (file.type === 'image/bmp') || (file.type === 'image/png');
+      const isLt5M = file.size / 1024 / 1024 < 5;
+
+      if (!isJPG) {
+        this.$message.error('图片格式支持jpg、png、bmp');
+      }
+      if (!isLt5M) {
+        this.$message.error('上传图片大小不能超过 5MB!');
+      }
+      return isJPG && isLt5M;
+    },
+    // 上传图片 end
+
+    // 替换 start
+    replaceActionUrl() {
+      return process.env.BASE_URL + 'cloudfactory/erp/order/replacedrawingsheetbyorderid'
+    },
+    replaceImgChange(file, fileList) {
+        let currentImgUrl = this.drawingData.ImgUrlArray[this.CurrentImgIndex].drawingsheet
+        this.replaceData.drawingsheet = currentImgUrl.substring(currentImgUrl.lastIndexOf('/') + 1)
+        this.replaceData.uploaddrawingsheet = file.url
+    },
+    replaceImgProgress(event, file, fileList) {
+      this.uploadImgList = fileList
+    },
+    replaceImgSuccess(response, file, fileList) {
+      this.fetchDrawing()
+    },
+    replaceImgBefore(file) {
+       
+      const isJPG = (file.type === 'image/jpeg') || (file.type === 'image/bmp') || (file.type === 'image/png');
+      const isLt5M = file.size / 1024 / 1024 < 5;
+
+      if (!isJPG) {
+        this.$message.error('图片格式支持jpg、png、bmp');
+      }
+      if (!isLt5M) {
+        this.$message.error('上传图片大小不能超过 5MB!');
+      }
+      return isJPG && isLt5M;
+    },
+    // 替换 end
+
+    //删除当前图片
+    DetelCurrentImg() {
+      let currentImgUrl = this.drawingData.ImgUrlArray[this.CurrentImgIndex].drawingsheet
+      this.detelData.drawingsheet = currentImgUrl.substring(currentImgUrl.lastIndexOf('/') + 1)
+      let param = this.detelData
+      api.order.deletedrawingsheetbyorderid(param).then(res => {
+        this.fetchDrawing("Detel")
+      })
+    },
+
+
+    //上传文件部分 start
+    uploadFileChange(file, fileList) {
+      this.uploadFileData.uploaddrawingsheet = file.url
+
+
+    },
+    uploadFileBefore(file) {
+      const isLt10M = file.size / 1024 / 1024 < 10;
+
+      if (!isLt10M) {
+        this.$message.error('上传图片大小不能超过 10MB!');
+      }
+      return isLt10M;
+    },
+    uploadFileProgress(event, file, fileList) {
+
+    },
+    uploadFileSuccess(reponse, file, fileList) {
+      this.fetchAffixData(1, 10)
+      
+    },
+    publish() {
+      this.$refs.uploadFile.submit();
+
+    },
+    //上传文件部分 end
+
+    //获取图纸数据
+    fetchDrawing(flag) {
+      let obj = this.drawingData
+      let param = { inorderid: obj.inorderid, productmodel: obj.productmodel, productserialno: obj.productserialno, source: 0, filetype: 0 }
+      api.order.getdrawingsheetbyorderid(param).then(res => {
+        this.drawingData.ImgUrlArray = $util.isArray(res.data.datalist)
+
+        if (flag == "upload") {
+          this.CurrentImgIndex = this.drawingData.ImgUrlArray && this.drawingData.ImgUrlArray.length - 1
+        }
+        if (flag == "Detel") {
+          if (this.CurrentImgIndex >= this.drawingData.ImgUrlArray.length - 1) {
+            this.CurrentImgIndex = this.drawingData.ImgUrlArray.length - 1
+          }
+        }
+
+      })
+    },
+    //获取附件记录
+    fetchAffixData(PageIndex, Pagesize) {
+      let obj = this.drawingData
+
+      let param = { inorderid: obj.inorderid, productmodel: obj.productmodel, productserialno: obj.productserialno, source: 0, filetype: 1, pageindex: PageIndex, pagesize: Pagesize }
+      api.order.getdrawingsheetbyorderid(param).then(res => {
+        res.data.datalist = $util.isArray(res.data.datalist)
+        this.drawingData.uploadRecord = this.drawingData.uploadRecord.concat(res.data.datalist.reverse())
+        this.drawingData.uploadRecordDataSum = res.data.datasum
+      })
+
+    },
+    printImg() {
+      let imgUrl = this.drawingData.ImgUrlArray[this.CurrentImgIndex].drawingsheet
+
+      this.$router.push({ path: '/PrintImg', params: { userId: 123 }, query: { imgUrl: imgUrl } });
+    },
+    choseCurrentImg(url, index) {
+      this.CurrentImgIndex = index
+    }
+  }
+
+}
+</script>
+
+
+
+<style lang="stylus">
+  .jc-end
+    display: flex
+    justify-content: flex-end
+
+  .drawing-box
+    height: 100%
+    
+    overflow: auto
+
+    .drawing-container
+      width: 100%
+      box-sizing: border-box
+      
+      .ImgUrlArray
+        margin: 30px 0
+        flex-wrap: wrap
+        
+        .activeImg
+          border-color: #1D8CE0
+
+        img 
+          width: 94px
+          height: 94px
+          border: 3px solid #bbbbbb
+          margin: 0  5px 20px 5px
+          &:hover
+            cursor: pointer
+
+
+      .container-up
+      .container-down
+        width: 93%
+        margin: 0 auto
+
+        .loading
+           display:flex
+           justify-content: center
+           align-items: center
+           height: 40px
+
+           .el-icon-loading
+             margin-right: 5px
+
+      .container-line
+        height: 1px
+        background-color: #e5e5e5;  
+
+      .drawing-header
+        align-items: center
+        height: 40px
+
+        > div:first-child
+          width: 40%
+
+        .ImgName
+          max-width: 200px
+
+        button
+          height: 28px
+          line-height: 28px
+          padding: 0
+          margin-left: 15px
+          width: 73px
+      
+      .progress-text
+        position: absolute
+        right: 30px
+        top: 0
+      .progress-box
+         height: 2px
+         
+         .progress-line
+           height: 100%
+           background-color: #20a0ff
+
+      .img-box
+        display: flex
+        flex-wrap: wrap
+        justify-content: center
+        align-items: center
+        height: 648px
+        border: 1px solid #bbb
+
+        img
+          max-height: 100%
+          max-width: 100%
+
+      textarea
+        width: 100%
+        box-sizing: border-box
+        margin-bottom: 10px
+        border-color: #bbb
+        padding: 8px 6px  
+
+      .upload-box
+        padding-bottom: 30px
+        
+        .upload-file
+          position: relative
+          padding-bottom: 40px
+
+          .el-upload--text
+            position: absolute
+            bottom: 0
+            left: 0
+            z-index: 10
+
+          .upload-abs
+            position: absolute
+            left: 0
+            bottom: 0
+            text-align: left
+
+            .el-button
+              margin-left: 124px
+
+        .uploadFile
+          margin-bottom: 15px
+
+          i
+            vertical-align: middle  
+
+          .el-icon-delete2
+            margin-left: 15px
+
+        .el-button
+          height: 24px
+          line-height: 24px
+          padding: 0 15px
+
+      .upload-record
+        width: 93%
+        padding:  15px 20px 20px 20px
+        border-bottom: 1px solid #e5e5e5    
+        
+        .date
+          text-align: right
+          line-height: 1
+          color: #999
+
+        .info-box
+          display: flex
+          
+
+
+          .Avatar img
+            width: 48px
+            height: 48px
+            margin-right: 20px
+            border-radius: 24px
+            vertical-align: top
+
+          .name 
+            margin-bottom: 15px
+            font-size: 18px
+            font-weight:bold
+            color: #333
+
+          .fileIcon
+            margin-bottom: 10px
+            img 
+              vertical-align: top          
+       
+
+    .list-enter-active, .list-leave-active 
+      transition: all 1s
+    
+    .list-enter, .list-leave-to
+      opacity: 0;
+      transform: translateY(-10px)
+    
+</style>

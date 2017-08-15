@@ -1,0 +1,85 @@
+<template>
+    <div class="enquirySheetDetail-container">
+        <div class="header-panel">
+            <div class="header-title jc-start ai-center c5e6d82">
+                <div>询价单/ P201705100004C07</div>
+                <div class="urgent urgent-A">加急</div>
+                <div>红旗</div>
+            </div>
+            <div class="header-BtnGroup relative">
+                <el-button>刷新</el-button>
+                <el-button type="primary">报价</el-button>
+                <el-button>保存</el-button>
+                <span class="icon-slide icon-silde-down" v-show="!InfoShow" @click="InfoShow = !InfoShow"><span>展开</span><i class="icon-silde-arrow el-icon-d-arrow-left"></i></span>
+            </div>
+        </div>
+    
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            InfoShow: false
+        }
+    },
+    beforeCreate() { },
+    created() { },
+    beforeUpdate() { },
+    updated() { },
+    beforeMount() { },
+    mounted() { },
+    filters: {},
+    methods: {},
+    computed: {},
+    watch: {}
+}
+</script>
+
+<style lang="stylus">
+    .enquirySheetDetail-container
+        padding: 40px 30px 0 30px
+        .header-panel
+            .header-title
+                height: 62px
+                padding-left: 20px
+                border: 1px solid #e5e5e5
+                background-color: #f8f8f8
+                .urgent
+                    display: inline-block
+                    font-size: 12px
+                    width: 32px
+                    height: 22px
+                    line-height: 22px
+                    margin: 0 20px
+                    border-radius: 5px
+                    text-align: center
+                    
+                .urgent-A
+                    color: #fff
+                    background-color: #FF4949
+                    
+            .header-BtnGroup
+                .el-button
+                    width: 80px
+                    height: 30px
+                    line-height: 30px
+                    padding: 0
+                .icon-slide
+                    display:inline-block
+                    width:79px
+                    height:20px
+                    background-size:100% 100%
+                    cursor:pointer
+                    position: absolute
+                    text-align:center
+                    line-height:20px
+                    font-size:14px
+                    color:#bfcbd9
+                    // background:url(static/images/icon-silde-bg.png) 0 0 no-repeat
+                    &:hover
+                        color:#20a0ff
+                    i
+                        font-size: 12px    
+</style>

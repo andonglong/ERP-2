@@ -1,0 +1,226 @@
+<template>
+      <div class="enquirySheetDetailWindow-container" @click="ClickDiv">
+        <div class="panel-contant" @click.stop="">
+            <div class="title pd-l20 mg-b40">{{tableData[tableDataIndex].productcode}}</div>
+            <div class="body pd-l20">
+    
+                <el-button type="primary" class="button" @click="Save()">保存</el-button>
+                <el-button class="button" @click="cancel()">取消</el-button>
+    
+                <h4 class="mg-b30 mg-t40">询价信息</h4>
+                <div class="enquiryInfo ai-center spanColor">
+                    <div>
+                        <span>产品编码：</span>{{tableData[tableDataIndex].productcode}}</div>
+                    <div>
+                        <span>品牌：</span>{{tableData[tableDataIndex].productbrand}}</div>
+                    <div>
+                        <span>产品型号/SKU：</span>{{tableData[tableDataIndex].productmodel}}</div>
+                    <div>
+                        <span>产品名称：</span>{{tableData[tableDataIndex].productname}}</div>
+                    <div>
+                        <span>附件名/图纸号：</span>{{tableData[tableDataIndex].attachment}}</div>
+                    <div>
+                        <span>询价单位：</span>{{tableData[tableDataIndex].unit}}</div>
+                    <div>
+                        <span>询价数量：</span>{{tableData[tableDataIndex].orderamount}}</div>
+                </div>
+                <h4 class="mg-b20">报价信息</h4>
+                <div class="spanColor span100 ai-center">
+                    <div class="mg-b10">
+                        <span class="inblock w94">是否能做
+                            <i class="Danger">*</i>
+                        </span>
+                        <el-checkbox v-model="tableData[tableDataIndex].iscando">能做</el-checkbox>
+                    </div>
+                    <div class="mg-b10">
+                        <span class="inblock w100">最小订购量</span>
+                        <el-input-number v-model="tableData[tableDataIndex].minamount"  :min="1" :max="9999"></el-input-number>
+                    </div>
+                    <div class="mg-b10">
+                        <span class="inblock w94">货期（天）
+                            <i class="Danger">*</i>
+                        </span>
+                        <el-input-number v-model="tableData[tableDataIndex].deliverytime"  :min="1" :max="10"></el-input-number>
+                    </div>
+                    <div class="mg-b10">
+                        <span class="inblock w100">是否包含运费</span>
+                        <el-checkbox v-model="tableData[tableDataIndex].issendcost">包含</el-checkbox>
+                    </div>
+                    <div class="mg-b10">
+                        <span class="inblock w94 va-top lh38">未税单价</span>
+                        <span class="inblock w280">
+                            <el-input placeholder="请输入内容" v-model="tableData[tableDataIndex].pricenotax" :disabled="true" style="margin-bottom: 3px"></el-input>
+                            <span>系统默认未税单价=材料费+加工费+表面处理</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="spanColor ai-center bgdiv mg-b20 relative">
+                    <div class="mg-b10">
+                        <span class="inblock w94">材料费</span>
+                        <span class="inblock w280">
+                            <el-input placeholder="请输入单个产品的材料费" v-model.number="tableData[tableDataIndex].materialcost"></el-input>
+                        </span>
+                    </div>
+                    <div style="width:415px">
+                        <span class="inblock w100 text-center">加工费</span>
+                        <span class="inblock w280">
+                            <el-input placeholder="请输入单个产品的加工费" v-model.number="tableData[tableDataIndex].workcost"></el-input>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="inblock w94">表面处理费</span>
+                        <span class="inblock w280">
+                            <el-input placeholder="请输入单个产品的表面处理费" v-model.number="tableData[tableDataIndex].dealwithcost" ></el-input>
+                        </span>
+                    </div>
+                    <div id="square"></div>
+                </div>
+                <div class="spanColor ai-center">
+                    <div class="mg-b10">
+                        <span class="inblock w94">税率</span>
+                        <span class="inblock w280">
+                            <el-select v-model="tableData[tableDataIndex].taxrate" placeholder="请选择" style="width: 280px">
+                                <el-option v-for="item in options.rate" :key="item.value" :label="item.label" :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </span>
+                    </div>
+                    <div class="mg-b10">
+                        <span class="inblock w100">含税单价
+                            <i class="Danger">*</i>
+                        </span>
+                        <span class="inblock w280">
+                            <el-input placeholder="请输入内容" v-model.number="tableData[tableDataIndex].pricewithtax"></el-input>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="inblock w94">含税金额</span>
+                        <span class="inblock w280 ">
+                            <el-input placeholder="请输入内容" v-model="tableData[tableDataIndex].taxamount" :disabled="true"></el-input>
+                        </span>
+                    </div>
+                    <div>
+                        <span class="inblock w100">备注</span>
+                        <span class="inblock w280">
+                            <el-input placeholder="请输入内容" v-model="tableData[tableDataIndex].remark"></el-input>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+</template>
+
+<script>
+import axios from 'axios'
+import api from 'api/request.js'
+export default {
+    props: ['inquiryorderid', 'windowShow', 'tableData', 'tableDataIndex'],
+    data() {
+        return {
+            isdo: false,
+            minNum: 1,
+            dayNum: 1,
+            ishan: true,
+            RateValue: 0,
+            input1: 10,
+            options: {
+                rate: [{
+                    value: 0,
+                    label: '13%'
+                },
+                {
+                    value: 1,
+                    label: '17%'
+                }]
+            }
+        }
+    },
+    methods: {
+        ClickDiv() {
+            console.log('....')
+            console.log(this.windowShow)
+            // this.windowShow = false
+            this.$emit('update:windowShow', false)
+        },
+        Save() {
+            this.$emit('update:windowShow', false)
+            console.log(this.tableData)
+            // this.$emit('update:tableData', this.tableData)
+            let param = {
+                inquiryorderid: this.inquiryorderid,
+                detailList: [this.tableData[this.tableDataIndex]]
+             }
+             console.log(api)
+             axios.post('cloudfactory/inquiryorder/updateinquiryorder', param)
+            // api.inquiryorder.updateinquiryorder(param).then(res => {
+            //  console.log(res)
+            // })
+        },
+        cancel() {
+            this.$emit('update:windowShow', false)
+        }
+    }
+}
+</script>
+
+<style lang="stylus">
+    .enquirySheetDetailWindow-container
+      position: fixed
+      top: 0
+      right: 0
+      bottom: 0
+      left: 0
+      z-index: 3000
+      background-color: rgba( 0, 0, 0, 0.5)
+      
+      .w94
+        width: 94px
+      .w100  
+        width: 100px
+      .w280  
+        width: 280px 
+      .lh38  
+        line-height: 38px
+      #square
+        position: absolute  
+        top: -6px
+        left: 30px
+        width: 10px
+        height: 10px
+        border-top: 1px solid #e5e5e5
+        border-right: 1px solid #e5e5e5
+        transform:rotate(-45deg)
+        background-color: #f8f8f8
+      .panel-contant
+         width: 880px
+         height: 100%
+         margin: 0 0 0 auto
+         background-color: #fff
+         
+         .spanColor
+            display: inline-flex
+            flex-flow: wrap 
+            >div
+              width: 420px
+              color: #5e6d82
+              >span
+                color: #99a9bf
+
+         .title
+            height: 54px
+            line-height: 54px
+            background-color: #f8f8f8
+         .enquiryInfo
+           >div
+             margin-bottom: 25px
+
+         .bgdiv
+           margin-left: -9px
+           padding: 10px    
+           border-radius: 5px
+           border: 1px solid #e5e5e5
+           background-color: #f8f8f8
+
+      
+</style>

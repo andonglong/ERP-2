@@ -1,0 +1,46 @@
+import $http from "./http.js"
+
+const user = {
+
+    login(data){
+        $http.post("/cloudfactory/erp/user/login",data)
+    },
+    logout(){
+        $http.get("/cloudfactory/erp/user/logout")
+    },
+    changePassword(data){
+        $http.post("/cloudfactory/erp/user/changePassword",data)
+    },
+    adduser(data){
+        $http.post("/cloudfactory/erp/user/adduser",data)
+    },
+    edituser(data){
+        $http.post("/cloudfactory/erp/user/edituser",data)
+    },
+    getuserbyid(data){
+        $http.post("/cloudfactory/erp/user/getuserbyid",data)
+    },
+    query(data){
+       $http.post("/cloudfactory/erp/user/query",data)
+    }
+     
+}
+
+
+const order = {
+    getorders(data){
+       $http.get("/cloudfactory/erp/order/getorders",data)
+    },
+    upodateorders(data){
+       $http.get("/cloudfactory/erp/order/upodateorders",data)
+    }
+   
+}
+
+export default{
+    //用户模块
+    user,
+
+    //订单模块
+    order
+}

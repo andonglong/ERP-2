@@ -1,0 +1,60 @@
+import $http from "./http.js"
+
+const user = {
+		//登录
+    login(data){
+       return  $http.post("/cloudfactory/erp/user/login",data)
+    },
+    //退出
+    logout(){
+       return  $http.get("/cloudfactory/erp/user/logout")
+    },
+    //修改密码
+    changePassword(data){
+       return  $http.post("/cloudfactory/erp/user/changePassword",data)
+    },
+    //添加用户
+    adduser(data){
+       return  $http.post("/cloudfactory/erp/user/adduser",data)
+    },
+    //修改用户
+    edituser(data){
+       return  $http.post("/cloudfactory/erp/user/edituser",data)
+    },
+    //获取用户详情
+    getuserbyid(data){
+       return $http.post("/cloudfactory/erp/user/getuserbyid",data)
+    },
+    //用户列表
+    query(data){
+       return  $http.get("/cloudfactory/erp/user/query",data)
+    }
+     
+}
+
+
+const order = {
+    getorders(data){
+      return  $http.get("/cloudfactory/erp/order/getorders",data)
+    },
+    //更新订单
+    upodateorders(data){
+      return  $http.get("/cloudfactory/erp/order/upodateorders",data)
+    },
+    //订单导入
+    uploadordersfile(data){
+      return  $http.get("/cloudfactory/erp/order/uploadordersfile",data)
+    },
+    //订单关闭
+   	updateorderforstatus(data){
+      return  $http.get("/cloudfactory/erp/order/updateorderforstatus",data)
+    },
+}
+
+export default{
+    //用户模块
+    user,
+
+    //订单模块
+    order
+}

@@ -1,0 +1,396 @@
+<template>
+  <div class="equipment-container">
+    <div style="height:100%;position:relative;min-width:1000px;min-height:700px ">
+      <el-button class="button" @click="handRefresh">刷新</el-button>
+      <el-button type="primary" class="button mg-b30" @click="Add()">新增</el-button>
+      <el-button class="button" @click="ClickImport">导入</el-button>
+      <el-button class="button" @click="ClickExport">导出</el-button>
+  
+      <el-table ref="multipleTable" :data="tableData" border tooltip-effect="dark" class="table" @selection-change="handleSelectionChange">
+        <el-table-column type="selection"></el-table-column>
+        <el-table-column label="序号" width="88" align="center">
+          <template scope="scope">{{ scope.$index - 9 + currentPage*10 }}</template>
+        </el-table-column>
+  
+        <el-table-column prop="username" label="设备类型" min-width="138" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="mobilenumber" label="设备名称" min-width="128" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="userid" label="设备型号" min-width="142" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="technologyB" label="设备品牌" min-width="146" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="technologyB" label="设备台数" min-width="146" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="technologyB" label="设备精度" min-width="146" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="technologyB" label="加工精密度" min-width="146" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="technologyB" label="启用日期" min-width="146" align="center">
+        </el-table-column>
+  
+        <el-table-column prop="b" label="操作" min-width="218" align="center" show-overflow-tooltip>
+          <template scope="scope">
+            <el-button @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+            <el-button type="danger" @click="handleDelete(scope.$index, scope.row)" style="margin-left:28px;">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+  
+      <div class="page-style text-right">
+        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page.sync="currentPage" :page-sizes="pageSizes" :page-size="pageSize" layout="prev, pager, next, sizes, jumper" :total="totalCount">
+        </el-pagination>
+      </div>
+  
+      <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible" size="tiny">
+        <el-form :model="dialogform" :rules="rules" ref="dialogform" class="dialogform">
+          <!-- <el-form-item label="姓名" prop="name" :label-width="formLabelWidth">
+              <el-input v-model="dialogform.name" :maxlength="20" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="手机" prop="mobilenumber" :label-width="formLabelWidth">
+              <el-input v-model.number="dialogform.mobilenumber" auto-complete="off"></el-input>
+            </el-form-item>
+            <el-form-item label="负责工序" :label-width="formLabelWidth" class="checkedTechnologys">
+              <el-checkbox-group v-model="checkedTechnologys">
+                <div class="process">
+                  <el-checkbox v-for="item in Technologys" :label="item.technologyname" :key="item.technologyname" style="display:block;">{{item.technologyname}}</el-checkbox>
+                </div>
+              </el-checkbox-group>
+            </el-form-item> -->
+          <el-form-item label="设备类型" prop="a" :label-width="formLabelWidth" class="dialogform-item">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="设备名称" prop="a" :label-width="formLabelWidth" class="dialogform-item">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="设备型号" prop="a" :label-width="formLabelWidth" class="dialogform-item">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="设备品牌" prop="a" :label-width="formLabelWidth" class="dialogform-item">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="设备台数" prop="a" :label-width="formLabelWidth" class="dialogform-item">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="设备精度" prop="a" :label-width="formLabelWidth" class="dialogform-item">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="加工精密度" prop="a" :label-width="formLabelWidth" class="dialogform-item">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+          <el-form-item label="启用日期" prop="a" :label-width="formLabelWidth" class="dialogform-itemlast">
+            <el-input v-model="dialogform.a" :maxlength="20" auto-complete="off"></el-input>
+          </el-form-item>
+        </el-form>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="Add_cancel()">取 消</el-button>
+          <el-button type="primary" @click="Add_confirm('dialogform')">{{ dialogTitle == "新增员工" ? '新增':'修改'}}</el-button>
+        </div>
+      </el-dialog>
+    </div>
+  
+    <transition name="el-fade-in-linear">
+      <el-dialog title="导入订单" :visible.sync="isShowImport" class="dialog-upload">
+        <v-importAndexport :Data="importAndexportData" :inquiryorderid="$route.params.inquiryorderid"></v-importAndexport>
+      </el-dialog>
+    </transition>
+  
+  </div>
+</template>
+
+<script>
+import $util from 'common/js/util.js'
+import importAndexport from 'public/importAndexport'
+export default {
+  components: {
+    'v-importAndexport': importAndexport
+  },
+  created() {
+    this.fetchData()
+    this.$store.state.adminleftnavnum = '/Manage/equipment'
+    this.$api.Technology.getAllTechnology().then(res => {
+      this.Technologys = res.data.data
+    })
+  },
+  data() {
+    let checkName = (rule, value, callback) => {
+      if (!value) {
+        return callback(new Error('姓名不能为空'))
+      }
+      callback()
+    }
+    return {
+      keyword: '',
+      closeIcon: '',
+      tableData: [],
+      totalCount: 0,
+      multipleSelection: [],
+      dialogTitle: '',
+      dialogFormVisible: false,
+      dialogform: {
+        name: '',
+        mobilenumber: ''
+      },
+      rules: {
+        name: [{
+          validator: checkName,
+          trigger: 'blur'
+        }],
+        mobilenumber: [{
+          validator: $util.checkMoblie,
+          trigger: 'blur'
+        }]
+      },
+      formLabelWidth: '90px',
+      checkedTechnologys: [],
+      Technologys: [],
+      userid: '',
+      // 分页
+      pageSizes: [10, 20, 50, 100, 500],
+      pageSize: 10,
+      currentPage: 1,
+      initPageIndex: 1,
+      initPageSize: 10,
+
+      importAndexportData: {
+        one: {
+          h3: '第一步：导出明细',
+          p: '填充要导入的数据，不可改变导出文件的格式',
+          a: '点击导出明细',
+          importModelUrl: ''
+        },
+        two: {
+          h3: '第二步：选择并上传文件',
+          p: '选择填充好数据的模版文件，选中后文件将自动上传',
+          actionUrl: process.env.BASE_URL + '/cloudfactory/inquiryorder/uploadorder',
+          headers: { sessid_id: '' },
+          twouploadPrams: {
+            inquiryorderid: '',
+            excelorder: ''
+          }
+        },
+        three: {
+          h3: '第三步：开始导入',
+          p: '文件上传完成后，点击下面的“开始导入”按钮开始导入'
+        }
+      },
+      isShowImport: false
+    }
+  },
+  watch: {
+    '$rotue': 'fetchData'
+  },
+  methods: {
+    handRefresh() { },
+    ClickImport() {
+      console.log(this.isShowImport)
+      this.isShowImport = true
+    },
+    ClickExport() { },
+    importVal() {
+      if (this.keyword) {
+        this.closeIcon = 'close'
+      } else {
+        this.closeIcon = ''
+      }
+    },
+    CloseIconClick() {
+      this.keyword = ''
+      this.fetchData()
+    },
+    Search() {
+      let param = {
+        keyword: this.keyword,
+        sortby: 'userid',
+        pageindex: 1,
+        pagesize: 10
+      }
+      this.currentPage = 1
+      this.fetchData(param)
+    },
+    Add() {
+      this.dialogTitle = '新增设备'
+      this.dialogform.name = ''
+      this.dialogform.mobilenumber = ''
+      this.checkedCities1 = []
+      this.dialogFormVisible = true
+    },
+    Add_cancel() {
+      this.dialogFormVisible = false
+    },
+    Add_confirm(dialogform) {
+      this.$refs[dialogform].validate((valid) => {
+        if (valid) {
+          let param = {
+            username: this.dialogform.name,
+            mobilenumber: this.dialogform.mobilenumber
+          }
+          for (let i = 0; i < this.checkedTechnologys.length; i++) {
+            let technology = 'technology[' + i + ']'
+            param[technology] = this.checkedTechnologys[i]
+          }
+          if (this.dialogTitle === '新增员工') {
+            this.$api.user.adduser(param).then(res => {
+              if (res.data.code == 200) {
+                this.$message({
+                  message: '新增成功',
+                  type: 'success'
+                })
+                this.fetchData()
+                this.dialogFormVisible = false
+              }
+            })
+            return
+          }
+          if (this.dialogTitle === '编辑') {
+            param.userid = this.userid
+            this.$api.user.edituser(param).then(res => {
+              if (res.data.code == 200) {
+                this.$message({
+                  message: '修改成功',
+                  type: 'success'
+                })
+                this.fetchData()
+                this.dialogFormVisible = false
+              }
+            })
+            return
+          }
+        } else {
+          return false
+        }
+      })
+    },
+    handleEdit(index, row) {
+      this.dialogTitle = '编辑设备'
+      this.dialogFormVisible = true
+
+      this.dialogform.name = row.username
+      this.dialogform.mobilenumber = parseFloat(row.mobilenumber)
+      this.checkedTechnologys = row.technology
+
+      this.userid = row.userid
+    },
+    handleDelete(index, row) {
+      const h = this.$createElement
+      this.$msgbox({
+        title: '提示',
+        message: h('p', null, [
+          h('span', null, '删除后不可恢复，你确定要删除吗？')
+        ]),
+        showCancelButton: true,
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        beforeClose: (action, instance, done) => {
+          if (action === 'confirm') {
+            instance.confirmButtonLoading = true
+            instance.confirmButtonText = '执行中...'
+            let param = {
+              userid: row.userid
+            }
+            this.$api.user.delbyuserid(param).then(res => {
+              if (res.data.code == 200) {
+                this.$message({
+                  message: '删除成功',
+                  type: 'success'
+                })
+                this.fetchData()
+                instance.confirmButtonLoading = false
+                done()
+              }
+            })
+          } else {
+            done()
+          }
+        }
+      })
+    },
+    handleSizeChange(val) {
+      // console.log(`每页 ${val} 条`)
+    },
+    handleCurrentChange(val) {
+      // console.log(`当前页: ${val}`)
+      let param = {
+        sortby: 'userid',
+        pageindex: val,
+        pagesize: 10
+      }
+      this.fetchData(param)
+    },
+    fetchData(data) {
+      let param = {
+        sortby: 'userid',
+        pageindex: 1,
+        pagesize: 10
+      }
+      if (data) {
+        param = {
+          keyword: data.keyword,
+          sortby: data.sortby,
+          pageindex: data.pageindex,
+          pagesize: data.pagesize
+        }
+      }
+      this.$api.user.query(param).then(res => {
+        res = res.data.data
+        if (res.rows) {
+          for (let i = 0; i < res.rows.length; i++) {
+            res.rows[i].technologyB = res.rows[i].technology.join('、')
+          }
+        }
+        this.tableData = res.rows
+        this.totalCount = res.totalCount
+      })
+    },
+    handleSelectionChange(val) {
+      this.multipleSelection = val
+    }
+  }
+}
+</script>
+
+<style lang='stylus'>
+  .mg-r0
+    margin-right: 0
+  .equipment-container
+    position: relative
+    padding: 40px 30px
+    box-sizing: border-box
+    .checkedTechnologys
+      margin-bottom: 0
+    .search_btn
+      width: 90px
+    .table tr td
+      padding: 4px 0
+    .el-form .el-input
+      width: 280px
+    .el-dialog--tiny
+      min-width: 420px
+      width: auto
+    .process
+      height:200px
+      width: 280px
+      border:1px solid #bfcbd9
+      border-radius: 5px
+      overflow-y: auto
+      >label
+        margin-left:10px !important
+    
+    .el-pagination__sizes
+            margin-left: 15px 
+    .dialogform        
+      padding: 20px 40px 20px 0
+      border: 1px solid #e5e5e5
+      background-color: #eee
+    .dialogform-item  
+      margin-bottom: 10px
+    .dialogform-itemlast
+      margin-bottom: 0
+</style>

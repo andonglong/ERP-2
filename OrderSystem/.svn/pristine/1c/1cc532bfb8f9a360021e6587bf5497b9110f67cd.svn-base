@@ -1,0 +1,11 @@
+import util from '../../common/js/util'
+
+export default {
+	//交货日期倒计时、延期、关闭状态处理
+	checkDateDiff:function(order){
+		let nowDate =	new Date()
+ 				nowDate = nowDate.toLocaleDateString()
+		let diff = util.GetDateDiff(nowDate,order.deliverydatetime.split(' ')[0])
+		return diff
+	}
+}

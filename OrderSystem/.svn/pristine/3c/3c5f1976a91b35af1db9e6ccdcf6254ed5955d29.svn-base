@@ -1,0 +1,289 @@
+<template lang="html">
+  <div class="supplierdetail-box">
+		<el-card class="box-card">
+	    <div class="nav">
+	      <el-breadcrumb separator="/">
+	        <el-breadcrumb-item :to="{ path: '/Supplier/SupplierList' }">供应商列表</el-breadcrumb-item>
+	        <el-breadcrumb-item>{{supplierName}}</el-breadcrumb-item>
+	      </el-breadcrumb>
+	    </div>
+	  </el-card>
+		<div class="supplier-tabs">
+			<el-button class="tabs-btn" :class="[focus==1?'btn-focus':'']" @click="handletabs('1','information')">基本信息</el-button>
+			<el-button class="tabs-btn" :class="[focus==2?'btn-focus':'']" @click="handletabs('2','linkname')">联系人</el-button>
+			<el-button class="tabs-btn" :class="[focus==3?'btn-focus':'']" @click="handletabs('3','business')">商务信息</el-button>
+			<el-button class="tabs-btn" :class="[focus==4?'btn-focus':'']" @click="handletabs('4','financial')">财务信息</el-button>
+			<el-button class="tabs-btn" :class="[focus==5?'btn-focus':'']" @click="handletabs('5','identification')">认证信息</el-button>
+		</div>
+		<div class="supplier-info-box">
+			<h3 ref="information">基本信息</h3>
+			<div class="supplier-warper">
+				<v-Information :supplierBase="supplierBase" :BasedataInfo="BasedataInfo"></v-Information>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3 ref="linkname">联系人</h3>
+			<div class="supplier-warper">
+				<v-Contact :suppliercontacts="suppliercontacts"></v-Contact>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3 ref="business">商务信息</h3>
+			<div class="supplier-warper">
+				<v-Business :supplierbusiness="supplierbusiness" :supplierbusinessList="supplierbusinessList"></v-Business>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3 ref="financial">财务信息</h3>
+			<div class="supplier-warper">
+				<v-Financial :supplierfinanceList="supplierfinanceList" :supplierfinance="supplierfinance" :supplierfinanceBase="supplierfinanceBase"></v-Financial>
+			</div>
+		</div>
+		<div class="supplier-info-box">
+			<h3 ref="identification">认证信息</h3>
+			<div class="supplier-warper">
+				<v-Identification :cardauthenticate="cardauthenticate" :structauthenticate="structauthenticate"></v-Identification>
+			</div>
+		</div>
+    <v-backtop :scollTop="scollTop"></v-backtop>
+  </div>
+</template>
+
+<script>
+import Information from './Information'
+import Business from './Business'
+import Contact from './Contact'
+import Financial from './Financial'
+import Identification from './Identification'
+import api from 'api/request'
+import $util from 'common/js/util.js'
+import backtop from 'public/backtop.vue'
+
+export default {
+	name: 'supplierDetail',
+	data() {
+		return {
+			supplierName: '',
+      supplierBase: {},    // 基本信息
+      suppliercontacts: [],    // 联系人
+      supplierfinance: {},  // 财务信息
+      supplierfinanceList: [],
+      supplierfinanceBase: {
+        PayCurrency: [],
+        SettleType: [],
+        PaymentCondition: [],
+        TaxClassify: [],
+        TaxRate: []
+      },
+      supplierbusiness: {},  // 商业信息
+      supplierbusinessList: [],
+      cardauthenticate: {
+        Businesslicense: { name: '', url: '' },
+        AgentCard: { name: '', url: '' },
+        CardOther: { name: '', url: '' }
+      }, // 企业认证
+      structauthenticate: {},  // 体系认证
+      BasedataInfo: {}, // 基本信息基础数据
+      focus: 1,
+      scollTop: false
+		}
+	},
+	methods: {
+    handletabs(index, id) {
+      this.focus = index
+      let top = this.$refs[id].offsetTop
+      this.ScollFn(top)
+    },
+    ScollFn(top) {
+      window.scrollTo(0, top)
+    },
+    goTop() {
+      window.scrollTo(0, 0)
+    },
+    getSupplierDeital(parms) {
+      let _t = this
+      api.supplier.getSupplierDeital(parms).then(res => {
+        if (res.data.code == 200) {
+          _t.supplierName = res.data.data.supplier.name
+          _t.getSupplierBase(res.data.data)
+          _t.getSuppliercontacts(res.data.data.suppliercontacts)
+          _t.getSupplierfinance(res.data.data)
+          _t.getSupplierbusiness(res.data.data)
+          _t.getSupplierauthenticate(res.data.data)
+        }
+      })
+    },
+    // 基本信息
+    getSupplierBase(data) {
+      this.supplierBase = data.supplierbase
+      this.supplierBase.companyName = data.supplier.name
+      this.supplierBase.shortname = data.supplier.shortname
+      this.supplierBase.founddate = $util.formatDate.getDate(this.supplierBase.founddate)
+      if (this.supplierBase.province != '') {
+        this.supplierBase.area = this.supplierBase.province + '/' + this.supplierBase.city
+      }
+    },
+    // 联系人
+    getSuppliercontacts(data) {
+      this.suppliercontacts = data
+    },
+    // 财务信息
+    getSupplierfinance(data) {
+      this.supplierfinance = data.supplierfinance
+      this.supplierfinanceList = data.supplierbanks
+    },
+    // 商务信息
+    getSupplierbusiness(data) {
+      this.supplierbusiness = data.supplierbusiness
+      // this.supplierbusinessList = data.supplierbusiness
+    },
+    // 企业认证
+    getSupplierauthenticate(data) {
+      let _t = this
+      let arr = JSON.parse(data.supplierauthenticate.cardauthenticate)
+      arr.map((value, index, arr) => {
+        if (value.AuthenticateName == 'Businesslicense') {
+          _t.cardauthenticate.Businesslicense = {
+            name: value.NameCN,
+            url: value.ImgUrl
+          }
+        }
+        if (value.AuthenticateName == 'AgentCard') {
+          _t.cardauthenticate.AgentCard = {
+            name: value.NameCN,
+            url: value.ImgUrl
+          }
+        }
+        if (value.AuthenticateName == 'CardOther') {
+          _t.cardauthenticate.CardOther = {
+            name: value.NameCN,
+            url: value.ImgUrl
+          }
+        }
+      })
+      console.log(this.cardauthenticate)
+    },
+    // 基础数据
+    getDictByTypeNumbers(parms) {
+      let _t = this
+      api.supplier.getDictByTypeNumbers(parms).then(res => {
+        if (res.data.code == 200) {
+          _t.BasedataInfo = {
+            CompanyClassify: res.data.data.CompanyClassify,    // 企业类别
+            CompanyNature: res.data.data.CompanyNature,       // 企业性质
+            CompanyScale: res.data.data.CompanyScale        // 企业规模
+          }
+          _t.supplierfinanceBase = {
+            PayCurrency: res.data.data.Currency,
+            SettleType: res.data.data.SettleType,
+            PaymentCondition: res.data.data.PaymentCondition,
+            TaxClassify: res.data.data.TaxClassify,
+            TaxRate: res.data.data.TaxRate
+          }
+        }
+      })
+    }
+  },
+	components: {
+		'v-Information': Information,
+		'v-Business': Business,
+		'v-Contact': Contact,
+		'v-Financial': Financial,
+		'v-Identification': Identification,
+		'v-backtop': backtop
+	},
+	created() {
+    let _t = this
+    let obj = { supplierid: this.$route.params.supplierCode }
+    let parms = { typenumbers: 'Currency,SettleType,PaymentCondition,TaxClassify,TendType,TaxRate,CompanyClassify,CompanyNature,CompanyScale' }
+    // obj.supplierid = '1AD84559-B0B8-463C-890B-6D21506A9E77'
+    obj.supplierid = '3cc8bb0e-c488-4c1a-a4e7-c5d42c805029'
+
+    this.getSupplierDeital(obj)      // 获取供应商信息
+    this.getDictByTypeNumbers(parms)  // 获取基础数据
+		this.$store.state.adminleftnavnum = '/Supplier/SupplierList'
+    window.onscroll = function() {
+        // 变量t是滚动条滚动时，距离顶部的距离
+        var t = document.documentElement.scrollTop || document.body.scrollTop
+        // 当滚动到距离顶部200px时，返回顶部的锚点显示
+        _t.scollTop = t >= 600
+    }
+	}
+}
+</script>
+
+<style lang="stylus">
+.supplierdetail-box
+	padding:40px 0 40px 46px
+	.box-card
+		background-color:#f8f8f8
+		margin-right: 46px
+		margin-bottom:30px
+		.el-breadcrumb
+			font-size:14px
+			color:#5e6d82
+		.nav
+			.el-breadcrumb
+				line-height: 22px
+			.el-tabs--border-card>.el-tabs__content
+				display:none
+	.supplier-tabs
+		border-bottom:1px solid #e5e5e5
+		padding-left:10px
+		font-size:0
+		.tabs-btn
+			font-size:14px
+			width:80px
+			height:30px
+			padding:0
+			margin:0 10px -1px 0
+			text-align:center
+			line-height:30px
+			border-radius:0
+			border-color:#e5e5e5
+			&.btn-focus
+				color:#20a0ff
+				border-bottom:#fff
+	.supplier-warper:after
+		content:' '
+		clear:both
+		width:100%
+		display:block
+		height:0
+		visibility:hidden
+	.supplier-info-box
+		margin-top:30px
+		h3
+			font-size:16px
+			color:#1f2d3d
+			line-height:34px
+			padding-left:20px
+			border-bottom:1px solid #e5e5e5
+		.supplier-warper
+			// overflow:hidden
+			margin-top:30px
+			.left
+				float:left
+				width:442px
+			.right
+				float:left
+				width:400px
+			.info-input,.info-select,.info-inputdata
+				width:260px
+				height:32px
+			.info-input.info-input-number
+				width:180px
+			.el-input__inner
+				height:32px
+				line-height:32px
+				vertical-align: top
+				color:#1f2d3d
+			.el-form--inline .el-form-item__content
+				height:32px
+			.el-form-item__label
+				padding:9px 12px 9px 0
+			.el-input-number__decrease, .el-input-number__increase
+				line-height: 30px
+			.el-form--inline .el-form-item
+				margin:0 0 10px 0
+</style>

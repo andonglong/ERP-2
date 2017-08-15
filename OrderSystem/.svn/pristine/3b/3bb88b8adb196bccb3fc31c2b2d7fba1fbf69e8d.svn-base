@@ -1,0 +1,121 @@
+<template>
+	<div class="detail-box">
+		<div class="nav">
+			<el-breadcrumb separator="/">
+			  <el-breadcrumb-item :to="{ path: '/Quotation/quotation' }">报价需求单</el-breadcrumb-item>
+			  <el-breadcrumb-item>{{$route.params.demandNumber}}</el-breadcrumb-item>
+			</el-breadcrumb>
+		</div>
+		<div class="main">
+			<div class="btn-box">
+				<el-button type="primary" @click="Result">确认建议售价</el-button>
+				<el-button @click="Save">保存</el-button>
+				<el-button @click="Export">导出</el-button>
+			</div>
+			<div class="tabs-box">
+				<el-tabs v-model="activeName" @tab-click="handleClick">
+			    <el-tab-pane label="基本信息" name="first">
+			    	<div class="info-box">
+			    		<ul class="info-lists">
+			    			<li class="info-list"><span>报价需求单编号：</span><span>P201705100004C02</span></li>
+			    			<li class="info-list"><span>报价单编号：</span><span>P201705100004</span></li>
+			    			<li class="info-list"><span>询价时间：</span><span>2016-09-21  08:50:08</span></li>
+			    			<li class="info-list"><span>要求报价时间：</span><span>2</span></li>
+			    			<li class="info-list"><span>采购询价员：</span><span>Python</span></li>
+			    			<li class="info-list"><span>销售员：</span><span>Ryan</span></li>
+			    			<li class="info-list"><span>产品负责人：</span><span>Aden</span></li>
+			    			<li class="info-list"><span>报价员：</span><span>Ryan</span></li>
+			    			<li class="info-list"><span>备注：</span><span></span></li>
+			    		</ul>
+			    	</div>
+			    </el-tab-pane>
+			    <el-tab-pane label="其他" name="second">
+			    	<div class="info-box">
+			    		<ul class="info-lists info-other-lists">
+			    			<li class="info-list"><span>创建人：</span><span>Python</span></li>
+			    			<li class="info-list"><span>修改人：</span><span>Ryan</span></li>
+			    			<li class="info-list"><span>确认人：</span><span>Ryan</span></li>
+			    			<li class="info-list"><span>创建时间：</span><span>2017-05-13 17:39:28</span></li>
+			    			<li class="info-list"><span>修改时间：</span><span>2016-09-21  08:50:08</span></li>
+			    			<li class="info-list"><span>确认时间时间：</span><span>-</span></li>
+			    		</ul>
+			    	</div>
+			    </el-tab-pane>
+		  	</el-tabs>
+			</div>
+			<div class="main-tabs">
+				  <el-tabs v-model="activeName2" @tab-click="handleClick2">
+				    <el-tab-pane label="明细信息" name="first">
+				    	<div class="main-info">
+				    		<div class="btn-box">
+									<el-button type="primary" icon='arrow-down' @click="Result">向供应商询价</el-button>
+								</div>
+				    	</div>
+				    </el-tab-pane>
+				    <el-tab-pane label="供应商报价" name="second">配置管理</el-tab-pane>
+				  </el-tabs>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		name:'quotationDetail',
+		data() {
+			return {
+				activeName:"first",
+				activeName2:'first',
+			}
+		},
+		methods: {
+			Result() {
+				
+			},
+			Save() {
+				
+			},
+			Export() {
+				
+			},
+			handleClick(tab, event) {
+				console.log(tab, event);
+			},
+			handleClick2(tab, event) {
+				console.log(tab, event);
+			},
+		}
+	}
+</script>
+
+<style lang="stylus">
+	.detail-box
+		margin:10px
+		.main
+			padding:20px
+			background-color:#fff
+			.btn-box
+				margin-bottom:5px
+			.tabs-box
+				.info-box
+					padding:10px
+					background-color:#ccc
+					.info-lists
+						overflow:hidden
+						width:100%
+						.info-list
+							float:left
+							font-size:0
+							line-height:30px
+							width:25%
+							&:last-child
+								width:100%
+							span
+								font-size:12px
+					.info-other-lists .info-list
+						width:33%
+						&:last-child
+							width:33%
+			.main-tabs
+				margin-top:30px			
+</style>

@@ -1,0 +1,60 @@
+<template>
+	<div class="nav-box" :class="[navShow?'nav-box-open':'nav-box-close']">
+		<el-row class="tac">
+			<el-col :span="24">
+		    <el-menu :default-active="$route.path"  router class="el-menu-vertical-demo" @open="handleOpen" @close="handleClose">
+		      <el-menu-item index="/Track/order"><i class="el-icon-message"></i>订单跟踪</el-menu-item>
+		      <el-menu-item index="/Custom/manage"><i class="el-icon-menu"></i>员工管理</el-menu-item>
+		    </el-menu>
+		 	</el-col>
+		</el-row>
+		<span class="icon-nav" :class="[navShow?'el-icon-d-arrow-left':'el-icon-d-arrow-right']" @click="navShow = !navShow"></span>
+	</div>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				navShow:true
+			}
+		},
+    methods: {
+      handleOpen(key, keyPath) {
+        console.log(key, keyPath)
+      },
+      handleClose(key, keyPath) {
+        console.log(key, keyPath)
+      },
+      close() {
+      	
+      }
+    }
+  }
+</script>
+
+<style lang="stylus">
+	.tac
+		text-align: left
+	.nav-box
+		position:relative
+		height:850px
+		margin-top:50px
+		overflow:hidden
+		background-color: #eef1f6
+		@media screen and (max-width: 1920px)
+			flex: 0 0 200px
+		@media screen and (max-width: 1600px)
+			flex: 0 0 150px
+		@media screen and (max-width: 1200px)
+			flex: 0 0 100px
+	.nav-box-open
+		flex: 0 0 200px
+	.nav-box-close
+		flex: 0 0 20px
+	.icon-nav
+		position:absolute
+		top:50%
+		right:0
+		cursor:pointer
+</style>

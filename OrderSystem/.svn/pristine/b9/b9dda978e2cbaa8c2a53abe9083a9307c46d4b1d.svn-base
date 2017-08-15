@@ -1,0 +1,231 @@
+<template>
+<div class="willorderInfo-box">
+	<h3 class="willorderInfo-title">{{willoaderObject.productcode}}</h3>
+	<div class="btn-box">
+		<el-button type="primary" class="btn-w80" @click="save">保存</el-button>
+		<el-button class="btn-w80" @click="close">取消</el-button>
+	</div>
+	<div class="info-item">
+		<h4>询价信息</h4>
+		<div class="left">
+			<ul class="info">
+				<li>产品编码：<span class="font-color-5">{{willoaderObject.productcode}}</span></li>
+				<li>产品型号/SKU：<span class="font-color-5">{{willoaderObject.productmodel}}</span></li>
+				<li>附件名/图纸号：<span class="font-color-5">--</span></li>
+				<li>询价数量：<span class="font-color-5">20</span></li>
+			</ul>
+		</div>
+		<div class="right">
+			<ul class="info">
+				<li>品牌：<span class="font-color-5">{{willoaderObject.productbrand}}</span></li>
+				<li>产品名称：<span class="font-color-5">{{willoaderObject.productname}}</span></li>
+				<li>询价单位：<span class="font-color-5">{{willoaderObject.unit}}</span></li>
+			</ul>
+		</div>
+	</div>
+	<div class="info-item project-box">
+		<h4>工程报价</h4>
+		<el-form :model="willoaderObject" label-position="left">
+			<div class="left">
+				<el-form-item label="建议最低含.." title="建议最低含税价" label-width="97px">
+					<el-input class="info-item-input" v-model="willoaderObject.mintaxprice" @blur="blur($event)" @keyup.native="checkValue($event)"></el-input>
+				</el-form-item>
+				<el-form-item label="确认后差异" label-width="97px">
+					<el-input class="info-item-input" v-model="willoaderObject.confirmdiffmessage" ></el-input>
+				</el-form-item>
+				<el-form-item label="确认后最小.." title="最小订购量" label-width="97px">
+					<el-input-number class="info-item-input" v-model="willoaderObject.confirmstartqty" :controls="false"></el-input-number>
+				</el-form-item>
+			</div>
+			<div class="right">
+				<el-form-item label="建议含税售价*" label-width="104px">
+					<el-input class="info-item-input" v-model="willoaderObject.maxtaxprice" @blur="blur($event, 'maxtaxprice')" @keyup.native="checkValue($event, 'maxtaxprice')"></el-input>
+				</el-form-item>
+				<el-form-item label="确认后货期" label-width="104px">
+					<el-input-number class="info-item-input" :min="0" v-model="willoaderObject.confirmdeliverytime" :controls="false"></el-input-number>
+				</el-form-item>
+				<el-form-item label="工程备注" label-width="104px">
+					<el-input class="info-item-input" v-model="willoaderObject.confirmremark"></el-input>
+				</el-form-item>
+			</div>
+		</el-form>
+	</div>
+
+	<div class="info-item supplier-box">
+		<el-form :model="willoaderObject" label-position="left">
+			<h4>供应商报价</h4>
+			<div class="left" @click.stop="stop">
+				<el-form-item label="供应商名称" label-width="97px">
+					<el-input class="info-item-input" v-model="willoaderObject.supplier" icon="caret-bottom" @focus="handleFocus"></el-input>
+					<v-suppliertable :keyword="willoaderObject.supplier" v-show="supplierShow" v-on:listenSupplierName="listenSupplierName"></v-suppliertable>
+				</el-form-item>
+				<el-form-item label="最小订购量" label-width="97px">
+					<el-input-number class="info-item-input-number" v-model="willoaderObject.startqty" :debounce="50"></el-input-number>
+				</el-form-item>
+				<el-form-item label="是否包含运费" label-width="97px">
+					<el-checkbox class="info-item-checkbox" v-model="willoaderObject.containfreight" true-label="1" false-label="0">包含</el-checkbox>
+				</el-form-item>
+			</div>
+			<div class="right">
+				<el-form-item label="是否能做" label-width="104px">
+					<el-checkbox class="info-item-checkbox" v-model="willoaderObject.cando" true-label="1" false-label="0">能做</el-checkbox>
+				</el-form-item>
+				<el-form-item label="货期（天）" label-width="104px">
+					<el-input-number class="info-item-input-number" v-model="willoaderObject.deliverytime" :debounce="50"></el-input-number>
+				</el-form-item>
+				<el-form-item label="未税单价" label-width="104px">
+					<div class="price-warpper">
+						<el-input class="info-item-input" :disabled="true" v-model="price"></el-input>
+						<p class="price-tip">系统默认未税单价=材料费+加工费+表面处理</p>
+					</div>
+				</el-form-item>
+			</div>
+			<div class="clear"></div>
+			<div class="pricenotax-box">
+				<div class="left">
+					<el-form-item label="材料费" label-width="97px">
+						<el-input class="info-item-input" placeholder="请输入单个产品的材料费" v-model="willoaderObject.materialcost" @blur="blur($event, 'materialcost')" @keyup.native="checkValue($event, 'materialcost')"></el-input>
+					</el-form-item>
+					<el-form-item label="表面处理费" label-width="97px">
+						<el-input class="info-item-input" placeholder="请输入单个产品的表面处理费" v-model="willoaderObject.dealwithcost" @blur="blur($event, 'dealwithcost')" @keyup.native="checkValue($event, 'dealwithcost')"></el-input>
+					</el-form-item>
+				</div>
+				<div class="right">
+					<el-form-item label="加工费" label-width="104px">
+						<el-input class="info-item-input" placeholder="请输入单个产品的加工费" v-model="willoaderObject.workcost" @blur="blur($event, 'workcost')" @keyup.native="checkValue($event, 'workcost')"></el-input>
+					</el-form-item>
+				</div>
+			</div>
+			<div class="left">
+				<el-form-item label="税率" label-width="97px">
+					<el-select v-model="willoaderObject.taxrate" class="info-item-input" placeholder="请选择">
+						<el-option v-for="item in taxrates" :key="item.name" :label="item.desc" :value="item.name">
+						</el-option>
+					</el-select>
+				</el-form-item>
+				<el-form-item label="含税金额" label-width="97px">
+					<el-input class="info-item-input" v-model="willoaderObject.taxamount" @blur="blur($event, 'taxamount')" @keyup.native="checkValue($event, 'taxamount')"></el-input>
+				</el-form-item>
+			</div>
+			<div class="right">
+				<el-form-item label="含税单价" label-width="104px">
+					<el-input class="info-item-input" :disable="true" v-model="willoaderObject.taxprice" @blur="blur($event, 'taxprice')" @keyup.native="checkValue($event, 'taxprice')"></el-input>
+				</el-form-item>
+				<el-form-item label="备注" label-width="104px">
+					<el-input class="info-item-input" type="textarea" autosize v-model="willoaderObject.remark"></el-input>
+				</el-form-item>
+			</div>
+		</el-form>
+	</div>
+</div>
+</template>
+<script type="text/javascript">
+import axios from 'axios'
+import supplierTable from './supplierTable'
+import api from 'api/request'
+export default {
+	name: 'willorderInfo',
+	props: {
+		willoaderObject: {
+			type: Object
+		}
+	},
+	data() {
+		return {
+			taxrates: [],
+      supplierShow: false
+		}
+	},
+	computed: {
+		price() {
+			let price = (this.willoaderObject.materialcost * 10000 + this.willoaderObject.dealwithcost * 10000 + this.willoaderObject.workcost * 10000) / 10000
+			price = isNaN(price) ? '0' : price
+			return price
+		}
+	},
+	methods: {
+		stop() { },
+		handleFocus() {
+			this.supplierShow = true
+		},
+		listenSupplierName(val) {
+			this.supplierShow = false
+			this.willoaderObject.supplier = val.name
+		},
+		checkValue(e, id) {
+			let value = e.target.value
+			if (isNaN(value) || value != '') {
+				this.willoaderObject[id] = value.replace(/[^\d|.]/g, '')
+			}
+		},
+		blur(e, id) {
+			let value = e.target.value
+			if (value == '' || isNaN(value)) {
+				return
+			}
+			this.willoaderObject[id] = parseFloat(value).toFixed(2)
+		},
+		// 保存
+		save() {
+			let _t = this
+			let parms = this.getParms()
+			axios.post('cloudfactory/willorder/updateorderdetail', parms).then(res => {
+				this.$emit('listenwilloaderDetail', 'productcodeShow')
+        if (res.data.code == 200 || res.data.message == '处理成功') {
+          _t.$message({
+            message: '保存成功',
+            type: 'success'
+          })
+        } else {
+          _t.$alert(res.data.message, '保存失败', {
+            confirmButtonText: '确定'
+          })
+        }
+      })
+		},
+		// 取消
+		close() {
+			this.$emit('listenwilloaderDetail', 'productcodeShow')
+		},
+		getParms() {
+			let obj = {}
+			obj.willorderdetailid = this.willoaderObject.willorderdetailid
+			obj.willorderid = this.willoaderObject.willorderid
+			obj.cando = parseInt(this.willoaderObject.cando)
+			obj.startqty = this.willoaderObject.startqty
+			obj.deliverytime = this.willoaderObject.deliverytime
+			obj.diffmessage = this.willoaderObject.diffmessage
+			obj.confirmcando = parseInt(this.willoaderObject.confirmcando)
+			obj.confirmstartqty = this.willoaderObject.confirmstartqty
+			obj.confirmdeliverytime = this.willoaderObject.confirmdeliverytime
+			obj.confirmremark = this.willoaderObject.confirmremark
+			obj.mintaxprice = this.willoaderObject.mintaxprice
+			obj.maxtaxprice = this.willoaderObject.maxtaxprice
+			obj.supplier = this.willoaderObject.supplier
+			obj.containfreight = parseInt(this.willoaderObject.containfreight)
+			obj.materialcost = this.willoaderObject.materialcost
+			obj.workcost = this.willoaderObject.workcost
+			obj.dealwithcost = this.willoaderObject.dealwithcost
+			obj.taxrate = this.willoaderObject.taxrate
+			obj.taxprice = this.willoaderObject.taxprice
+			obj.remark = this.willoaderObject.remark
+			console.log(obj)
+			return obj
+		}
+	},
+  components: {
+    'v-suppliertable': supplierTable
+  },
+	created() {
+		let parms = { typenumbers: 'TaxRate' }
+		api.supplier.getDictByTypeNumbers(parms).then(res => {
+			if (res.data.code == 200) {
+				this.taxrates = res.data.data.TaxRate
+			}
+		})
+	}
+}
+</script>
+<style lang="stylus">
+
+</style>

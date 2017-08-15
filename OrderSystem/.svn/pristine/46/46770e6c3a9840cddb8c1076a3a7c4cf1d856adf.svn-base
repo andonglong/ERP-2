@@ -1,0 +1,186 @@
+<template>
+  <div class="nav-box">
+    <el-row class="tac">
+      <el-col :span="24">
+        <el-menu :default-active="navselected" :active="navselected" router class="el-menu-vertical-demo" @select="selectItems" @open="handleOpen" @close="handleClose">
+          <!-- <el-menu-item :index="item.url" v-for="item in Authoritys" :key="item.url">
+            <el-tooltip class="item" effect="dark" :content="item.authorityname" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-xunjiacheliang"></i>
+            </el-tooltip>
+            <span>{{item.authorityname}}</span>
+          </el-menu-item> -->
+          <el-menu-item index="/EnquirySheet/enquirySheet" v-if="enquirySheet==1">
+            <el-tooltip class="item" effect="dark" content="询价单" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-xunjiacheliang"></i>
+            </el-tooltip>
+            询价单
+          </el-menu-item>
+          <el-menu-item index="/Quotation/quotation" v-if="quotation==1">
+            <el-tooltip class="item" effect="dark" content="报价需求单" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-baojiadan1"></i>
+            </el-tooltip>
+            报价需求单
+          </el-menu-item>
+          <el-menu-item index="/Track/order" v-if="order==1">
+            <el-tooltip class="item" effect="dark" content="订单跟踪" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-dingdangenzong"></i>
+            </el-tooltip>
+            订单跟踪
+          </el-menu-item>
+          <el-menu-item index="/Manage/Employee" v-if="Employee==1">
+            <el-tooltip class="item" effect="dark" content="员工管理" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-administrators"></i>
+            </el-tooltip>
+            员工管理
+          </el-menu-item>
+          <el-menu-item index="/Manage/Customer" v-if="Customer==1">
+            <el-tooltip class="item" effect="dark" content="客户管理" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-kehu"></i>
+            </el-tooltip>
+            客户列表
+          </el-menu-item>
+          <el-menu-item index="/Supplier/SupplierList" v-if="SupplierList==1">
+            <el-tooltip class="item" effect="dark" content="供应商列表" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-client-list"></i>
+            </el-tooltip>
+            供应商列表
+          </el-menu-item>
+           <el-menu-item index="/Manage/equipment">
+            <el-tooltip class="item" effect="dark" content="设备管理" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-form-setting"></i>
+            </el-tooltip>
+            设备管理
+          </el-menu-item>
+           </el-menu-item>
+           <el-menu-item index="/List/equipmentList">
+            <el-tooltip class="item" effect="dark" content="设备管理" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-form-setting"></i>
+            </el-tooltip>
+            设备列表
+          </el-menu-item> 
+        </el-menu>
+      </el-col>
+    </el-row>
+    <span class="icon-nav" @click="sidebar_btn">
+      <i :class="[sidebar ? 'el-icon-caret-left' : 'el-icon-caret-right' , 'icon-arrow-left']"></i>
+    </span>
+  </div>
+</template>
+
+<script>
+import api from '../../api/request'
+export default {
+  props: {
+    sidebar: {
+      type: Boolean
+    }
+  },
+  data() {
+    return {
+      navselected: '/Track/order',
+      iconList: [],
+      Authoritys: [],
+      enquirySheet: 1,
+      quotation: 1,
+      order: 1,
+      Employee: 1,
+      Customer: 1,
+      SupplierList: 1,
+      equipment: 1
+    }
+  },
+  // computed: {
+  //   navselected() {
+  //     let defaultUrl = this.order == 1 ? '/Track/order' : '/EnquirySheet/enquirySheet'
+  //     return defaultUrl
+  //   }
+  // },
+  methods: {
+    handleOpen(key, keyPath) {
+      // console.log(key, keyPath)
+    },
+    handleClose(key, keyPath) {
+      // console.log(key, keyPath)
+    },
+    getNavType() {
+      this.navselected = this.$store.state.adminleftnavnum
+      // store.state.adminleftnavnum里值变化的时候，设置navselected
+    },
+    selectItems(index) {
+      this.$store.state.adminleftnavnum = index
+      // 按钮选中之后设置当前的index为store里的值。
+    },
+    sidebar_btn() {
+      let bool = !this.sidebar
+      this.$emit('listenSidebar', bool)
+    },
+    checkAuthoritys(arr) {
+      for (var i = 0; i < arr.length; i++) {
+        let key = arr[i].url.split('/')[1]
+        this[key] = arr[i].authority == 1
+      }
+    }
+  },
+  watch: {
+    // 监测store.state
+    '$store.state.adminleftnavnum': 'getNavType'
+  },
+  created() {
+    if (this.$store.state.Authoritys.length == 0) {
+      // 获取权限
+      api.user.getAuthoritys().then(res => {
+        if (res.data.code == 200) {
+          let list = res.data.data
+          this.$store.state.Authoritys = list
+          this.Authoritys = list
+          this.checkAuthoritys(list)
+        }
+      })
+    } else {
+      let list = this.$store.state.Authoritys
+      this.checkAuthoritys(list)
+    }
+  }
+}
+</script>
+
+<style lang="stylus">
+	.tac
+		text-align: center
+		color:#333
+		.el-menu
+			background-color: #d1dbe5
+		.el-menu-item
+			font-size:18px
+			border-bottom:1px solid #eef1f6
+			text-align:left
+			&:last-child
+				border-bottom:0
+		.icon
+			font-size:20px
+			margin-right:8px
+	.el-menu--horizontal.el-menu--dark .el-submenu .el-menu-item.is-active, .el-menu-item.is-active
+		color:#fff
+		background-color:#20a0ff
+	.nav-box
+		position:relative
+		height:850px
+		// margin-top:60px
+		overflow:hidden
+		background-color: #eef1f6
+	.icon-nav
+		position:absolute
+		top:50%
+		right:0
+		width:12px
+		height:100px
+		cursor:pointer
+		background-color:#20a0ff
+		text-align:center
+		line-height:100px
+		transition: all .2s ease-out
+		transform: translateY(-50%)
+		.icon-arrow-left
+			color:#fff
+
+</style>

@@ -1,0 +1,72 @@
+.search-box
+	padding-top:20px
+	position:relative
+	&:after
+		content:""
+		display:block
+		height:0
+		clear:both
+		visibility:hidden
+	.form-wrap
+		font-size:14px
+		&:after
+			content:""
+			display:block
+			height:0
+			clear:both
+			visibility:hidden
+		.search-left
+			display:inline-block
+			margin-left:30px
+			vertical-align: middle
+			width:945px
+			.search-item-model
+				.el-input
+					width:180px
+			.search-item
+				display:inline-block
+				font-size:0
+				margin-right:30px
+				position: relative
+				&:nth-child(3n)
+					margin-right:0px
+				&.el-form-item
+					margin-bottom:10px
+				.search-item-input>input
+					width:180px
+				.el-select .el-input__inner
+					width:180px
+				.el-date-editor--daterange.el-input
+					width:260px
+		.search-right
+			display:inline-block
+			position:relative
+			vertical-align: middle
+			.search-item
+				font-size:0
+				margin-left:34px
+				&.el-form-item
+					margin-bottom:10px
+.search-silder-btn
+	position:absolute
+	top:0
+	right:0
+	width:30px
+	height:100%
+	text-align:center
+	cursor: pointer
+	&:hover
+		background-color:#e5e9f2
+.icon-arrow
+	color:#20a0ff
+	transition:0.7s
+	position:absolute
+	top:50%
+	margin-top:-7px
+	right:5px
+	&:hover
+		color:#4db3ff
+.icon-arrow-down
+	transform: rotateZ(-90deg)
+.icon-arrow-up
+	transform: rotateZ(90deg)

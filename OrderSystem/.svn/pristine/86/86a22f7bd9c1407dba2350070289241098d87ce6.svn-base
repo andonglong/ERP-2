@@ -1,0 +1,74 @@
+<template>
+  <div class="drawing-box">
+    <div class="drawing-container">
+      <div class="drawing-header">
+        <el-button>打印图纸</el-button>
+        <el-button>替换图纸</el-button>
+        <el-button>删除图纸</el-button>
+      </div>
+      <div class="img-box">
+  
+      </div>
+      <textarea placeholder="有问题，写备注"></textarea>
+      <div class="upload-box">
+        <div class="uploadFile">乱七八糟...jpg
+          <i class="el-icon-delete"></i>
+        </div>
+        <div class="uploadFile">乱七八糟...jpg
+          <i class="el-icon-delete"></i>
+        </div>
+        <el-button type="primary" class="uploadBtn">+ 上传文件</el-button>
+        <el-button type="primary">发布</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+
+</script>
+
+<style lang="stylus">
+  .drawing-box
+    height: 100%
+    overflow: auto
+
+    .drawing-container
+      width: 93%
+      margin: 0 auto
+      box-sizing: border-box;
+
+      .drawing-header
+        text-align: right
+        margin: 6px 0
+
+        button
+          height: 28px
+          line-height: 28px
+          padding: 0
+          width: 73px
+
+      .img-box
+        height: 648px
+        border: 1px solid #bbb
+
+      textarea
+        width: 100%
+        box-sizing: border-box
+        margin-top: 10px
+        margin-bottom: 20px
+        border-color: #bbb
+        padding: 8px 6px  
+
+      .upload-box
+        .uploadFile
+          margin-bottom: 15px  
+
+        .el-button
+          height: 24px
+          line-height: 24px
+          padding: 0 15px
+                     
+
+       
+</style>

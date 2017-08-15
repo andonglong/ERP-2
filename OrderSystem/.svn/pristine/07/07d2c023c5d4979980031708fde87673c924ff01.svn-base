@@ -1,0 +1,102 @@
+<template>
+	<div class="upload-box">
+		<p class="upload-tip"><i class="el-icon-information icon-info"></i>提示：一次最多只能导入1000条产品资料，若产品资料数超出1000条，请分成多次导入。</p>
+		<div class="upload-step">
+			<h3 class="upload-step-title">第一步：下载模版</h3>
+			<p class="upload-step-des">将要导入的数据填充到数据导入模板文件中，不可改变模板的格式 点击下载导入数据模板</p>
+			<a href="">点击下载导入数据模板 </a>
+		</div>
+		<div class="upload-step">
+			<h3 class="upload-step-title">第二步：选择并上传文件</h3>
+			<p class="upload-step-des">选择填充好数据的模版文件，选中后文件将自动上传</p>
+			<el-upload
+			  class="upload-demo"
+			  ref="upload"
+			  :action="actionUrl"
+			  :on-success="handleSuccess"
+			  :on-error="handleError"
+			  :on-preview="handlePreview"
+			  :on-remove="handleRemove"
+			  :file-list="fileList"
+			  :auto-upload="false">
+			  <el-button slot="trigger" size="small" type="primary">上传文件</el-button>
+			  <div slot="tip" class="el-upload__tip"></div>
+			</el-upload>
+			
+		</div>
+		<div class="upload-step">
+			<h3 class="upload-step-title">第三步：开始导入</h3>
+			<p class="upload-step-des">文件上传完成后，点击下面的“开始导入”按钮开始导入</p>
+		</div>
+		<div class="upload-start">
+			<el-button type="primary" @click="submitUpload">开始导入</el-button>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		props:{
+			dialogUploadorder: {
+				type:Boolean
+			}
+		},
+		data() {
+			return {
+				actionUrl:'',
+				fileList:[]
+			}
+		},
+		methods:{
+			submitUpload() {
+				this.$refs.upload.submit();
+				let bool = !this.dialogUploadorder
+      	this.$emit("listenUploadorder", bool)
+			},
+			handleRemove(file, fileList) {
+        console.log(file, fileList);
+      },
+      handlePreview(file) {
+        console.log(file);
+      },
+      handleSuccess(err, file, fileList) {
+        console.log(err);
+      },
+      handleError(err, file, fileList) {
+        console.log(err);
+      }
+		}
+	}
+</script>
+
+<style lang="stylus">
+	a
+		text-decoration: none
+	.upload-box
+		font-size:14px
+		color:#666
+		.upload-tip
+			color:#f7ba2a
+			line-height:22px
+			margin-bottom:13px
+			.icon-info
+				color:#f7ba2a
+				margin-right:7px
+		.upload-step
+			margin-bottom:30px
+			line-height:26px
+			.upload-step-title
+				font-size:16px
+				color:#333333
+			.upload-step-des
+				font-size:14px
+				color:#666
+			a
+				color:#20a0ff
+				&:hover
+					color:#4db3ff
+			button
+				margin-top:5px
+		.upload-start
+			text-align:right		
+</style>

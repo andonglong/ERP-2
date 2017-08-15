@@ -1,0 +1,83 @@
+<template>
+<div class="supplier-table">
+	<el-table :data="tableData" border style="width: 100%" height="340">
+		<el-table-column type="index" width="50">
+		</el-table-column>
+		<el-table-column prop="supplier" label="供应商编号" width="145">
+		</el-table-column>
+		<el-table-column prop="supplierName" label="供应商名称" width="486">
+		</el-table-column>
+	</el-table>
+	<div class="supplier-foot">
+		<span>共 {{Totel}}条数据</span>
+		<el-pagination class="supplier-page"
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+      :current-page="currentPage4"
+      :page-sizes="[10, 200, 30, 40]"
+      :page-size="10"
+			:total="Totel"
+      layout="prev,  pager, next, sizes, jumper">
+    </el-pagination>
+	</div>
+</div>
+</template>
+
+<script type="text/javascript">
+export default {
+	name: 'supplierTable',
+	props: {
+		keyWord: {
+			type: String
+		}
+	},
+	data() {
+		return {
+			tableData: [{
+					supplier: '1233',
+					supplierName: '深圳市前锋精密机械技术有限公司'
+				},
+				{
+					supplier: '2222',
+					supplierName: '深圳市前锋精密机械技术有限公司'
+				},
+				{
+					supplier: '2222',
+					supplierName: '深圳市前锋精密机械技术有限公司'
+				}
+			],
+			currentPage4: 1,
+			Totel: 40
+		}
+	},
+	methods: {
+		handleSizeChange() {
+
+		},
+		handleCurrentChange() {
+
+		}
+	}
+}
+</script>
+
+<style lang="css">
+	.supplier-table{
+		position: absolute;
+		top:37px;
+		left:0;
+		z-index: 2003;
+		height:400px;
+		width:700px;
+		background-color: #fff;
+		border-radius: 5px
+	}
+	.supplier-table .supplier-foot{
+		overflow: hidden;
+		background-color: #eee;
+		padding:12px 20px 0 20px
+	}
+	.supplier-table .supplier-page{
+		float: right
+	}
+</style>

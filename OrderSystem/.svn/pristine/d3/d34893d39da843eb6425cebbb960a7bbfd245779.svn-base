@@ -1,0 +1,210 @@
+<template>
+  <div v-show="productDetailData.show" style="position: relative;">
+    <!--<div class="productDetail-fixed">
+                        </div>-->
+    <div class="productDetail-container">
+      <el-tabs v-model="productDetailData.currentTab" type="card" @tab-click="handleClick">
+        <el-tab-pane label="图纸" name="first" id="drawing">
+          <v-drawing :drawingData="drawingData"></v-drawing>
+        </el-tab-pane>
+        <el-tab-pane label="产品进度" name="second" class="progress" id="progress">
+          <v-progress :progressData="progressData"></v-progress>
+        </el-tab-pane>
+        <el-tab-pane label="操作记录" name="third" class="record" id="record">
+          <v-record :recordData="recordData"></v-record>
+        </el-tab-pane>
+      </el-tabs>
+  
+      <div class="title-name">
+        <div class="cfff ell" :title="productDetailData.productname">{{productDetailData.productname}}</div>
+        <div class="cfff bold ell" :title="productDetailData.productname">{{productDetailData.productmodel}}</div>
+      </div>
+      <i class="el-icon-close header-close" @click="CloseProductDetail"></i>
+    </div>
+  
+  </div>
+</template>
+
+<script>
+import drawing from './drawing'
+import progress from './progress'
+import record from './record'
+import $util from "common/js/util.js"
+import api from "api/request.js"
+
+
+
+export default {
+  props: ['productDetailData', 'drawingData', 'progressData', "recordData"],
+  data() {
+    return {}
+  },
+  components: {
+    "v-progress": progress,
+    "v-drawing": drawing,
+    "v-record": record
+  },
+  beforeCreate() { },
+  created() { },
+  beforeUpdate() {
+    let obj = this.productDetailData
+    this.drawingData.inorderid = obj.inorderid
+    this.drawingData.productmodel = obj.productmodel
+    this.drawingData.productserialno = obj.productserialno
+
+    this.progressData.inorderid = obj.inorderid
+    this.progressData.productmodel = obj.productmodel
+    this.progressData.productserialno = obj.productserialno
+
+    this.recordData.inorderid = obj.inorderid
+    this.recordData.productmodel = obj.productmodel
+    this.recordData.productserialno = obj.productserialno
+  },
+  updated() { },
+  beforeMount() { },
+  mounted() { },
+  computed: {},
+  methods: {
+    handleClick(tab, event) {
+      let obj = this.productDetailData
+      if (!obj.inorderid) {
+        return;
+      }
+      let param = { inorderid: obj.inorderid, productmodel: obj.productmodel, productserialno: obj.productserialno }
+      if (tab.$el.id == "drawing") {
+        param.source = 0
+        param.filetype = 0
+        //图纸数据
+        api.order.getdrawingsheetbyorderid(param).then(res => {
+          this.drawingData.ImgUrlArray = $util.isArray(res.data.datalist) 
+
+          //附件数据
+          param.filetype = 1
+          param.pageindex = 1
+          param.pagesize = 10
+          api.order.getdrawingsheetbyorderid(param).then(res => {
+
+            res.data.datalist = $util.isArray(res.data.datalist)
+            this.drawingData.uploadRecord = res.data.datalist.length ? res.data.datalist.reverse() : res.data.datalist
+            this.drawingData.uploadRecordDataSum = res.data.datasum
+            this.drawingData.uploadRecordPageIndex = 1
+          })
+        })
+
+      }
+      if (tab.$el.id == "progress") {
+        api.order.gettechnologysbyorderid(param).then(res => {
+          let Data =  $util.isArray(res.data.data)
+          this.progressData.table01Data = Data
+          this.progressData.table02Data = []
+
+          if (Data.length) {
+            let param = { inorderid: Data[0].inorderid, productmodel: Data[0].productmodel, serialno: Data[0].productserialno, sequence: Data[0].sequence }
+            api.order.getusertechnologysbyorderid(param).then(res => {
+              this.progressData.table02Data = $util.isArray(res.data.data)
+            })
+          }
+
+        })
+      }
+      if (tab.$el.id == "record") {
+        param.pageindex = 1
+        param.pagesize = 10
+        api.order.getoperationlog(param).then(res => {
+          this.recordData.data = res.data.data.length ? res.data.data.reverse() : res.data.data
+          this.recordData.DataSum = res.data.datasum
+          this.recordData.PageIndex = 1
+        })
+      }
+    },
+    CloseProductDetail() {
+      this.$emit('connect')
+    }
+
+  }
+};
+</script>
+
+<style lang="stylus">
+.productDetail-fixed 
+  position: fixed
+  top: 0
+  right: 0
+  left: 0
+  bottom: 0
+  z-index: 30
+  background-color: rgba(0,0,0,0.6)
+  
+.productDetail-container 
+    background-color: #fff
+    position: fixed
+    top: 0
+    right: 0
+    bottom: 0
+    z-index: 1002
+    min-width: 700px
+    width: 50%
+    box-shadow: 0px 0px 8px #8492A6
+    
+    .title-name
+      position: absolute
+      top: 20px 
+      left: 45%
+      height: 44px
+      width: 230px
+      // background-color: red
+      line-height: 20px
+
+    .header-close
+      position: absolute
+      top: 0
+      right: 0
+      margin: 16px 20px 0 0 
+      color: #d3dce6
+      font-size: 31px
+      cursor: pointer
+    
+    .el-tabs__nav-wrap 
+      background-color: #475669
+      height: 64px
+    
+
+    .el-tabs__nav-scroll 
+      padding-top: 20px
+      height: 44px 
+    
+    .el-tabs--card>.el-tabs__header .el-tabs__item.is-active 
+      height: 44px  
+      background-color: #fff
+      
+    .el-tabs--card>.el-tabs__header .el-tabs__item 
+        background-color: #EFF2F7;
+        margin-left: 10px;
+
+    .el-tabs__item 
+      height: 43px
+      line-height: 43px
+
+    .line 
+      height: 1px
+      background-color: #BBBBBB
+      margin: 20px 0 
+    
+    .el-tabs
+      height: 100%!important 
+      position: relative
+    
+    .el-tabs__content 
+      position: absolute
+      top: 64px
+      bottom: 0
+      left: 0
+      right: 0
+
+    .el-tab-pane 
+      height: 100%
+    
+    .record
+      overflow-y: auto
+ 
+</style>

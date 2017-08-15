@@ -1,0 +1,252 @@
+<template>
+  <div class="drawing-box">
+    <div class="drawing-container">
+      <div class="container-up">
+        <div class="drawing-header">
+          <el-button> 打印图纸</el-button>
+          <el-button>替换图纸</el-button>
+          <el-button>删除图纸</el-button>
+        </div>
+        <div class="img-box">
+  
+        </div>
+        <textarea placeholder="有问题，写备注"></textarea>
+        <div class="upload-box">
+          <div class="uploadFile">
+            <i class="el-icon-picture"></i>
+            <span>乱七八糟...jpg</span>
+            <i class="el-icon-delete2"></i>
+          </div>
+          <div class="uploadFile">
+            <i class="el-icon-picture"></i>
+            <span>乱七八糟...jpg</span>
+            <i class="el-icon-delete2"></i>
+          </div>
+          <el-upload class="upload-demo" ref="upload" action="https://jsonplaceholder.typicode.com/posts/" 
+          :auto-upload="false" 
+          :show-file-list="true" 
+          :before-upload="beforeAvatarUpload" 
+          :on-preview="handlePreview" 
+          :on-remove="handleRemove" 
+          :on-change="handleChange"
+          :file-list="fileList">
+            <el-button type="primary" slot="trigger" class="uploadBtn">+ 上传文件</el-button>
+            <el-button type="primary"  @click="submitUpload">发布</el-button>
+            <!--<el-button slot="trigger" size="small" type="primary">选取文件</el-button>-->
+            <!--<el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">发布</el-button>-->
+            <div slot="tip" class="el-upload__tip">只能上传jpg/png/bmp文件，且不超过5M</div>
+          </el-upload>
+  
+          
+        </div>
+      </div>
+      <div class="container-line"></div>
+      <div class="container-down">
+        <div class="upload-record" v-for=" item in drawingData.uploadRecord">
+          <div class="date">
+            <span>{{ item.date }}</span>
+          </div>
+          <div class="info-box">
+            <div class="Avatar">
+              <img :src="item.img">
+            </div>
+            <div class="info">
+              <div class="name">{{item.name}}</div>
+              <div class="fileIcon">
+                <img src="/static/images/file-icon.png">
+              </div>
+              <div>
+                <a :href="item.info.url" target="_blank">{{item.info.name}}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="loading" v-show=" drawingData.uploadRecord.length >= 10 ? true:false ">
+          <i class="el-icon-loading" v-if="LoadingText != '没有更多'"></i>
+          <span>{{LoadingText}}</span>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+</template>
+
+<script>
+import $http from "api/http.js"
+export default {
+  props: ['drawingData'],
+  data() {
+    return {
+      LoadingText: "加载中...",
+      PageIndex: 1,
+      fileList: []
+
+    }
+  },
+  mounted() {
+    let _this = this
+    let recordScroll = document.querySelectorAll('.drawing-box')
+    recordScroll[0].addEventListener('scroll', function (e) {
+      e = e || window.event
+      let distance = e.target.scrollHeight - e.target.scrollTop - e.target.offsetHeight;
+      if (distance < 30) {
+        _this.PageIndex++
+        _this.fetchDrawing(_this.PageIndex)
+      }
+    })
+  },
+  methods: {
+    fetchDrawing(PageIndex) {
+      $http.ajax("api/drawing").then(res => {
+        console.log(res)
+        res = res.data.data
+        if (PageIndex == 1) {
+          this.drawingData.uploadRecord = res.concat(res)
+        }
+
+        if (PageIndex == 2) {
+          setTimeout(() => {
+            this.drawingData.uploadRecord = res.concat(res).concat(res)
+          }, 1000)
+        }
+
+        if (PageIndex >= 3) {
+          this.LoadingText = "没有更多"
+        }
+      })
+    },
+    beforeAvatarUpload(file) {
+      console.log(file)
+      const isJPG = (file.type === 'image/jpeg') || (file.type === 'image/bmp') || (file.type === 'image/png');
+      const isLt2M = file.size / 1024 / 1024 < 5;
+
+      if (!isJPG) {
+        this.$message.error('上传图片只能是 jpg/png/bmp 格式!');
+      }
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不能超过 5MB!');
+      }
+      return isJPG && isLt2M;
+    },
+    handleRemove(file, fileList) {
+      console.log("移除")
+      console.log(file, fileList);
+    },
+    handlePreview(file) {
+      console.log(file);
+    },
+    handleChange(file,fileList){
+      console.log("选择文件")
+      console.log(file,fileList)
+      this.fileList = fileList
+    },
+    submitUpload() {
+      // this.fileList = []
+       console.log(this.$refs)
+        this.$refs.upload.submit();
+      },
+  }
+
+}
+</script>
+
+<style lang="stylus">
+  .drawing-box
+    height: 100%
+    
+    overflow: auto
+
+    .drawing-container
+      width: 100%
+      box-sizing: border-box
+
+      .container-up
+      .container-down
+        width: 93%
+        margin: 0 auto
+
+        .loading
+           display:flex
+           justify-content: center
+           align-items: center
+           height: 40px
+
+           .el-icon-loading
+             margin-right: 5px
+
+      .container-line
+        height: 1px
+        background-color: #e5e5e5;  
+
+      .drawing-header
+        text-align: right
+        margin: 6px 0
+
+        button
+          height: 28px
+          line-height: 28px
+          padding: 0
+          width: 73px
+
+      .img-box
+        height: 648px
+        border: 1px solid #bbb
+
+      textarea
+        width: 100%
+        box-sizing: border-box
+        margin-top: 10px
+        margin-bottom: 20px
+        border-color: #bbb
+        padding: 8px 6px  
+
+      .upload-box
+        padding-bottom: 30px
+
+        .uploadFile
+          margin-bottom: 15px
+
+          i
+            vertical-align: middle  
+
+          .el-icon-delete2
+            margin-left: 15px
+
+        .el-button
+          height: 24px
+          line-height: 24px
+          padding: 0 15px
+
+      .upload-record
+        width: 93%
+        padding:  15px 20px 20px 20px
+        border-bottom: 1px solid #e5e5e5    
+        
+        .date
+          text-align: right
+          line-height: 1
+          color: #999
+
+        .info-box
+          display: flex
+
+
+          .Avatar img
+            width: 48px
+            height: 48px
+            margin-right: 20px
+            border-radius: 24px
+            vertical-align: top
+
+          .name 
+            margin-bottom: 15px
+            font-size: 18px
+            font-weight:bold
+            color: #333
+
+          .fileIcon
+            margin-bottom: 10px
+            img 
+              vertical-align: top          
+       
+</style>

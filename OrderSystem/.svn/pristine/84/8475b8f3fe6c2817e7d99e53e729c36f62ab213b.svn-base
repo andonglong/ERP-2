@@ -1,0 +1,525 @@
+<template lang="html">
+  <div class="businesss">
+    <el-form :inline="true" :model="supplierbusiness" class="demo-form-inline" label-position="left">
+	  	<div class="left">
+				  <el-form-item label="主营品牌" label-width="83px">
+            <div @click="Showbrandslist">
+                <el-input v-model="sellbrand" placeholder="" :readonly="true"  class="info-input"></el-input>
+            </div>
+				  </el-form-item>
+          <el-form-item label="主营行业" label-width="83px">
+            <el-cascader
+              class="info-cascader"
+              v-model="supplierbusiness.businesstrade"
+              :options="suppliertradesList"
+              :filterable="true"
+              :clearable="true"
+              change-on-select
+              :props="{value: 'id', label: 'text', children: 'children'}"
+              @change="handleChange">
+            </el-cascader>
+  				</el-form-item>
+	  	</div>
+			<div class="right">
+        <el-form-item label="主营产品" label-width="83px" class="product-item-product" id="product-item-product">
+          <div @click.stop="Showsellproduct">
+            <!-- v-model="supplierbusiness.sellproduct" -->
+            <el-input type="textarea" autosize ref="product" v-model="categoryname"  class="info-input-textarea" :autosize="{ minRows: 1, maxRows: 7}"  @keyup.native="checkProduct('product')"></el-input>
+          </div>
+          <div class="sellproduct-box" v-show="sellproductShow">
+            <el-tree
+              class="sellproduct-tree"
+              :data="sellproductList"
+              node-key="id"
+              show-checkbox
+              @check-change="checkChange"
+              :filter-node-method="filterNode"
+              ref="tree2"
+              :accordion="true"
+              :props="{label: 'text', children: 'children'}">
+            </el-tree>
+            <!-- <div class="sellproduct-btn-box">
+              <el-button type="primary" class="brand-btn" @click="nodeClick">确定</el-button>
+            </div> -->
+          </div>
+				</el-form-item>
+			</div>
+		</el-form>
+    <div class="bussiness-table">
+      <el-table :data="supplierbusinessList" border style="width: 1130px" max-height="600" @selection-change="businessSelectionChange">
+        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column type="index" align="center" label="序号" width="65"></el-table-column>
+        <el-table-column prop="linkname" align="center" label="客户名称" width="330">
+          <template scope="scope">
+            <el-autocomplete
+              class="info-input"
+              v-model="scope.row.partnername"
+              :fetch-suggestions="querySearchAsync"
+              placeholder="请输入客户名称"
+              :props="{value:'name', label:'name'}"
+              @select="handleSelect"
+            ></el-autocomplete>
+          </template>
+        </el-table-column>
+        <el-table-column prop="businesstrade" align="center" label="客户行业" width="330">
+          <template scope="scope">
+            <el-select v-model="scope.row.industryid" placeholder="请选择">
+              <el-option
+                class="info-cascader"
+                v-for="item in AllCusttrades"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </template>
+        </el-table-column>
+        <el-table-column prop="department" align="center" label="客户主营产品" width="349">
+          <template scope="scope">
+            <el-input type="textarea" autosize class="info-input-textarea" :autosize="{ minRows: 1, maxRows: 7}" placeholder="请输入客户主营产品" v-model="scope.row.brandname"></el-input>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div class="table-btn">
+        <el-button type="text" class="btn-w30" @click="addRow"><i class="icon iconfont icon-tianjia"></i> 添加行</el-button>
+        <el-button type="text" class="btn-w30" @click="removeRow"><i class="icon iconfont icon-shanchu4"></i> 删除行</el-button>
+      </div>
+      <div class="table-btn">
+        <el-button class="btn-w80" type="primary"  @click="save">保存</el-button>
+      </div>
+    </div>
+    <div class="dialog">
+      <el-dialog title="选择品牌" :visible.sync="dialogTableVisible">
+        <div class="brand-box">
+          <el-form :inline="true" :model="brandFrom" class="demo-form-inline">
+            <el-form-item label="简称">
+              <el-input v-model="brandFrom.shortname" placeholder="请输入简称"></el-input>
+            </el-form-item>
+            <el-form-item label="名称" label-width="50px">
+              <el-input v-model="brandFrom.name" placeholder="请输入名称"></el-input>
+            </el-form-item>
+            <el-form-item class="brand-btn-box">
+              <el-button type="primary" class="brand-btn" @click="onSubmit">查询</el-button>
+              <el-button type="primary" class="brand-btn" @click="onResult">确定</el-button>
+            </el-form-item>
+          </el-form>
+          <el-table :data="brandList" max-height="400" border v-loading="loading" class="brand-list" ref="singleTable" @row-click="handleClickChange" @selection-change="handleSelectionChange" highlight-current-row>
+            <el-table-column type="selection" width="45"  align="center"></el-table-column>
+            <el-table-column type="index" width="40" label="序号"  align="center"></el-table-column>
+            <el-table-column property="simply" label="简称" width="80"  align="center"></el-table-column>
+            <el-table-column property="name" label="名称" width="110"  align="center"></el-table-column>
+            <el-table-column property="company" label="经营公司" width="150"  align="center"></el-table-column>
+            <el-table-column property="state" label="状态" width="55"  align="center">
+              <template scope="scope">
+                <span>{{scope.row.state}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column property="website" label="网站" width="120"  align="center">
+              <template scope="scope">
+                <a :href="'http://'+scope.row.website" target="_blank">{{scope.row.website}}</a>
+              </template>
+            </el-table-column>
+            <el-table-column property="introduction" label="介绍" width="118"  align="center">
+              <template scope="scope">
+                <el-input class="brand-introduction" type="textarea" :rows="2" :readonly="true" :value="scope.row.introduction"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column property="logo" label="logo" width="140"  align="center">
+              <template scope="scope">
+                <img :src="scope.row.logo" v-show="scope.row.logo != null" alt="" width="120" height="40">
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="page-warrpe">
+      			<el-pagination class="page-box" @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="brandFrom.pageindex" :page-sizes="page_sizes" layout="prev, pager, next,sizes, jumper" :total="Total">
+      			</el-pagination>
+          </div>
+        </div>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+
+<script>
+import api from 'api/request'
+import axios from 'axios'
+export default {
+	name: 'business',
+  props: {
+    supplierbusiness: {
+      type: Object
+    },
+    supplierbusinessList: {
+      type: Array
+    }
+  },
+  watch: {
+    supplierbusiness(val) {
+      let str = ''
+      let sellbrand = ''
+      let categoryid = ''
+      let categoryname = ''
+      for (let i = 0; i < val.supplierbrands.length; i++) {
+        if (i == val.supplierbrands.length - 1) {
+            str += val.supplierbrands[i].brandid
+            sellbrand += val.supplierbrands[i].brandname
+        } else {
+            str += val.supplierbrands[i].brandid + ','
+            sellbrand += val.supplierbrands[i].brandname + ','
+        }
+      }
+      for (let i = 0; i < val.productcategories.length; i++) {
+        if (i == val.productcategories.length - 1) {
+            categoryid += val.productcategories[i].categoryid
+            categoryname += val.productcategories[i].categoryname
+        } else {
+            categoryid += val.productcategories[i].categoryid + ','
+            categoryname += val.productcategories[i].categoryname + ','
+        }
+      }
+      val.businesstrade = val.businesstrade == undefined ? [] : val.businesstrade.split(' ')
+      this.brandids = str
+      this.sellbrand = sellbrand
+      this.categoryid = categoryid
+      this.categoryname = categoryname
+      let arr = this.categoryid.toUpperCase().split(',')
+      this.$refs.tree2.setCheckedKeys(arr)
+    }
+  },
+	data() {
+		return {
+      sellproduct: '',
+      brandids: '',  // 品牌ID
+      sellbrand: '', // 品牌
+      categoryname: '',
+      categoryid: '',
+      tableShowproduct: 0,
+      tableData: [],
+      sellproductList: [],    // 主营产品列表
+      suppliertradesList: [],    // 主营行业列表
+      AllCusttrades: [],    // 客户行业列表
+      businessChoseList: [],  // 选中要删除的行
+      dialogTableVisible: false,
+      sellproductShow: false,
+      targetBrand: true,
+      loading: false,
+      brandList: [],
+      currentRow: [],
+      brandFrom: {
+        simply: '',
+        name: '',
+        pageindex: 1,
+        pagesize: 10
+      },
+      Total: 0,
+      page_sizes: [15, 20, 25, 50],
+      form: {
+        pageindex: 1,
+        pagesize: 15
+      }
+    }
+	},
+  computed: {},
+  methods: {
+    handleChange(val) {
+      console.log(val)
+    },
+    Showbrandslist() {
+      this.dialogTableVisible = true
+      this.getbrandslist(this.brandFrom)
+    },
+    checkProduct(name) {
+      let val = this.$refs[name].currentValue
+      this.$refs.tree2.filter(val)
+    },
+    filterNode(value, data) {
+      if (!value) return true
+      return data.text.indexOf(value) !== -1
+    },
+    handleSelect(item) {
+      console.log(item)
+    },
+    querySearchAsync(queryString, cb) {
+      let arr = []
+      api.customer.getCustomerByName({name: queryString}).then(res => {
+        if (res.data.code == 200) {
+          arr = res.data.data
+        }
+        cb(arr)
+      })
+    },
+    // business选中
+    businessSelectionChange(val) {
+      this.businessChoseList = val
+    },
+    // 展示主营行业
+    Showsellproduct() {
+      this.sellproductShow = true
+    },
+    bodyClick() {
+      this.sellproductShow = false
+    },
+    checkChange() {
+      this.categoryname = ''
+      this.categoryid = ''
+      let checkList = this.$refs.tree2.getCheckedNodes()
+      let Str = ''
+      for (var i = 0; i < checkList.length; i++) {
+        if (i == checkList.length - 1) {
+          Str += checkList[i].text
+          this.categoryid += checkList[i].id
+        } else {
+          Str += checkList[i].text + ','
+          this.categoryid += checkList[i].id + ','
+        }
+      }
+      this.categoryname = Str
+    },
+    // 添加行
+    addRow() {
+      let obj = {
+        partnername: '',
+        brandname: '',
+        industryid: ''
+      }
+      this.supplierbusinessList.push(obj)
+    },
+    // 删除行
+    removeRow() {
+      if (this.businessChoseList.length > 0) {
+        for (var j = 0; j < this.supplierbusinessList.length; j++) {
+          for (var i = 0; i < this.businessChoseList.length; i++) {
+            let obj = this.businessChoseList[i]
+            if (this.supplierbusinessList[j] == obj) {
+              this.supplierbusinessList.splice(j, 1)
+            }
+          }
+        }
+      } else {
+        this.$notify({
+          title: '警告',
+          message: '无可删除行',
+          type: 'warning'
+        })
+      }
+    },
+    // 保存
+    save() {
+      let parms = {}
+      let _t = this
+      parms.brandids = this.brandids
+      parms.productcatetoryids = this.categoryid
+      parms.tradesid = this.supplierbusiness.businesstrade.join(',')
+      parms.supplierpartnerInputs = this.supplierbusinessList
+      axios.post('cloudfactory/company/savebusiness', parms).then(res => {
+        if (res.data.code == 200) {
+          _t.$message({
+            message: '保存成功',
+            type: 'success',
+            duration: 1500,
+            onClose: function() {
+              // location.reload()
+            }
+          })
+        } else {
+          _t.$alert('保存失败', '提示')
+        }
+      })
+      // api.company.savebusiness({input: JSON.stringify(parms)}).then(res => {
+      //   if (res.data.code == 200) {
+      //     _t.$message({
+      //       message: '保存成功',
+      //       type: 'success',
+      //       duration: 1500,
+      //       onClose: function() {
+      //         location.reload()
+      //       }
+      //     })
+      //   } else {
+      //     _t.$alert('保存失败', '提示')
+      //   }
+      // })
+    },
+    onSubmit() { },
+    onResult() {
+      if (this.currentRow == null) {
+        this.$notify({
+          title: '警告',
+          message: '请勾选供应商',
+          type: 'warning'
+        })
+      } else {
+        this.dialogTableVisible = false
+        let sellbrand = ''
+        let brandids = []
+        for (var i = 0; i < this.currentRow.length; i++) {
+          if (i == this.currentRow.length - 1) {
+            sellbrand += this.currentRow[i].name
+            brandids += this.currentRow[i].id
+          } else {
+            sellbrand += this.currentRow[i].name + ','
+            brandids += this.currentRow[i].id + ','
+          }
+        }
+        this.sellbrand = sellbrand
+        this.brandids = brandids
+      }
+    },
+    // 供应商单选
+    handleClickChange(val) {
+      this.$refs.singleTable.toggleRowSelection(val)
+    },
+    handleSelectionChange(val) {
+      this.currentRow = val
+    },
+    // 分页
+    handleSizeChange(val) {
+      this.brandFrom.pagesize = val
+      this.getbrandslist(this.brandFrom)
+    },
+    handleCurrentChange(val) {
+      this.brandFrom.pageindex = val
+      this.getbrandslist(this.brandFrom)
+    },
+    getbrandslist(data) {
+      let _t = this
+      this.loading = true
+      // 品牌列表
+      api.supplier.getbrandslist(data).then(res => {
+        _t.loading = false
+        if (res.data.code == 200) {
+          _t.brandList = res.data.data.rows
+          _t.Total = res.data.data.totalCount
+        }
+      })
+    },
+    // 主营行业
+    formateSellProduct(list) {
+      // let product = this.supplierbusiness.sellproduct
+      for (var i = 0; i < list.length; i++) {
+      }
+    }
+  },
+  created() {
+    let _t = this
+    // 主营产品
+    api.supplier.productcatalog().then(res => {
+      if (res.data.code == 200) {
+        _t.sellproductList = res.data.data[0].children[0].children || []
+      }
+    })
+    // 主营行业
+    api.supplier.suppliertrades().then(res => {
+      _t.suppliertradesList = res.data.data[0].children || []
+    })
+    // 客户行业
+    api.customer.getAllCusttrades().then(res => {
+      if (res.data.code == 200) {
+        _t.AllCusttrades = res.data.data
+      }
+    })
+
+    document.querySelectorAll('body')[0].addEventListener('click', this.bodyClick, false)
+  },
+  beforeDestroy() {
+		document.querySelectorAll('body')[0].removeEventListener('click', this.bodyClick, false)
+	}
+}
+</script>
+
+<style lang="stylus">
+.businesss
+  // overflow:hidden
+  .demo-form-inline
+    &:after
+      content:' '
+      clear:both
+      display:block
+      height:0
+      visibility:hidden
+  .info-cascader
+    width:260px
+  .info-input-textarea
+    position:relative
+    width:300px
+  .bussiness-table
+    margin-top:10px
+    .table-btn
+      margin-top:20px
+      .btn-w80
+        padding:0
+        margin:0
+        line-height:30px
+      .btn-w30
+        color:#5e6d82
+        padding:0
+        margin:0 10px 0 0
+        line-height:30px
+        &:hover
+          color:#1d90e6
+        .icon
+          vertical-align: middle
+        .icon-shanchu4
+          font-size:19px
+  .product-item-product
+    position: relative
+    .sellproduct-box
+      position: absolute
+      background-color: #fff
+      // top:34px
+      left:0
+      z-index:99
+      height:270px
+      border:1px solid #ccc
+      .sellproduct-tree
+        min-width:260px
+        height: 270px
+        overflow-y: auto
+        border-top:0
+        border-right:0
+        border-left:0
+      .sellproduct-btn-box
+        margin-top:8px
+        text-align:right
+        margin-right:10px
+        button
+          width:80px
+          height:30px
+          padding:0
+          margin:0
+          text-align:center
+  #product-item-product
+    .el-form-item__content
+      height:auto
+  .brand-box
+    .brand-btn-box
+      margin-left:50px!important
+    .brand-btn
+      width:80px
+      height:32px
+      padding:0
+      line-height:32px
+      margin-left:20px
+    .brand-list
+      .cell
+        padding:0
+      .brand-introduction
+        .el-textarea__inner
+          border:0
+          background-color:transparent
+  .dialog
+    .el-dialog--small
+      width:900px
+    .page-warrpe
+      height:40px
+      line-height:40px
+      .page-box
+        margin-top:5px
+        .el-input__inner
+          height:28px
+          line-height:28px
+  .table-product-box
+    position:absolute
+    z-index: 999
+
+</style>

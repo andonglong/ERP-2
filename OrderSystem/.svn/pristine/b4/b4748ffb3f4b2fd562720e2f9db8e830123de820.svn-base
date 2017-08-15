@@ -1,0 +1,150 @@
+<template>
+<div class="upload-box">
+  <p class="upload-tip"><i class="el-icon-information icon-info"></i>提示：一次最多只能导入1000条产品资料，若产品资料数超出1000条，请分成多次导入。</p>
+  <div class="upload-step">
+    <h3 class="upload-step-title">第一步：下载模版</h3>
+    <p class="upload-step-des">将要导入的数据填充到数据导入模板文件中，不可改变模板的格式</p>
+    <a :href="uploadExl">点击下载导入数据模板 </a>
+  </div>
+  <div class="upload-step">
+    <h3 class="upload-step-title">第二步：选择并上传文件</h3>
+    <p class="upload-step-des">选择填充好数据的模版文件，选中后文件将自动上传</p>
+    <el-upload :headers="headers" class="upload-demo" ref="upload" :data="uploadPrams" name="excelorders" :on-change="handleChange" :action="actionUrl" :on-success="handleSuccess" :on-error="handleError" :on-remove="handleremove" :file-list="fileList3" :before-upload="beforeAvatarUpload"
+      :auto-upload="false">
+      <el-button slot="trigger" type="primary">上传文件</el-button>
+      <div slot="tip" class="el-upload__tip"></div>
+    </el-upload>
+
+  </div>
+  <div class="upload-step">
+    <h3 class="upload-step-title">第三步：开始导入</h3>
+    <p class="upload-step-des">文件上传完成后，点击下面的“开始导入”按钮开始导入</p>
+  </div>
+  <div class="upload-start">
+    <el-button type="primary" @click="submitUpload" :disabled="disabled">开始导入</el-button>
+  </div>
+</div>
+</template>
+
+<script>
+export default {
+  props: {
+    uploadPrams: {
+      type: Object
+    }
+  },
+  data () {
+    return {
+      actionUrl: process.env.BASE_URL + 'cloudfactory/erp/order/uploadordersfile',
+      fileList3: [],
+      disabled: true,
+      uploadExl: process.env.BASE_URL + 'uploads/orders.xls',
+      headers: ''
+    }
+  },
+  methods: {
+    submitUpload () {
+      this.$refs.upload.submit()
+      this.$emit('listenUploadorder', false)
+    },
+    beforeAvatarUpload (file) {
+      let isExcel = false
+      if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.type === 'application/vnd.ms-excel') {
+        isExcel = true
+      }
+          //  获取不到type时
+      if (!isExcel && file.type === '') {
+        if (file.name.split('.')[1] === 'xls' || file.name.split('.')[1] === 'xlsx') {
+          isExcel = true
+        }
+      }
+
+      const isLt5M = file.size / 1024 / 1024 < 5
+      if (!isExcel) {
+        this.$message.error('文件格式错误，请选择Excel文件!')
+      }
+      if (!isLt5M) {
+        this.$message.error('上传文件大小大小不能超过 5MB!')
+      }
+      return isExcel && isLt5M
+    },
+    handleChange (file, fileList) {
+      this.disabled = false
+      if (fileList.length > 1) {
+        this.fileList3 = fileList.slice(1)
+      }
+    },
+    handleremove (file, fileList) {
+      this.disabled = true
+      this.fileList3 = fileList
+      document.querySelectorAll('input[name=excelorders]')[0].value = ''
+    },
+    handleSuccess (err, file, fileList) {
+      let _t = this
+      _t.fileList3 = []
+      _t.disabled = true
+      if (file.response.code == 200) {
+        this.$message({
+          message: '上传成功',
+          type: 'success',
+          duration: 1500,
+          onClose: function () {
+            _t.$emit('listenUploadorder', false)
+          }
+        })
+      } else {
+        this.$alert(err.data, '提示', {
+          confirmButtonText: '确定',
+          callback: action => {
+          }
+        })
+      }
+    },
+    handleError (err, file, fileList) {
+      this.$alert('上传失败，请重新上传', '提示', {
+        confirmButtonText: '确定',
+        callback: action => {
+        }
+      })
+    }
+  },
+  created () {
+    let sessionid = sessionStorage.getItem('token')
+    this.headers = {
+      sessid_id: sessionid
+    }
+  }
+}
+</script>
+
+<style lang="stylus" scoped="uploadorder">
+	a
+		text-decoration: none
+	.upload-box
+		font-size:14px
+		color:#666
+		.upload-tip
+			color:#f7ba2a
+			line-height:22px
+			margin-bottom:13px
+			.icon-info
+				color:#f7ba2a
+				margin-right:7px
+		.upload-step
+			margin-bottom:30px
+			line-height:26px
+			.upload-step-title
+				font-size:16px
+				color:#333333
+			.upload-step-des
+				font-size:14px
+				color:#666
+			a
+				color:#20a0ff
+				&:hover
+					color:#4db3ff
+			button
+				margin-top:5px
+		.upload-start
+			text-align:right
+</style>

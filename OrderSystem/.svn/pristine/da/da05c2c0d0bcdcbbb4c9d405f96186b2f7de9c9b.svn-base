@@ -1,0 +1,27 @@
+<template>
+	<div @click="result">technologyroute</div>
+</template>
+
+<script>
+	export default {
+		name:'technologyroute',
+		props:{
+			dialogTechnologyroute: {
+				type:Boolean
+			}
+		},
+		data() {
+			return {
+				
+			}
+		},
+		methods:{
+			result(){
+				this.$emit("listenTechnologyroute", "result")
+			}
+		}
+	}
+</script>
+
+<style>
+</style>

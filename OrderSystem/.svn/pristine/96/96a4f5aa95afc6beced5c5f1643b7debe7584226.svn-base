@@ -1,0 +1,470 @@
+<template>
+	<div class="quotation">
+		<div class="search-box">
+			<el-form :inline="true" :model="form" ref="form" class='form-wrap'>
+				<div class="search-left" :class="[show ? 'search-left-w':'']">
+				  <el-form-item label="报价需求单号" prop="demandNumber" label-width="100px" class='search-item'>
+				    <el-input v-model="form.demandNumber" class="quotation-input" placeholder="请输入"></el-input>
+				  </el-form-item>
+				  <el-form-item label="询价日期" prop="inquiryData" label-width="95px" class='search-item'>
+	  		  	<el-date-picker v-model="form.inquiryData" type="daterange" placeholder="选择日期范围" @change="inquiryDataChange">
+						</el-date-picker>
+				  </el-form-item>
+				  <el-form-item label="产品询价状态" v-show="show" prop="statu" label-width="115px" class='search-item'>
+				    <el-select v-model="form.statu" class="quotation-input" placeholder="请选择">
+					    <el-option
+					      v-for="item in statuOptions"
+					      :key="item.value"
+					      :label="item.label"
+					      :value="item.value">
+					    </el-option>
+					  </el-select>
+				  </el-form-item>
+				  <el-collapse-transition>
+				  	<div v-if='show'>
+			  		 	<el-form-item label="报价单号" prop="quotationNumber" label-width="100px" class='search-item'>
+						    <el-input v-model="form.quotationNumber" class="quotation-input" placeholder="请输入"></el-input>
+						  </el-form-item>
+						  <el-form-item label="产品负责人" prop="productOwner" label-width="95px" class='search-item'>
+						    <el-input v-model="form.productOwner" class="quotation-input" placeholder="请输入"></el-input>
+						  </el-form-item>
+						  <el-form-item label="采购员" prop="buyer" label-width="115px" class='search-item'>
+						    <el-input v-model="form.buyer" class="quotation-input" placeholder="请输入"></el-input>
+						  </el-form-item>
+						  <el-form-item label="产品型号" prop="productModel" label-width="100px" class='search-item'>
+						    <el-input v-model="form.productModel" class="quotation-input" placeholder="请输入"></el-input>
+						  </el-form-item>
+				  	</div>
+				  </el-collapse-transition>
+			  </div>
+			  <div class="search-right">
+			    <el-form-item class='search-item'>
+				    <el-button type="primary" icon="search" @click="search('form')">查询</el-button>
+				    <el-button @click="resetForm('form')" class="resetbtn" v-show="show">重置</el-button>
+				    <el-button type="text" class="spreadbtn"  @click="show = !show">展开<i class="el-icon-d-arrow-left icon-spread" :class="[show ? 'icon-arrow-up' : 'icon-arrow-down']"></i></el-button>
+				  </el-form-item>
+			  </div>
+			</el-form>
+		</div>
+		<div class="main">
+		  <el-tabs v-model="activeName" @tab-click="handleClick">
+		    <el-tab-pane label="全部" name="first">
+		    </el-tab-pane>
+		    <el-tab-pane name="second">
+		    	<span slot="label">待报价<i class="icon-message">99+</i></span>
+		    </el-tab-pane>
+		    <el-tab-pane name="third">
+		    	<span slot="label">供应商已报价<i class="icon-message">9</i></span>
+		    </el-tab-pane>
+		  </el-tabs>
+		  <div class="all-box">
+				<p class="total-message">共搜索到{{Total}}条数据</p>
+				<div class="all-btn">
+					<el-button class='refresh-btn' @click="handRefresh">刷新</el-button>
+					<el-button type="primary" class="tipsupplier-btn" @click="handTipSupplier">提醒供应商报价</el-button>
+				</div>
+				<div class="table-box">
+					<el-table v-loading="listLoading" :data="tableData" border style="width: 100%" height="620" 
+						@selection-change="handleSelectionChange" 
+						:row-class-name="tableRowClassName"
+						:default-sort="defaultSort">
+						<el-table-column type="selection" width="55"  :selectable="selectable"></el-table-column>
+				    <el-table-column fixed align="center" prop="demandNumber" sortable label="报价需求单编号" width="180">
+				    	<template scope="scope">
+				    		<span  class="font-color" @click="toquotationDetail(scope.row.demandNumber)">{{scope.row.demandNumber}}</span>
+				    	</template>
+				    </el-table-column>
+				    <el-table-column align="center" prop="quotationNumber" sortable label="报价单编号" width="180">
+				    </el-table-column>
+				    <el-table-column align="center" prop="productModel" label="产品型号/SKU" width="180">
+				    </el-table-column>
+				    <el-table-column align="center" prop="productName" label="产品名称" width="120">
+				    </el-table-column>
+				    <el-table-column align="center" prop="statu" label="产品询价状态" width="180"
+				      :filters="filters"
+				      :filter-method="filterTag"
+				      :filter-multiple="false"
+				      filter-placement="bottom-end">
+				      <template scope="scope">
+				        <span class="icon-dot icon-statu" :class="quotedStatu(scope.row.statu)">{{scope.row.statu}}</span>
+				      </template>
+				    </el-table-column>
+				    <el-table-column align="center" prop="inquiryDate" sortable label="询价时间" width="180">
+				    </el-table-column>
+				    <el-table-column align="center" prop="quotedDate" label="要求报价反馈时间(h)" width="170">
+				    </el-table-column>
+				    <el-table-column align="center" prop="productOwner" label="产品负责人" width="180"
+				    	:filters="filters2"
+				      :filter-method="filterTag2"
+				      :filter-multiple="false"
+				      filter-placement="bottom-end">
+				      <template scope="scope">
+				        <span>{{scope.row.productOwner}}</span>
+				      </template>
+				    </el-table-column>
+				    <el-table-column align="center" prop="supplier" label="指定供应商" width="240">
+				    	<template scope="scope">
+				    		<el-tooltip class="item" effect="dark" :content="scope.row.supplier" placement="top-start">
+						       <span>{{scope.row.supplier}}</span>
+						    </el-tooltip>
+				      </template>
+				    </el-table-column>
+				    <el-table-column align="center" prop="warnDate" label="提醒报价时间" width="200">
+				    </el-table-column>
+				  </el-table>
+				</div>
+				<div class="page-box">
+				<el-pagination class="page-box" 
+					@size-change="handleSizeChange" 
+					@current-change="handleCurrentChange" 
+					:current-page="1" 
+					:page-sizes="page_sizes" 
+					:page-size="page_sizes[0]" 
+					layout="prev, pager, next,sizes, jumper" 
+					:total="Total">
+				</el-pagination>
+			</div>
+			</div>
+		</div>
+		<!--弹出层-->
+		<div class="tip-box">
+			<el-dialog
+			  :visible.sync="dialogVisible"
+			  size="tiny"
+			  :before-close="handleClose">
+			  <span slot="title" class="dialog-title"><i class='icon-title-statu' :class="[iconTitle ? 'el-icon-circle-check' : 'el-icon-circle-cross']"></i><span class="dialog-title-txt">已成功提醒6家供应商报价</span><span class="detail-btn" @click="quoteDetail = !quoteDetail" v-show="iconTitle">查看详情</span></span>
+			  <div class="dialog-content">
+			  	<div v-if="iconTitle">
+			  		<el-collapse-transition>
+			        <div v-show="quoteDetail">
+			          <div class="quotedetail-success">
+			          	<p class="quotedetail-fail-item">1、“深圳市天昌科技有限公司”；</p>
+			          	<p class="quotedetail-fail-item">2、“深圳市佐本科技有限公司”；</p>
+			          	<p class="quotedetail-fail-item">3、“深圳市XXXXXX科技有限公司”；</p>
+			          </div>
+			        </div>
+			      </el-collapse-transition>
+			  	</div>
+			  	<div class="quotedetail-fail" v-else>
+			  		<p class="quotedetail-fail-item"><span class="quotedetail-fail-t">可能原因：</span><span>1、未找到供应商邮箱或者邮箱地址有误；</span></p>
+			  		<p class="quotedetail-fail-item"><span class="quotedetail-fail-t"></span><span>2、无未报价供应商；</span></p>
+			  		<p class="quotedetail-fail-item"><span class="quotedetail-fail-t"></span><span>3、半小时内已提醒过报价。</span></p>
+			  	</div>
+			  </div>
+			  <span slot="footer" class="dialog-footer">
+			    <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+			  </span>
+			</el-dialog>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		data() {
+			return {
+				form:{
+					demandNumber:'',
+					quotationNumber:'',
+					statu:'',
+					inquiryData:'',
+					productOwner:'',
+					buyer:'',
+					productModel:''
+				},
+				statuOptions:[{
+          value: '',
+          label: '全部'
+        }, {
+          value: '0',
+          label: '待报价'
+        }, {
+          value: '1',
+          label: '已报价'
+        }, {
+          value: '2',
+          label: '已询价'
+        }, {
+          value: '3',
+          label: '已作废'
+        }],
+        show:false,
+        activeName:'first',
+        
+        tableData:[{
+					demandNumber:'P201706070002B02',
+					quotationNumber:'P201706070002',
+					productModel:'CQ2A12-5DM',
+					productName:'气缸',
+					statu:'待报价',
+					inquiryDate:'2016-09-21 08:50:08',
+					quotedDate:'3',
+					productOwner:'Ryan',
+					supplier:'深圳市天昌科技有限公司',
+					warnDate:'2016-09-21  08:50:08'
+				},{
+					demandNumber:'P201706070002B03',
+					quotationNumber:'P201706070002',
+					productModel:'CQ2A12-5DM',
+					productName:'气缸',
+					statu:'已报价',
+					inquiryDate:'2016-09-22 08:50:08',
+					quotedDate:'3',
+					productOwner:'jeck',
+					supplier:'深圳市天昌科技有限公司',
+					warnDate:'2016-09-21  08:50:08'
+				},{
+					demandNumber:'P201706070002B04',
+					quotationNumber:'P201706070002',
+					productModel:'CQ2A12-5DM',
+					productName:'气缸',
+					statu:'已作废',
+					inquiryDate:'2016-09-23 08:50:08',
+					quotedDate:'3',
+					productOwner:'mary',
+					supplier:'深圳市天昌科技有限公司',
+					warnDate:'2016-09-21  08:50:08'
+				}],
+				filters:[{ value:'待报价', text:'待报价'},{value: '已报价',text: '已报价'}, {value: '已询价',text: '已询价'}, {value: '已作废',text: '已作废'}],
+				filters2:[{ value:'Ryan', text:'Ryan'},{value: 'jeck',text: 'jeck'}, {value: 'mary',text: 'mary'}],
+				defaultSort:{
+						prop: 'date',
+						order: 'descending'
+				},
+				
+				listLoading:false,
+				
+				//分页
+				page_sizes: [10, 20, 30, 50, 100, 200, 500, 1000],
+				Total: 100,		//总条数
+				
+				dialogVisible:false,
+				iconTitle:true,			//提醒供应商报价返回状态
+				quoteDetail:false,
+			}
+		},
+		methods: {
+			inquiryDataChange(val) {
+				
+			},
+//查询
+			search(formName) {
+				console.log('submit!!');
+			},
+//重置
+			resetForm(formName) {
+				this.$refs[formName].resetFields();
+			},
+//导航切换
+			handleClick(tab, event) {
+				if(tab.index==0){
+					console.log('全部')
+				}else if(tab.index == 1){
+					console.log('待报价')
+				}else{
+					console.log('供应商已报价')
+				}
+			},
+			handleSelectionChange(val){
+				console.log(val)
+			},
+			filterTag(value, row) {
+        return row.statu === value;
+	    },
+	    filterTag2(value, row) {
+	    	return row.productOwner === value;
+	    },
+	    toquotationDetail(id) {
+	     	this.$router.push({path:'/Quotation/quotationDetail/'+id})
+	    },
+	    selectable(row, index) {
+	    	return row.statu != '已作废'
+	    },
+//刷新
+	    handRefresh() {
+	    	
+	    },
+//提醒供应商报价
+	    handTipSupplier() {
+	    	this.dialogVisible = true
+	    },
+// 列表区
+			tableRowClassName(row, index) {
+				if (row.statu === "已作废") {
+          return 'info-row-color';
+        }
+        return '';
+			},
+//分页
+			handleSizeChange(val) {
+//				this.form.pagesize = val
+			},
+			handleCurrentChange(val) {
+//				this.form.pageindex = val
+			},
+//提示层
+			handleClose() {
+				this.dialogVisible = false
+			},
+			quotedStatu(satau) {
+				if(satau === "待报价"){
+					return "icon-statu-a"
+				}else if(satau === "已报价") {
+					return "icon-statu-b"
+				}else if(satau === "已询价") {
+					return "icon-statu-c"
+				}else{
+					return "icon-statu-d"
+				}
+			}
+		},
+		computed: {
+				
+		},
+	}
+</script>
+
+<style lang="stylus">
+	@import '~common/style/common.styl'
+	.quotation
+		background-color:#fff
+		margin-left:46px
+		.search-box
+			min-width:1450px
+			padding-top:40px
+			.form-wrap
+				overflow:hidden
+				font-size:0
+				.search-left.search-left-w
+					width:1170px
+				.search-left
+					display:inline-block
+					width:780px
+					margin-left:0
+					.el-form-item__label
+						color:#1f2d3d
+						font-size:14px
+					.quotation-input
+						width:260px
+				.search-right
+					display:inline-block
+					/*width:210px*/
+					font-size:0
+					.resetbtn
+						margin-left:6px
+						width:80px
+					.spreadbtn
+						margin-left:20px
+					.search-item
+						margin-left: 28px
+						.icon-spread
+							margin-left:5px
+				.el-select .el-input__inner
+					width:260px!important
+		.main
+			margin-top:40px
+			.el-table .info-row-color
+				background-color:#e9e9e9
+			.el-tabs__item
+				font-size:16px
+			.icon-message
+				font-size:12px
+				font-style:inherit
+				display:inline-block
+				/*width:20px*/
+				padding:0 5px
+				height:16px
+				text-align:center
+				line-height:16px
+				border-radius:50%
+				background-color:#ff4949
+				color:#fff
+				vertical-align: top
+				margin-top: 8px
+		.all-box
+			.total-message
+				font-size:14px
+				color:#5e6d82
+				padding:25px 0 30px 0
+			.all-btn
+				margin-bottom:30px
+				font-size:0
+				.refresh-btn
+					width:80px
+					height:30px
+					line-height:30px
+					padding:0
+				.tipsupplier-btn
+					margin-left:20px
+					line-height:30px
+					padding:0
+					width:125px
+					height:30px
+			.page-box
+				margin-top:30px
+				text-align:right
+				.el-pagination__sizes
+					margin-left:15px
+			.table-box
+				.icon-dot
+					&:before
+						content:''
+						display:inline-block
+						width:7px
+						height:7px
+						border-radius:50%
+						margin-right:7px
+				.icon-statu-a:before
+					background-color:#ff4949
+				.icon-statu-b:before
+					background-color:#13ce66
+				.icon-statu-c:before
+					background-color:#20a0ff
+				.icon-statu-d:before
+					background-color:#999999
+				.font-color
+					color:#20a0ff
+					cursor:pointer
+				.el-table th
+					background-color:#eff2f7
+				.el-table__header-wrapper .el-table__header .cell,
+				.el-table__fixed-header-wrapper .el-table__header .cell
+					line-height:70px
+				.el-table .cell
+					line-height:54px
+		.tip-box
+			.dialog-title
+				position:relative
+				font-size:16px
+				line-height:24px
+				color:#1f2d3d
+				.dialog-title-txt
+					vertical-align: middle
+				.icon-title-statu
+					font-size:21px
+					margin-right:10px
+					vertical-align: middle
+				.el-icon-circle-check
+					color:#13ce66
+				.el-icon-circle-cross
+					color:#ff4949
+				.detail-btn
+					position:absolute
+					width:65px
+					left:30px
+					bottom:-30px
+					color:#108ee9
+					cursor:pointer
+			.dialog-content
+				margin-left:30px
+				font-size:14px
+				line-height:22px
+				color:#5e6d82
+				.quotedetail-fail
+					.quotedetail-fail-item
+						.quotedetail-fail-t
+							display:inline-block
+							width:75px
+			.el-dialog--tiny
+				min-width:410px	
+</style>

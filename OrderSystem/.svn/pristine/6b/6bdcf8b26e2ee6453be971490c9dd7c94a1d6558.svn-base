@@ -1,0 +1,373 @@
+<template>
+  <div class="drawing-box">
+    <div class="drawing-container">
+      <!--startprint-->
+      <div class="container-up">
+        <div class="drawing-header">
+          <div>
+            <ul class="el-upload-list el-upload-list--text" style="margin-bottom: 10px">
+              <li class="el-upload-list__item is-success">
+                <a class="el-upload-list__item-name">
+                  <i class="el-icon-document"></i>
+                    <span class="ImgName inblock ell va-top">{{ImgList[0].name}}</span><span>{{ImgList[0].suffix}}</span>
+                </a>
+                <!--<label class="el-upload-list__item-status-label">
+                      <i class="el-icon-upload-success el-icon-circle-check"></i>
+                    </label>-->
+                <!--<i class="el-icon-close"></i>-->
+                <span class="progress-text">{{progress}}</span>
+                <div class="progress-box">
+                  <div class="progress-line" :style="{ width:progress }"></div>
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="jc-end">
+            <el-button class="" @click="printImg()"> 打印图纸</el-button>
+            <el-upload class="upload-Img" action="https://jsonplaceholder.typicode.com/posts/b" :show-file-list="false" :on-change="ImgChange" :on-progress="ImgProgress" :on-remove="ImgRemove" :on-success="ImgSuccess" :file-list="ImgList">
+              <el-button>替换图纸</el-button>
+            </el-upload>
+            <el-button>删除图纸</el-button>
+          </div>
+  
+        </div>
+  
+        <div class="img-box">
+
+          <img v-for=" (item,index) in ImgUrl" :src="item" :style="ImgUrl.length > 0 ? multipleImg : singleImg"  @click="choseImg(item,index)">
+
+
+        </div>
+        <textarea placeholder="有问题，写备注"></textarea>
+        <div class="upload-box">
+          <el-upload class="upload-file" ref="upload" action="https://jsonplaceholder.typicode.com/posts/a" :auto-upload="false" :before-upload="beforeFileUpload" :on-preview="handlePreview" :on-remove="handleRemove" :on-success="handleSuccess" :on-error="handleError" :on-progress="handleProgress" :on-change="handleChange" :file-list="file">
+            <el-button type="primary" slot="trigger" class="uploadBtn">+ 上传文件</el-button>
+            <div class="upload-abs">
+              <el-button type="primary" @click="submitUpload">发布</el-button>
+            </div>
+          </el-upload>
+        </div>
+      </div>
+      <!--endprint-->
+      <div class="container-line"></div>
+      <div class="container-down noprint">
+        <div class="upload-record" v-for=" item in drawingData.uploadRecord">
+          <div class="date">
+            <span>{{ item.date }}</span>
+          </div>
+          <div class="info-box">
+            <div class="Avatar">
+              <img :src="item.img">
+            </div>
+            <div class="info">
+              <div class="name">{{item.name}}</div>
+              <div class="fileIcon">
+                <img src="/static/images/file-icon.png">
+              </div>
+              <div>
+                <a :href="item.info.url" target="_blank">{{item.info.name}}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="loading" v-show=" drawingData.uploadRecord.length >= 10 ? true:false ">
+          <i class="el-icon-loading" v-if="LoadingText != '没有更多'"></i>
+          <span>{{LoadingText}}</span>
+        </div>
+      </div>
+  
+    </div>
+  </div>
+</template>
+
+<script>
+import $http from "api/http.js"
+export default {
+  props: ['drawingData'],
+  data() {
+    return {
+      LoadingText: "加载中...",
+      PageIndex: 1,
+      ImgList: [{
+        name: 'hduiashgduidsauygsauydgasuygd',
+        suffix: '.png'
+      }],
+      ImgUrl: ['http://pic.58pic.com/58pic/17/75/49/03r58PICTB5_1024.jpg','http://p4.music.126.net/CQdd046DsfAFklXyo6gGfg==/2942293117180306.jpg','http://pic.58pic.com/58pic/17/75/49/03r58PICTB5_1024.jpg','http://p4.music.126.net/CQdd046DsfAFklXyo6gGfg==/2942293117180306.jpg','http://pic.58pic.com/58pic/17/75/49/03r58PICTB5_1024.jpg','http://p4.music.126.net/CQdd046DsfAFklXyo6gGfg==/2942293117180306.jpg',],
+      singleImg:{
+        'max-height': '100%',
+        'max-width': '100%'
+      },
+      multipleImg:{
+          'width': '400px',
+          'height': '400px'
+      },
+      progress: '10%',
+      file: []
+
+    }
+  },
+  mounted() {
+    let _this = this
+    let recordScroll = document.querySelectorAll('.drawing-box')
+    recordScroll[0].addEventListener('scroll', function (e) {
+      e = e || window.event
+      let distance = e.target.scrollHeight - e.target.scrollTop - e.target.offsetHeight;
+      if (distance < 30) {
+        _this.PageIndex++
+        _this.fetchDrawing(_this.PageIndex)
+      }
+    })
+  },
+  methods: {
+    fetchDrawing(PageIndex) {
+      $http.ajax("api/drawing").then(res => {
+        console.log(res)
+        res = res.data.data
+        if (PageIndex == 1) {
+          this.drawingData.uploadRecord = res.concat(res)
+        }
+
+        if (PageIndex == 2) {
+          setTimeout(() => {
+            this.drawingData.uploadRecord = res.concat(res).concat(res)
+          }, 1000)
+        }
+
+        if (PageIndex >= 3) {
+          setTimeout(() => {
+            this.LoadingText = "没有更多"
+          }, 1000)
+
+        }
+      })
+    },
+    printImg() {
+
+      this.$router.push({ path: '/PrintImg'});
+
+    },
+    choseImg(url,index){
+       console.log("图片url:" + url)
+       console.log("图片index:" + index)
+    },
+    beforeImgUpload(file) {
+      const isJPG = (file.type === 'image/jpeg') || (file.type === 'image/bmp') || (file.type === 'image/png');
+      const isLt5M = file.size / 1024 / 1024 < 5;
+
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不能超过 5MB!');
+      }
+      return isLt5M;
+    },
+    ImgChange(file, a) {
+      console.log("选择了文件")
+      this.ImgUrl = push(a[a.length - 1].url) 
+      console.log(this.ImgList)
+      this.ImgList[0] = a[a.length - 1]
+    },
+    ImgProgress(event, file, fileList) {
+      console.log("img进度")
+      console.log(event.percent)
+      this.progress = event.percent.toFixed(2) + "%"
+      console.log(file)
+
+    },
+    ImgSuccess(response, file, b) {
+      console.log("上传图片成功")
+    },
+    ImgRemove(file, b) {
+      console.log("移除文件")
+
+    },
+    beforeFileUpload(file) {
+      const isJPG = (file.type === 'image/jpeg') || (file.type === 'image/bmp') || (file.type === 'image/png');
+      const isLt2M = file.size / 1024 / 1024 < 100;
+
+      if (!isLt2M) {
+        this.$message.error('上传图片大小不能超过 100MB!');
+      }
+      return isLt2M;
+    },
+    handlePreview(file) {
+      console.log("点击已上传文件")
+    },
+    handleRemove(file) {
+      console.log("移除")
+      console.log(file);
+    },
+    handleSuccess(response, file) {
+      console.log("成功")
+      console.log(response)
+    },
+    handleError(err, file) {
+      console.log("成功")
+    },
+    handleProgress(event, file) {
+      console.log("上传过程")
+    },
+    handleChange(file) {
+      console.log("文件改变")
+    },
+    submitUpload() {
+      //  console.log(this.$refs)
+      this.$refs.upload.submit();
+    }
+
+  }
+
+}
+</script>
+
+
+
+<style lang="stylus">
+  .jc-end
+    display: flex
+    justify-content: flex-end
+
+  .drawing-box
+    height: 100%
+    
+    overflow: auto
+
+    .drawing-container
+      width: 100%
+      box-sizing: border-box
+
+      .container-up
+      .container-down
+        width: 93%
+        margin: 0 auto
+
+        .loading
+           display:flex
+           justify-content: center
+           align-items: center
+           height: 40px
+
+           .el-icon-loading
+             margin-right: 5px
+
+      .container-line
+        height: 1px
+        background-color: #e5e5e5;  
+
+      .drawing-header
+        display: flex
+        justify-content: space-between
+        align-items: center
+        height: 40px
+
+        > div
+          width: 50%
+
+        .ImgName
+          max-width: 200px
+
+        button
+          height: 28px
+          line-height: 28px
+          padding: 0
+          margin-left: 15px
+          width: 73px
+      
+      .progress-text
+        position: absolute
+        right: 5px
+        top: 0
+      .progress-box
+         height: 2px
+         
+         .progress-line
+           height: 100%
+           background-color: #20a0ff
+
+      .img-box
+        display: flex
+        flex-wrap: wrap
+        justify-content: space-around
+        // align-items: center
+        min-height: 648px
+        border: 1px solid #bbb
+
+        img
+          max-height: 100%
+          max-width: 100%
+
+      textarea
+        width: 100%
+        box-sizing: border-box
+        margin-top: 10px
+        margin-bottom: 10px
+        border-color: #bbb
+        padding: 8px 6px  
+
+      .upload-box
+        padding-bottom: 30px
+        
+        .upload-file
+          position: relative
+          padding-bottom: 40px
+
+          .el-upload--text
+            position: absolute
+            bottom: 0
+            left: 0
+            z-index: 10
+
+          .upload-abs
+            position: absolute
+            left: 0
+            bottom: 0
+            text-align: left
+
+            .el-button
+              margin-left: 124px
+
+        .uploadFile
+          margin-bottom: 15px
+
+          i
+            vertical-align: middle  
+
+          .el-icon-delete2
+            margin-left: 15px
+
+        .el-button
+          height: 24px
+          line-height: 24px
+          padding: 0 15px
+
+      .upload-record
+        width: 93%
+        padding:  15px 20px 20px 20px
+        border-bottom: 1px solid #e5e5e5    
+        
+        .date
+          text-align: right
+          line-height: 1
+          color: #999
+
+        .info-box
+          display: flex
+
+
+          .Avatar img
+            width: 48px
+            height: 48px
+            margin-right: 20px
+            border-radius: 24px
+            vertical-align: top
+
+          .name 
+            margin-bottom: 15px
+            font-size: 18px
+            font-weight:bold
+            color: #333
+
+          .fileIcon
+            margin-bottom: 10px
+            img 
+              vertical-align: top          
+       
+</style>

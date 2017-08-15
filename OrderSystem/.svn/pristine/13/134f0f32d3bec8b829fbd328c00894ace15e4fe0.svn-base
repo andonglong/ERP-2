@@ -1,0 +1,202 @@
+{
+    "manage": {
+        "data": [
+            {
+                "employeeid": "1",
+                "mobilenumber": "18680357414",
+                "technology": [],
+                "userid": "",
+                "username": "蒋顺"
+            },
+            {
+                "employeeid": "2",
+                "mobilenumber": "15989301509",
+                "technology": [],
+                "userid": "2",
+                "username": "王鹏"
+            },
+            {
+                "employeeid": "3",
+                "mobilenumber": "18819478640",
+                "technology": [],
+                "userid": "3",
+                "username": "刘耀伟"
+            },
+            {
+                "employeeid": "4",
+                "mobilenumber": "13760315374",
+                "technology": [],
+                "userid": "4",
+                "username": "韩来福"
+            },
+            {
+                "employeeid": "5",
+                "mobilenumber": "13798580232",
+                "technology": [],
+                "userid": "5",
+                "username": "罗念"
+            },
+            {
+                "employeeid": "6",
+                "mobilenumber": "123456",
+                "technology": [],
+                "userid": "6",
+                "username": "高超"
+            },
+            {
+                "employeeid": "1",
+                "mobilenumber": "18680357414",
+                "technology": [],
+                "userid": "",
+                "username": "蒋顺"
+            },
+            {
+                "employeeid": "2",
+                "mobilenumber": "15989301509",
+                "technology": [],
+                "userid": "2",
+                "username": "王鹏"
+            },
+            {
+                "employeeid": "3",
+                "mobilenumber": "18819478640",
+                "technology": [],
+                "userid": "3",
+                "username": "刘耀伟"
+            },
+            {
+                "employeeid": "4",
+                "mobilenumber": "13760315374",
+                "technology": [],
+                "userid": "4",
+                "username": "韩来福"
+            },
+            {
+                "employeeid": "5",
+                "mobilenumber": "13798580232",
+                "technology": [],
+                "userid": "5",
+                "username": "罗念"
+            },
+            {
+                "employeeid": "6",
+                "mobilenumber": "123456",
+                "technology": [],
+                "userid": "6",
+                "username": "高超"
+            }
+        ],
+        "errorMessage": null,
+        "succeed": true
+    },
+    "productDetail": {
+        "progress": {
+            "table01": [
+                {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                },
+                 {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                },
+                 {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                },
+                 {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                },
+                 {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                },
+                 {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                },
+                 {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                },
+                 {
+                    "a": "1",
+                    "b": "备料",
+                    "c": "0.8",
+                    "d": "",
+                    "e": "",
+                    "f": "进行中",
+                    "g": "50%"
+                }
+               
+               
+            ],
+            "table02": [
+                {
+                    "a": "1",
+                    "b": "张峰",
+                    "c": "50",
+                    "d": "50",
+                    "e": "2017-05-28",
+                    "f": "2017-05-28",
+                    "g": "2017-05-28"
+                },
+                {
+                    "a": "1",
+                    "b": "张峰",
+                    "c": "50",
+                    "d": "50",
+                    "e": "2017-05-28",
+                    "f": "2017-05-28",
+                    "g": "2017-05-28"
+                },
+                {
+                    "a": "1",
+                    "b": "张峰",
+                    "c": "50",
+                    "d": "50",
+                    "e": "2017-05-28",
+                    "f": "2017-05-28",
+                    "g": "2017-05-28"
+                }
+              
+            ]
+        }
+    }
+}

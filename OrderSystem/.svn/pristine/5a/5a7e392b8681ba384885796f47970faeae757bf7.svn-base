@@ -1,0 +1,171 @@
+<template lang="html">
+<div class="detail-box add-supplier-box">
+	<el-card class="box-card">
+    <div class="nav">
+      <el-breadcrumb separator="/">
+        <el-breadcrumb-item :to="{ path: '/Quotation/quotation' }">报价需求单</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/Quotation/quotation/P201602220003B01' }">P201602220003B01</el-breadcrumb-item>
+				<el-breadcrumb-item>
+					<el-input v-model="supplierName" placeholder="请输入供应商名称" class="nav-input"></el-input>
+				</el-breadcrumb-item>
+      </el-breadcrumb>
+    </div>
+  </el-card>
+  <div class="main">
+    <div class="btn-box">
+      <el-button @click="Quotation" type="primary">报价</el-button>
+      <span class="icon-slide icon-silde-down" v-show="!InfoShow" @click="InfoShow = !InfoShow"><span>展开</span><i class="icon-silde-arrow el-icon-d-arrow-left"></i></span>
+    </div>
+    <transition name="el-zoom-in-top">
+      <div class="tabs-box" v-show="InfoShow">
+				<p class="add-supplier-title">基本信息</p>
+				<el-card class="tabs-box-card">
+					<div class="info-box info-box-lh">
+						<ul class="info-lists">
+							<li class="info-list"><span>询价单号：报价后自动生成</span></li>
+							<li class="info-list"><span>状态：--</span></li>
+							<li class="info-list"><span>联系人：Ryan</span></li>
+							<li class="info-list"><span>联系电话：0755-12345660</span></li>
+						</ul>
+						<ul class="info-lists">
+							<li class="info-list"><span>询价时间：2017-05-13 17:39:28</span></li>
+							<li class="info-list"><span>要求报价时间：2016-09-21  08:50:08</span></li>
+							<li class="info-list"><span>提醒报价时间：2016-09-21  08:50:08</span></li>
+							<li class="info-list"><span>实际报价时间：--</span></li>
+						</ul>
+					</div>
+				</el-card>
+        <span class="icon-slide icon-silde-up" @click="InfoShow = !InfoShow">收起<i class="icon-silde-arrow el-icon-d-arrow-right"></i></span>
+      </div>
+    </transition>
+		<div class="main-tabs">
+			<p class="add-supplier-title">明细信息</p>
+			<div class="main-info">
+				<div class="btn-box">
+					<div class="info-pos">
+						<el-button class='upload-btn' type="primary" @click="handleImport">导入导出</el-button>
+						<el-button class='upload-btn' @click="handleDownload">下载图纸</el-button>
+					</div>
+				</div>
+				<div class="table-box">
+					<el-table v-loading="listLoading" :data="tableData" border style="width: 100%" height="600"  @selection-change="handleSelectionChange">
+						<el-table-column align="center" type="selection" width="55"></el-table-column>
+						<el-table-column align="center" type="index" width="65" label="序号">
+						</el-table-column>
+						<el-table-column align="center" prop="productcode" label="产品编码" width="153">
+							<template scope="scope">
+								<span  class="c20a0ff" @click="showaddDetail(scope.row.productcode)">{{scope.row.productcode}}</span>
+							</template>
+						</el-table-column>
+						<el-table-column align="center" prop="productname" label="产品名称" width="153">
+						</el-table-column>
+						<el-table-column align="center" prop="unit" label="询价单位" width="120">
+						</el-table-column>
+						<el-table-column align="center" prop="orderamount" label="询价数量" width="120">
+						</el-table-column>
+						<el-table-column align="center" prop="containfreight" label="是否能做" width="137">
+							<template scope="scope">
+								<el-checkbox v-model="scope.row.containfreight" true-label="1" false-label="0" :checked="scope.row.containfreight==1">能做</el-checkbox>
+							</template>
+						</el-table-column>
+						<el-table-column align="center" prop="confirmstartqty" label="最小订购量" width="137">
+							<template scope="scope">
+								<el-input-number v-model="scope.row.confirmstartqty" :debounce="100" :controls="false" class="table-input"></el-input-number>
+							</template>
+						</el-table-column>
+						<el-table-column align="center" prop="confirmdeliverytime" label="货期（天 ）" width="137">
+							<template scope="scope">
+										<el-input-number v-model="scope.row.confirmdeliverytime" :debounce="100" :controls="false" class="table-input"></el-input-number>
+									</template>
+						</el-table-column>
+						<el-table-column align="center" prop="taxprice" label="未税单价" width="137">
+							<template scope="scope">
+										<el-input-number v-model="scope.row.taxprice" :debounce="100" :controls="false" class="table-input"></el-input-number>
+									</template>
+						</el-table-column>
+						<el-table-column align="center" prop="isFreight" label="税率" width="80">
+							<template scope="scope">
+								<el-select v-model="scope.row.isFreight" placeholder="请选择" class="duty-select">
+									<el-option
+										v-for="item in dutyRate"
+										:key="item.value"
+										:label="item.label"
+										:value="item.value">
+									</el-option>
+								</el-select>
+							</template>
+						</el-table-column>
+						<el-table-column align="center" prop="taxprice" label="含税单价" width="137">
+							<template scope="scope">
+										<el-input-number v-model="scope.row.taxprice" :debounce="100" :controls="false" class="table-input"></el-input-number>
+									</template>
+						</el-table-column>
+						<el-table-column align="center" prop="taxprice" label="含税金额" width="137">
+						</el-table-column>
+						<el-table-column align="center" prop="mark" label="是否包含运费" width="137">
+							<template scope="scope">
+								<el-checkbox v-model="scope.row.mark">包含</el-checkbox>
+							</template>
+						</el-table-column>
+						<el-table-column align="center" prop="remark" label="备注" width="260">
+							<template scope="scope">
+								<el-input type="textarea" autosize v-model="scope.row.remark" class="table-input table-input-price"></el-input>
+							</template>
+						</el-table-column>
+					</el-table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</template>
+
+<script>
+export default {
+	data() {
+		return {
+			InfoShow: true,
+			supplierName: '',
+			listLoading: false,
+			tableData: []
+		}
+	},
+	methods: {
+		// 报价
+		Quotation() { },
+		handleImport() { },
+		handleDownload() { },
+		handleSelectionChange() { },
+		showaddDetail() { }
+	},
+	created() {
+		this.$store.state.adminleftnavnum = '/Quotation/quotation'
+	}
+}
+</script>
+
+<style lang="stylus">
+@import '~common/style/quotatil.styl'
+.detail-box.add-supplier-box .main .tabs-box .info-box .info-lists .info-list:nth-child(4)
+	width:200px
+.detail-box.add-supplier-box .box-card .nav .el-breadcrumb
+	line-height:36px
+.detail-box.add-supplier-box .nav .nav-input
+	width:260px
+	height:36px
+.detail-box.add-supplier-box .main .icon-silde-up
+	bottom:-20px
+.add-supplier-box	.el-card.box-card .el-card__body
+	padding:13px
+.detail-box.add-supplier-box .main .tabs-box .info-box.info-box-lh .info-lists .info-list
+	line-height: 28px
+	height: 28px
+.add-supplier-box
+	.add-supplier-title
+		font-size: 16px
+		line-height: 56px
+		height: 56px
+		padding-left:25px
+		border-bottom: 1px solid #d1dbe5
+		margin-bottom: 30px
+</style>

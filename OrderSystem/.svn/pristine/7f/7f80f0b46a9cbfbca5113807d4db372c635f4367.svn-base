@@ -1,0 +1,45 @@
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import App from './App'
+import VueRouter from 'vue-router'
+import ElementUI from 'element-ui'
+import axios from 'axios'
+import 'element-ui/lib/theme-default/index.css'
+import routes from './router/routes.js'
+import Vuex from 'vuex'
+
+Vue.use(ElementUI)
+Vue.use(VueRouter)
+Vue.use(Vuex)
+Vue.prototype.$axios = axios
+Vue.config.productionTip = false
+
+/* eslint-disable no-new */
+
+let router = new VueRouter({
+  routes
+})
+
+let vue = new Vue({
+  el: '#app',
+  router,
+  template: '<App/>',
+  components: { App }
+})
+
+//检测登录状态
+router.beforeEach((to, from, next) => {
+  let user = JSON.parse(sessionStorage.getItem('user'));
+  if(user && to.path === '/'){
+  	next(false)
+  }else{
+  	if (!user && to.path != '/') {
+    	next({ path: '/' })
+	  } else {
+	    next()
+	  }
+  }
+})
+
+vue.$mount('#app')

@@ -1,0 +1,234 @@
+<template lang="html">
+  <div class="business">
+    <el-form :inline="true" :model="supplierbusiness" class="demo-form-inline" label-position="left">
+	  	<div class="left">
+				  <el-form-item label="主营品牌" label-width="83px">
+            <div @click="Showbrandslist">
+                <el-input v-model="supplierbusiness.sellbrand" placeholder="" :readonly="true"  class="info-input" ></el-input>
+            </div>
+				  </el-form-item>
+          <el-form-item label="主营行业" label-width="83px">
+            <el-cascader
+              :options="suppliertradesList"
+              :filterable="true"
+              :clearable="true"
+              change-on-select
+              :props="{value: 'id', label: 'text', children: 'children'}"
+              @change="handleChange2">
+            </el-cascader>
+  				</el-form-item>
+	  	</div>
+      <!-- v-model="supplierbusiness.sellproduct" -->
+			<div class="right">
+        <el-form-item label="主营产品" label-width="83px" class="product-item">
+          <el-cascader
+            :options="sellproductList"
+            :filterable="true"
+            :clearable="true"
+            change-on-select
+            :props="{value: 'id', label: 'text', children: 'children'}"
+            @change="handleChange">
+          </el-cascader>
+				</el-form-item>
+			</div>
+		</el-form>
+    <div class="bussiness-table">
+      <el-table :data="supplierbusinessList" border style="width: 1130px" max-height="600">
+        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column type="index" align="center" label="序号" width="65"></el-table-column>
+        <el-table-column prop="linkname" align="center" label="供应商名称" width="330"></el-table-column>
+        <el-table-column prop="businesstrade" align="center" label="客户行业" width="330"></el-table-column>
+        <el-table-column prop="department" align="center" label="客户主营产品" width="349"></el-table-column>
+      </el-table>
+    </div>
+    <div class="dialog">
+      <el-dialog title="选择品牌" :visible.sync="dialogTableVisible">
+        <div class="brand-box">
+          <el-form :inline="true" :model="brandFrom" class="demo-form-inline">
+            <el-form-item label="简称">
+              <el-input v-model="brandFrom.shortname" placeholder="请输入简称"></el-input>
+            </el-form-item>
+            <el-form-item label="名称" label-width="50px">
+              <el-input v-model="brandFrom.name" placeholder="请输入名称"></el-input>
+            </el-form-item>
+            <el-form-item class="brand-btn-box">
+              <el-button type="primary" class="brand-btn" @click="onSubmit">查询</el-button>
+              <el-button type="primary" class="brand-btn" @click="onResult">确定</el-button>
+            </el-form-item>
+          </el-form>
+          <el-table :data="brandList" max-height="400" border v-loading="loading" class="brand-list" ref="multipleTable" @current-change="handleChoseRow" highlight-current-row>
+            <el-table-column type="selection" width="55"  align="center"></el-table-column>
+            <el-table-column type="index" width="55" label="序号"  align="center"></el-table-column>
+            <el-table-column property="simply" label="简称" width="60"  align="center"></el-table-column>
+            <el-table-column property="name" label="名称" width="100"  align="center"></el-table-column>
+            <el-table-column property="company" label="经营公司" width="150"  align="center"></el-table-column>
+            <el-table-column property="state" label="状态" width="60"  align="center">
+              <template scope="scope">
+                <span>{{scope.row.state}}</span>
+              </template>
+            </el-table-column>
+            <el-table-column property="website" label="网站" width="120"  align="center">
+              <template scope="scope">
+                <a :href="'http://'+scope.row.website" target="_blank">{{scope.row.website}}</a>
+              </template>
+            </el-table-column>
+            <el-table-column property="introduction" label="介绍" width="118"  align="center">
+              <template scope="scope">
+                <el-input class="brand-introduction" type="textarea" :rows="2" :readonly="true" :value="scope.row.introduction"></el-input>
+              </template>
+            </el-table-column>
+            <el-table-column property="logo" label="logo" width="140"  align="center">
+              <template scope="scope">
+                <img :src="scope.row.logo" v-show="scope.row.logo != null" alt="" width="120" height="40">
+              </template>
+            </el-table-column>
+          </el-table>
+          <div class="page-warrpe">
+      			<el-pagination class="page-box" @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="brandFrom.pageindex" :page-sizes="page_sizes" layout="prev, pager, next,sizes, jumper" :total="Total">
+      			</el-pagination>
+          </div>
+        </div>
+      </el-dialog>
+    </div>
+  </div>
+</template>
+
+<script>
+import api from 'api/request'
+export default {
+	name: 'business',
+  props: {
+    supplierbusiness: {
+      type: Object
+    },
+    supplierbusinessList: {
+      type: Array
+    }
+  },
+	data() {
+		return {
+      tableData: [],
+      sellproductList: [],
+      suppliertradesList: [],
+      dialogTableVisible: false,
+      loading: false,
+      brandList: [],
+      multipleSelection: [],
+      brandFrom: {
+        // shortname: '',
+        // name: '',
+        pageindex: 1,
+        pagesize: 10
+      },
+      Total: 0,
+      page_sizes: [15, 20, 25, 50],
+      form: {
+        pageindex: 1,
+        pagesize: 15
+      }
+    }
+	},
+  methods: {
+    handleChange(val) {
+      console.log(val)
+    },
+    handleChange2(val) {
+      console.log(val)
+    },
+    Showbrandslist() {
+      this.dialogTableVisible = true
+      this.getbrandslist(this.brandFrom)
+    },
+    onSubmit() { },
+    onResult() { },
+    handleChoseRow(val) {
+      this.$refs.multipleTable.clearSelection()
+      this.$refs.multipleTable.toggleRowSelection(val)
+    },
+    // 分页
+    handleSizeChange(val) {
+      this.brandFrom.pagesize = val
+      this.getbrandslist(this.brandFrom)
+    },
+    handleCurrentChange(val) {
+      this.brandFrom.pageindex = val
+      this.getbrandslist(this.brandFrom)
+    },
+    getbrandslist(data) {
+      let _t = this
+      this.loading = true
+      api.supplier.getbrandslist(data).then(res => {
+        _t.loading = false
+        if (res.data.code == 200) {
+          console.log(res.data.data.rows)
+          _t.brandList = res.data.data.rows
+          _t.Total = res.data.data.totalCount
+        }
+      })
+    }
+  },
+  created() {
+    let parms = this.form
+    let _t = this
+    api.supplier.getbrandslist(parms).then(res => {
+    })
+    api.supplier.productcatalog().then(res => {
+      if (res.data.code == 200) {
+        _t.sellproductList = res.data.data[0].children[0].children
+      }
+    })
+    api.supplier.suppliertrades().then(res => {
+      _t.suppliertradesList = res.data.data[0].children
+    })
+  }
+}
+</script>
+
+<style lang="stylus">
+.business
+  overflow:hidden
+  .demo-form-inline
+    &:after
+      content:''
+      clear:both
+    // overflow:hidden
+  .bussiness-table
+    margin-top:10px
+  .product-item
+    position: relative
+    .product-tree
+      min-width:260px
+      position: absolute
+      top:34px
+      left:0
+      z-index:99
+      height: 270px
+      overflow-y: auto
+  .brand-box
+    .brand-btn-box
+      margin-left:50px!important
+    .brand-btn
+      width:80px
+      height:32px
+      padding:0
+      line-height:32px
+      margin-left:20px
+    .brand-list
+      .cell
+        padding:0
+      .brand-introduction
+        .el-textarea__inner
+          border:0
+          background-color:transparent
+  .dialog
+    .el-dialog--small
+      width:900px
+    .page-warrpe
+      height:40px
+      line-height:40px
+      .page-box
+        margin-top:5px
+        .el-input__inner
+          height:28px
+          line-height:28px
+</style>

@@ -1,0 +1,62 @@
+<template lang="html">
+  <div class="business">
+    <el-form :inline="true" :model="supplierbusiness" class="demo-form-inline" label-position="left">
+	  	<div class="left">
+				  <el-form-item label="主营品牌" label-width="83px">
+				    <el-input v-model="supplierbusiness.sellbrand" placeholder="" :disabled="true" class="info-input"></el-input>
+				  </el-form-item>
+          <el-form-item label="主营行业" label-width="83px">
+  					<el-select v-model="supplierbusiness.businesstrade" placeholder="活动区域" disabled class="info-select">
+  						<el-option label="区域一" value="shanghai"></el-option>
+  						<el-option label="区域二" value="beijing"></el-option>
+  					</el-select>
+  				</el-form-item>
+	  	</div>
+			<div class="right">
+        <el-form-item label="主营产品" label-width="83px">
+					<el-select v-model="supplierbusiness.sellproduct" placeholder="活动区域" disabled class="info-select">
+						<el-option label="区域一" value="shanghai"></el-option>
+						<el-option label="区域二" value="beijing"></el-option>
+					</el-select>
+				</el-form-item>
+			</div>
+		</el-form>
+    <div class="bussiness-table">
+      <el-table :data="supplierbusinessList" border style="width: 1130px" max-height="600">
+        <el-table-column type="selection" width="55"></el-table-column>
+        <el-table-column type="index" align="center" label="序号" width="65"></el-table-column>
+        <el-table-column prop="linkname" align="center" label="供应商名称" width="330"></el-table-column>
+        <el-table-column prop="businesstrade" align="center" label="客户行业" width="330"></el-table-column>
+        <el-table-column prop="department" align="center" label="客户主营产品" width="349"></el-table-column>
+      </el-table>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+	name: 'business',
+  props: {
+    supplierbusiness: {
+      type: Object
+    },
+    supplierbusinessList: {
+      type: Array
+    }
+  },
+	data() {
+		return {
+      tableData: []
+    }
+	}
+}
+</script>
+
+<style lang="stylus">
+.business
+  overflow:hidden
+  .demo-form-inline
+    overflow:hidden
+  .bussiness-table
+    margin-top:10px
+</style>

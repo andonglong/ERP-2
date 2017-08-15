@@ -1,0 +1,258 @@
+<template>
+    <div class="progress-container">
+        <div class="table_01">
+            <el-table :data="progressData.table01Data" border style="width: 93%; margin:0 auto; " :row-style="{ height: '31px'}" @row-click="table01RowClick" highlight-current-row >
+                <el-table-column type="index" label="序号" min-width="75" align="center">
+                </el-table-column>
+                <el-table-column prop="technologyname" label="流程名称" min-width="90" align="center">
+                    <!--<template scope="scope">
+                        <div contenteditable="true" data-id="99999999999999999" @click="clickA(scope.$index,scope.row,$event)">{{scope.row.technologyname}}</div>
+                    </template>-->
+                </el-table-column>
+                <el-table-column prop="planworkhours" label="预计工时" min-width="90" align="center">
+                    <template scope="scope">
+                        <!--<div contenteditable="true"  @click="clickA(scope.$index,scope.row,$event)">{{scope.row.planworkhours}}</div>-->
+                        <el-input  v-model="scope.row.planworkhours" class="editInput" @blur="blur01(scope.row)"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="completeamount" label="完成数量" min-width="90" align="center">
+                    <template scope="scope">
+                        <el-input  v-model="scope.row.completeamount" class="editInput" @blur="blur01(scope.row)"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="qualifiedamount" label="合格数量" min-width="90" align="center">
+                    <template scope="scope">
+                        <el-input  v-model="scope.row.qualifiedamount" class="editInput" @blur="blur01(scope.row)"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="technologystatus" label="状态" min-width="75" align="center">
+                </el-table-column>
+                <el-table-column prop="completepercent" label="完成比例" min-width="130" align="center" class-name="scale">
+                    <template scope="scope">
+                        <div :style="{width: scope.row.completepercent}" class="scaleDiv">
+                            <div>
+                                <span>{{scope.row.completepercent}}</span>
+                            </div>
+                        </div>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </div>
+        <div class="line"></div>
+        <div class="table_02">
+            <el-table :data="table02Data" border height="false" style="width: 93%; margin:0 auto;" :row-style="{ height: '31px'}">
+                <el-table-column type="index" label="序号" min-width="75" align="center">
+                </el-table-column>
+                <el-table-column prop="owner" label="负责人" min-width="130" align="center">
+                </el-table-column>
+                <el-table-column prop="completeamount" label="完成数量" min-width="130" align="center">
+                    <template scope="scope">
+                        <!--<div contenteditable="true" data-id="99999999999999999" @click="clickA(scope.$index,scope.row,$event)" v-model="scope.row.completeamount">{{scope.row.completeamount}}</div>-->
+                        <el-input  v-model="scope.row.completeamount" class="editInput"  @blur="blur02(scope.row)"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="qualifiedamount" label="合格数量" min-width="130" align="center">
+                    <template scope="scope">
+                        <!--<div contenteditable="true" data-id="99999999999999999" @click="clickA(scope.$index,scope.row,$event)">{{scope.row.d}}</div>-->
+                        <el-input  v-model="scope.row.qualifiedamount" class="editInput"  @blur="blur02(scope.row)"></el-input>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="createtime" label="录入时间" min-width="185" align="center">
+                </el-table-column>
+            </el-table>
+        </div>
+        <div class="footer">
+            <el-button type="primary" @click="Save">保存数据</el-button>
+        </div>
+    </div>
+</template>
+
+<script>
+import $http from 'api/http'
+import api from 'api/request.js'
+
+export default {
+    props: ["progressData"],
+    data() {
+        return {
+            table02Data:[],
+            a:1,
+            SaveParam: {
+              inorderid:'',
+              productmodel:'',
+              productserialno:'',
+              sequence: {},
+              headstr: [],
+              detailstr: []
+            }
+            
+        }
+    },
+    created() {
+        // $http.ajax('/api/productDetail').then(res => {
+        //     console.log("产品详情")
+        //     console.log(res)
+        //     this.table01Data = res.data.data.progress.table01
+        //     this.table02Data = res.data.data.progress.table02
+        // })
+       
+    },
+    beforeUpdate() {
+        console.log("产品进度 beforeUpdate")
+        
+    },
+    updated() {
+        console.log("产品进度 Updated")
+        // this.table02Data = []
+    },
+    methods: {
+        table01RowClick(row, event, column){
+            console.log("点击row")
+            let param02 = { inorderid: row.inorderid, productmodel:row.productmodel,serialno: row.serialno, sequence: row.sequence }
+			api.order.getusertechnologysbyorderid(param02).then(res => {
+				this.table02Data = res.data.data
+			})
+        },
+        // handleCurrentChange(currentRow, oldCurrentRow){
+        //      this.currentRow = currentRow;
+        // }
+        // changeTable01(e){
+        //     console.log(e)
+        //     console.log(this.progressDataB)
+        //     this.a ++
+        // },
+        // clickIbput(a){
+        //     console.log("-----")
+        //     console.log(a)
+        // },
+        // clickA(index,row,event){
+        //     console.log(index)
+        //     console.log(row)
+        //     console.log(event)
+
+        // },
+        Save(){
+            console.log("保存")
+            this.SaveParam.headstr = this.SaveParam.headstr.join("");
+            this.SaveParam.detailstr = this.SaveParam.detailstr.join("");
+            let param =  this.SaveParam
+            api.order.updatetechnologyroute(param).then(res => {
+                  console.log("更新...")
+                  this.SaveParam ={
+                    inorderid:'',
+                    productmodel:'',
+                    productserialno:'',
+                    sequence: {},
+                    headstr: [],
+                    detailstr: []
+                  }
+            })
+        },
+        blur01(row){
+            console.log(row)
+                 this.SaveParam.inorderid =  row.inorderid
+                 this.SaveParam.productmodel =  row.productmodel
+                 this.SaveParam.productserialno = row.productserialno
+
+                 let headstr = row.sequence + "*" + row.completeamount + "*" + row.qualifiedamount + "*" + row.planworkhours + "*" + row.technologystatus + "$";
+                 this.SaveParam.headstr[row.sequence] = headstr
+
+        },
+        blur02(row){
+             let detailstr = row.sequence + "*" + row.completeamount + "*" + row.qualifiedamount + "*" + row.owner + "$"
+             this.SaveParam.detailstr[row.sequence] =  detailstr
+        }
+        
+    }
+    
+
+}
+</script>
+
+<style lang="stylus">
+ .progress-container {
+   height: 100%
+   padding-top: 20px
+   box-sizing:border-box
+
+   .cell {
+      padding: 0
+    }
+   .el-table td { 
+     height: auto
+
+     
+   } 
+   .el-table{
+       height: 100%
+       border-left: none
+     }
+   .el-table::before,
+     .el-table::after{
+       height : 0
+     }
+     .el-table__header-wrapper{
+       .el-table__header{
+            border-left: 1px solid #dfe6ec;
+       }
+     }
+     .el-table__body-wrapper{
+       height : 80%
+       .el-table__body{
+           border-left: 1px solid #dfe6ec;
+       }
+     }
+   .editInput input{
+     border: 0
+     background-color: transparent
+     text-align: center
+   }
+   .table_01{
+     height: 55% 
+
+     .scale>div{
+       position: absolute
+       top: 0
+       right: 0
+       bottom: 0
+       left: 0
+     }
+     .scaleDiv{
+       background-color: #00FF00
+       height: 100%
+      
+      span {
+        position: absolute
+        top:0
+        right: 0
+        bottom: 0
+        left: 0
+        display: flex
+        align-items: center
+        justify-content: center
+      }
+     }
+   }
+   .table_02{
+     height: 30% 
+
+    
+   }
+   .footer{
+     height: 10%
+     background-color: #EFF2F7 
+     display: flex
+     align-items: center 
+     justify-content: center
+
+     .el-button{  
+       width: 30%
+     } 
+   }
+  
+ }
+ 
+
+
+</style>
+

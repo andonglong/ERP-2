@@ -1,0 +1,77 @@
+<template>
+	<div class="foot-box">
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i></i></div>
+				<p class="foot-item-title">当月成交总金额</p>
+				<p class="foot-item-total">¥5,000,000</p>
+			</div>
+		</div>
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i></i></div>
+				<p class="foot-item-title">当月未发货总金额</p>
+				<p class="foot-item-total">¥5,000,000</p>
+			</div>
+		</div>
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i></i></div>
+				<p class="foot-item-title">当月产品款数</p>
+				<p class="foot-item-total">¥5,000,000</p>
+			</div>
+		</div>
+		<div class="foot-item">
+			<div class="foot-item-minwidth">
+				<div class="foot-item-img"><i></i></div>
+				<p class="foot-item-title">当月未完成产品款数</p>
+				<p class="foot-item-total">¥5,000,000</p>
+			</div>
+		</div>
+	</div>
+</template>
+
+<script>
+	export default {
+		name:"orderFoot",
+		data () {
+			 return {}
+		}
+	}
+</script>
+
+<style lang="stylus">
+	.foot-box
+		width:1276px
+		margin:0 auto
+		display:flex
+		flex:row
+		.foot-item
+			flex:1
+			height:100%
+			color:#fff
+			font-size:0
+			.foot-item-minwidth
+				width:200px
+				margin:12px auto
+				overflow:hidden
+				.foot-item-img
+					border-radius:50%
+					float:left
+					margin-right:10px
+					width:62px
+					height:62px
+					background-color:#475669
+				.foot-item-title
+					font-size:14px
+					line-height:25px
+					margin:4px 0 2px 0
+				.foot-item-total
+					overflow:hidden
+					text-overflow:ellipsis
+					white-space: nowrap
+					font-size:22px
+					line-height:25px
+					color:#f7ba2a
+					font-weight:bold
+</style>

@@ -1,0 +1,101 @@
+<template>
+  <div class="willorderInfo-box">
+    <h3 class="willorderInfo-title">SRDSB674ZZ</h3>
+    <div class="btn-box">
+      <el-button type="primary" class="btn-w80">保存</el-button>
+      <el-button class="btn-w80">取消</el-button>
+    </div>
+    <div class="info-item">
+      <h4>询价信息</h4>
+      <div class="left">
+        <ul class="info">
+          <li>产品编码：<span>SRDSB674ZZ</span></li>
+          <li>产品型号/SKU：<span>SB674ZZ</span></li>
+          <li>附件名/图纸号：<span>--</span></li>
+          <li>询价数量：<span>20</span></li>
+        </ul>
+      </div>
+      <div class="right">
+        <ul class="info">
+          <li>品牌：<span>SRD</span></li>
+          <li>产品名称：<span>轴承</span></li>
+          <li>询价单位：<span>pcs</span></li>
+        </ul>
+      </div>
+    </div>
+    <!-- <div class="info-item">
+      <h4>工程报价</h4>
+      <div class="left">
+        <el-form-item label="建议最低含税价" label-width="97px">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+        <el-form-item label="确认后差异" label-width="97px">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+        <el-form-item label="确认后最小..." label-width="97px">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+      </div>
+      <div class="right">
+        <el-form-item label="建议含税售价*" label-width="104px">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+        <el-form-item label="确认后差异" label-width="104px">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+        <el-form-item label="确认后最小..." label-width="104px">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+      </div>
+    </div>
+    <div class="info-item">
+      <h4>供应商报价</h4>
+      <div class="left">
+        <el-form-item label="供应商名称" label-width="97px">
+          <el-input v-model="name"></el-input>
+        </el-form-item>
+        <el-form-item label="最小订购量" label-width="97px">
+          <el-input v-model="name" value="number"></el-input>
+        </el-form-item>
+        <el-form-item label="是否包含运费" label-width="97px">
+          <el-checkbox v-model="checked">包含</el-checkbox>
+        </el-form-item>
+      </div>
+      <div class="right">
+        <el-form-item label="是否能做" label-width="104px">
+          <el-checkbox v-model="checked">能做</el-checkbox>
+        </el-form-item>
+        <el-form-item label="货期（天）" label-width="104px">
+          <el-input v-model="name" value="number"></el-input>
+        </el-form-item>
+        <el-form-item label="未税单价" label-width="104px">
+          <div class="price-warpper">
+            <el-checkbox v-model="checked" :disabled="true">包含</el-checkbox>
+            <span class="price-tip">系统默认未税单价=材料费+加工费+表面处理</span>
+          </div>
+        </el-form-item>
+      </div>
+      <div class="clear"></div>
+
+    </div> -->
+  </div>
+</template>
+<script type="text/javascript">
+  export default {
+    name: 'willorderInfo',
+    props: {
+      willoaderObject: {
+        type: Object
+      }
+    },
+    data() {
+      return {
+        // name: '',
+        // checked: false
+      }
+    }
+  }
+</script>
+<style media="screen" lang="stylus">
+
+</style>

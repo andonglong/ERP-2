@@ -1,0 +1,90 @@
+<template>
+	<div class="header-box">
+			<div class="header-left f_l">
+				<p class="company-name"><i class="icon iconfont icon-qiye" @click="toHome"></i>深圳市仕瑞达设备有限公司</p>
+			</div>
+			<div class="user-info f_r txt_r">
+				<ul class="user-navbar f_r">
+					<li class="navbar-item"><span class="icon iconfont icon-touxiang"></span></li>
+					<li class="navbar-item">
+						<a href="javascript">张三疯</a>
+						<ul class="dropdown-menu">
+							<li>设置</li>
+							<li>修改密码</li>
+						</ul>
+					</li>
+					<li class="navbar-item" @click="Logout"><span>退出</span></li>
+				</ul>
+			</div>
+		</div>
+</template>
+
+<script>
+	export default {
+		methods: {
+    	//退出登录
+    	Logout:function(){
+    		var _this = this;
+				this.$confirm('确认退出吗?', '提示', {
+					//type: 'warning'
+				}).then(() => {
+					sessionStorage.removeItem('token');
+					_this.$router.push('/login');
+				}).catch(() => {
+
+				});
+    	},
+	    toHome:function(){
+	    	this.$router.push('/Track/order');
+	    }
+    }
+	}
+	
+</script>
+
+<style lang="stylus">
+	.f_l
+		float:left
+	.f_r
+		float:right
+	.txt_r
+		text-align:right
+	.header-box
+		position:fixed
+		top:0
+		left:0
+		z-index:9999
+		height: 60px
+		line-height:60px
+		width: 100%
+		min-width: 900px
+		background-color:#1f2d3d
+		.header-left
+			color:#fff
+			font-size:24px
+			margin-left:30px
+			.company-name
+				.icon-qiye
+					cursor: pointer
+					font-size:26px
+					margin-right:10px
+		.user-info
+			margin-right:87px
+			color:#fff
+			font-size:14px
+			.user-navbar
+				list-style:none
+				overflow:hidden
+				.navbar-item
+					float:left
+					margin-right:10px
+					a
+						color:#fff
+					.icon-touxiang
+						font-size:23px
+					&:last-child
+						margin-right:0
+						margin-left:47px
+					.dropdown-menu
+						display:none	
+</style>
