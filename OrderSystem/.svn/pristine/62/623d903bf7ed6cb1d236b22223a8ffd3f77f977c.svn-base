@@ -1,0 +1,274 @@
+<template>
+    <div class="enquirySheetDetailWindow-container" @click="ClickDiv">
+        <div class="panel-contant" @click.stop="" v-if="tableData.length > 0">
+            <div class="title pd-l20 mg-b40">{{tableData[i].productcode}}</div>
+            <div class="body pd-l20">
+    
+                <el-button type="primary" class="button" @click="Save()">保存</el-button>
+                <el-button class="button" @click="cancel()">取消</el-button>
+    
+                <h4 class="mg-b30 mg-t40">询价信息</h4>
+                <div class="enquiryInfo ai-center spanColor">
+                    <div>
+                        <span>产品编码：</span>{{tableData[i].productcode}}</div>
+                    <div>
+                        <span>品牌：</span>{{tableData[i].productbrand}}</div>
+                    <div>
+                        <span>产品型号/SKU：</span>{{tableData[i].productmodel}}</div>
+                    <div>
+                        <span>产品名称：</span>{{tableData[i].productname}}</div>
+                    <div>
+                        <span>附件名/图纸号：</span>{{tableData[i].attachmentindex}}</div>
+                    <div>
+                        <span>询价单位：</span>{{tableData[i].unit}}</div>
+                    <div>
+                        <span>询价数量：</span>{{tableData[i].orderamount}}</div>
+                </div>
+                <h4 class="mg-b20">报价信息</h4>
+                <div class="spanColor span100 ai-center">
+                    <div class="mg-b10">
+                        <span class="inblock w94">是否能做
+                            <!-- <i class="Danger">*</i> -->
+                        </span>
+                        <el-checkbox v-model="tableData[i].iscando">能做</el-checkbox>
+                    </div>
+                    <div class="mg-b10">
+                        <span class="inblock w100">最小订购量</span>
+                        <el-input-number v-model="tableData[i].minamount" :min="0" :max="9999" :debounce="0" :step="1"></el-input-number>
+                    </div>
+                    <div class="mg-b10">
+                        <span class="inblock w94">货期（天）
+                             <i class="Danger"v-show="tableData[i].iscando">*</i> 
+                        </span>
+                        <el-input-number v-model="tableData[i].deliverytime" :min="0" :max="9999" :debounce="0" class="center-input" :class="{'required-input': tableData[i].iscando && !tableData[i].deliverytime ? true : false }"></el-input-number>
+                    </div>
+                     <div class="mg-b10">
+                        <!-- <span class="inblock w100">是否包含运费</span>
+                        <el-checkbox v-model="tableData[i].issendcost">包含</el-checkbox> -->
+                    </div> 
+                    <div class="mg-b10">
+                        <span class="inblock w94 va-top lh38">未税单价</span>
+                        <span class="inblock w280">
+                             <el-input placeholder="请输入内容" :value="tableData[i].pricenotax" :disabled="true" style="margin-bottom: 3px"></el-input> 
+                            <span>系统默认未税单价=材料费+加工费+表面处理</span>
+                        </span>
+                    </div>
+                </div>
+                <div class="spanColor ai-center bgdiv mg-b20 relative">
+                    <div class="mg-b10">
+                        <span class="inblock w94">材料费</span>
+                         <el-input type="text" v-model="tableData[i].materialcost" placeholder="请输入单个产品的材料费" @blur="BlurMaterialcost($event)"  @keydown.active="KeydownNumber($event)" class="w280"/>  
+                    </div>
+                    <div style="width:415px">
+                        <span class="inblock w100 text-center">加工费</span>
+                          <el-input type="text" v-model="tableData[i].workcost" placeholder="请输入单个产品的加工费" @blur="BlurWorkcost($event)"  @keydown.active="KeydownNumber($event)" class="w280 "/>  
+                    </div>
+                    <div>
+                        <span class="inblock w94">表面处理费</span>
+                          <el-input type="text" v-model="tableData[i].dealwithcost" placeholder="请输入单个产品的表面处理费" @blur="BlurDealwithcost($event)"  @keydown.active="KeydownNumber($event)" class="w280 "/>  
+                    </div>
+                    <div id="square"></div>
+                </div>
+                <div class="spanColor ai-center">
+                    <div class="mg-b10">
+                        <span class="inblock w94">税率</span>
+                        <el-select v-model="tableData[i].taxrate" placeholder="请选择" style="width: 280px">
+                            <el-option v-for="item in optionsRate" :key="item.value" :label="item.text" :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </div>
+                     <div class="mg-b10">
+                        <span class="inblock w100">含税单价
+                             <i class="Danger" v-show="tableData[i].iscando">*</i> 
+                        </span>
+                           <el-input type="text" v-model.number="tableData[i].pricewithtax" :disabled="parseFloat(tableData[i].pricenotax) ? true : false" placeholder="请输入内容" @blur="BlurPricewithtax($event)"  @keydown.active="KeydownNumber($event)" class="w280" :class="{'required-input': tableData[i].iscando && !parseFloat(tableData[i].pricewithtax) ? true :  false  }"/>  
+                    </div> 
+                    <div>
+                        <span class="inblock w94">含税金额</span>
+                        <el-input placeholder="请输入内容" v-model="tableData[i].taxamount" :disabled="true" class="w280"></el-input>
+                    </div>
+                    <div>
+                        <span class="inblock w100">备注</span>
+                        <el-input placeholder="请输入内容" v-model="tableData[i].remark" class="w280"></el-input>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    props: ['inquiryorderid', 'windowShow', 'tableData', 'i', 'optionsRate', 'fetchData'],
+    beforeUpdate() {
+    },
+    data() {
+        return {
+            isdo: false,
+            minNum: 1,
+            dayNum: 1,
+            ishan: true,
+            RateValue: 0,
+            input1: 10,
+            throttles: {
+                save: true
+            }
+        }
+    },
+    methods: {
+        ClickDiv() {
+            this.$emit('update:windowShow', false)
+        },
+        BlurWorkcost() {
+            this.tableData[this.i].workcost = event.target.value ? parseFloat(event.target.value).toFixed(2) : '0.00'
+            this.pricenotaxComputed()
+            this.pricewithtaxComputed()
+            this.taxamountComputed()
+        },
+        BlurMaterialcost() {
+            this.tableData[this.i].materialcost = event.target.value ? parseFloat(event.target.value).toFixed(2) : '0.00'
+            this.pricenotaxComputed()
+            this.pricewithtaxComputed()
+            this.taxamountComputed()
+        },
+        BlurDealwithcost() {
+            this.tableData[this.i].dealwithcost = event.target.value ? parseFloat(event.target.value).toFixed(2) : '0.00'
+            this.pricenotaxComputed()
+            this.pricewithtaxComputed()
+            this.taxamountComputed()
+        },
+        BlurPricewithtax(event) {
+            this.tableData[this.i].pricewithtax = event.target.value ? parseFloat(event.target.value).toFixed(2) : '0.00'
+            this.taxamountComputed()
+        },
+        KeydownNumber(event) {
+            let code = event.keyCode
+            if (!(code >= 48 && code <= 57) && !(code >= 96 && code <= 105) && code != 110 && code != 190 && code != 8 && code != 37 && code != 39) {
+                event.returnValue = false
+            } else {
+                event.returnValue = true
+            }
+        },
+        Save() {
+            if (!this.throttles.save) { return }
+            this.throttles.save = false
+
+            this.$emit('update:tableData', this.tableData)
+
+            let copeData = this.tableData[this.i]
+            // 判断是否符合保存条件
+            if (copeData.iscando) {
+                if (!copeData.pricenotax) {
+                    if (!copeData.deliverytime || !parseFloat(copeData.pricewithtax)) {
+                        this.$message.error('能做的产品，请您填写货期和含税单价')
+                        this.throttles.save = true
+                        return
+                    }
+                } else {
+                    if (!copeData.deliverytime) {
+                        this.$message.error('能做的产品，请您填写货期')
+                        this.throttles.save = true
+                        return
+                    }
+                }
+            }
+            // 深层拷贝
+            copeData = {}
+
+            for (let j in this.tableData[this.i]) {
+                if (j == 'iscando') {
+                    copeData[j] = this.tableData[this.i][j] ? '1' : '0'
+                } else if (j == 'issendcost') {
+                    copeData[j] = this.tableData[this.i][j] ? 1 : 0
+                } else {
+                    copeData[j] = this.tableData[this.i][j]
+                }
+            }
+            let param = {
+                inquiryorderid: this.inquiryorderid,
+                detailList: [copeData]
+            }
+            this.$api.inquiryorder.updateinquiryorder(param).then(res => {
+                if (res.data.code == 200) {
+                    this.$message.success('保存成功')
+                    this.$emit('update:windowShow', false)
+                    this.fetchData()
+                } else {
+                    this.$message.error(res.data.message)
+                }
+                this.throttles.save = true
+            })
+        },
+        cancel() {
+            this.$emit('update:windowShow', false)
+        },
+        pricenotaxComputed() {
+            this.tableData[this.i].pricenotax = parseFloat(this.tableData[this.i].materialcost) + parseFloat(this.tableData[this.i].workcost) + parseFloat(this.tableData[this.i].dealwithcost)
+        },
+        pricewithtaxComputed() {
+            console.log(this.tableData[this.i].taxrate)
+            this.tableData[this.i].pricewithtax = parseFloat(this.tableData[this.i].pricenotax) * (1 + this.tableData[this.i].taxrate / 100)
+        },
+        taxamountComputed() {
+                this.tableData[this.i].taxamount = this.tableData[this.i].pricewithtax * this.tableData[this.i].orderamount
+        }
+    }
+}
+</script>
+
+<style lang="stylus">
+    .enquirySheetDetailWindow-container
+      position: fixed
+      top: 0
+      right: 0
+      bottom: 0
+      left: 0
+      z-index: 2001
+      background-color: rgba( 0, 0, 0, 0.5)
+      .el-select-dropdown
+        z-index: 3005!important
+      .w94
+        width: 94px
+      .w100  
+        width: 100px
+      .w280  
+        width: 280px 
+      .lh38  
+        line-height: 38px
+      #square
+        position: absolute  
+        top: -6px
+        left: 30px
+        width: 10px
+        height: 10px
+        border-top: 1px solid #e5e5e5
+        border-right: 1px solid #e5e5e5
+        transform:rotate(-45deg)
+        background-color: #f8f8f8
+      .panel-contant
+         width: 880px
+         height: 100%
+         margin: 0 0 0 auto
+         background-color: #fff
+         .spanColor
+            display: inline-flex
+            flex-flow: wrap 
+            >div
+              width: 420px
+              color: #5e6d82
+              >span
+                color: #99a9bf
+         .title
+            height: 54px
+            line-height: 54px
+            background-color: #f8f8f8
+         .enquiryInfo
+           >div
+             margin-bottom: 25px
+         .bgdiv
+           margin-left: -9px
+           padding: 10px    
+           border-radius: 5px
+           border: 1px solid #e5e5e5
+           background-color: #f8f8f8
+</style>

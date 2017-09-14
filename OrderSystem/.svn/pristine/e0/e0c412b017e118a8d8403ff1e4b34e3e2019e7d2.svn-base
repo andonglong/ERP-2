@@ -1,0 +1,487 @@
+<template>
+    <div class="enterprise-container">
+        <div class="mg-b30">
+            <el-button type="primary" class="button" :plain="true" @click="appendCompany">新增企业</el-button>
+            <el-button type="primary" class="button" :plain="true" @click="save">保存</el-button>
+
+        </div>
+        <div class="enterprise-content">
+            <div class="enterprise-content-left  text-left">
+                <h4 class="text-center">所有企业</h4>
+                <!-- <ul>
+                                                                                    <li v-for="(item, index) in companyList" @click="selectCompany(item, index)" :class="{active: index == companyActive}" class="pointer">
+                                                                                        {{item.factoryname}}
+                                                                                    </li>
+                                                                                </ul> -->
+                <el-tree ref="companyTree" :class="{companyTable: isone}" :data="companyList" node-key="factoryid" :default-expanded-keys="CompanyExpandedArray" @node-expand="nodeExpand" :expand-on-click-node="true" :highlight-current="true" @node-click="NodeClick" :props="CompanyProps" :render-content="renderContent">
+                </el-tree>
+            </div>
+            <div class="enterprise-content-right">
+                <el-tabs type="border-card" :active-name="acyiveName">
+                    <el-tab-pane label="菜单" name="menu"></el-tab-pane>
+                    <el-tree ref="tree" :data="treeData" show-checkbox node-key="menuid" :default-expand-all="true" :default-checked-keys="treeCheckedArray" :props="defaultProps" :highlight-current="true">
+                    </el-tree>
+                </el-tabs>
+
+            </div>
+        </div>
+        <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible">
+            <el-form :model="form" :rules="rules" ref="Form">
+                <el-form-item label="企业名称" :label-width="formLabelWidth" prop="companyname">
+                    <el-input v-model.trim="form.companyname" auto-complete="off" :maxlength="30" placeholder="请输入"></el-input>
+                </el-form-item>
+                <el-form-item label="手机号码" :label-width="formLabelWidth" prop="mobilenumber">
+                    <el-input v-model.number="form.mobilenumber" auto-complete="off" placeholder="请输入"></el-input>
+                </el-form-item>
+                <!-- <el-form-item label="顺序设置" :label-width="formLabelWidth" prop="orderindex">
+                                                                                                                    <el-input-number v-model="form.orderindex" auto-complete="off" :debounce="0" placeholder="以数字顺序从小到大排序"></el-input-number>
+                                                                                                                </el-form-item>  -->
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
+
+        <el-dialog :title="dialogFactory" :visible.sync="dialogFactoryVisible">
+            <el-form :model="formFactory" :rules="factoryrules" ref="FactoryForm">
+                <el-form-item label="工厂名称" :label-width="formLabelWidth" prop="factoryname">
+                    <el-input v-model.trim="formFactory.factoryname" auto-complete="off" :maxlength="30" placeholder="请输入"></el-input>
+                </el-form-item>
+                <el-form-item label="手机号码" :label-width="formLabelWidth" prop="mobilenumber">
+                    <el-input v-model="formFactory.mobilenumber" auto-complete="off" placeholder="请输入"></el-input>
+                </el-form-item>
+                <!-- <el-form-item label="顺序设置" :label-width="formLabelWidth" prop="orderindex">
+                                                                                                                    <el-input-number v-model="form.orderindex" auto-complete="off" :debounce="0" placeholder="以数字顺序从小到大排序"></el-input-number>
+                                                                                                                </el-form-item>  -->
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFactoryVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addConfirmFactory">确 定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            acyiveName: 'menu',
+            companyActive: 0,
+            companyList: [],
+            CompanyProps: {
+                children: 'childs',
+                label: 'companyname'
+            },
+            treeData: [],
+            treeCheckedArray: [],
+            defaultProps: {
+                children: 'childs',
+                label: 'menuname'
+            },
+            dialogTitle: '新增企业',
+            formLabelWidth: '80px',
+            form: {
+                companyname: '',
+                mobilenumber: '',
+                companyid: ''
+            },
+            dialogFormVisible: false,
+            rules: {
+                companyname: [
+                    { required: true, message: '请输入企业名称', trigger: 'blur' }
+                ],
+                mobilenumber: [
+                    { required: true, validator: this.$util.checkMoblie, trigger: 'blur' }
+                ]
+            },
+            dialogFactory: '新增工厂',
+            formFactory: {
+                factoryname: '',
+                mobilenumber: '',
+                companyid: '',
+                factoryid: ''
+            },
+            dialogFactoryVisible: false,
+            factoryrules: {
+                factoryname: [
+                    { required: true, message: '请输入工厂名称', trigger: 'blur' }
+                ],
+                mobilenumber: [
+                    { required: true, validator: this.$util.checkMoblie, trigger: 'blur' }
+                ]
+            },
+            CompanyExpandedArray: [],
+            isone: true
+        }
+    },
+    created() {
+        this.$store.state.adminleftnavnum = '/Authority/enterprise'
+        this.getCompany()
+    },
+    methods: {
+        selectCompany(item, index) {
+            this.companyActive = index
+            this.currentCompanyid = item.companyid
+            this.currentFactoryid = item.factoryid
+
+            this.treeCheckedArray = []
+            this.getMenu()
+        },
+        // 获取菜单
+        getMenu() {
+            let param = { companyid: this.currentCompanyid, factoryid: this.currentFactoryid }
+            this.$api.Authority.getCompanyMenuByCompanyId(param).then(res => {
+                if (res.data.code == 200) {
+                    this.treeData = res.data.data
+                    this.getTreeCheckedArray(this.treeData)
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        save() {
+            let param = { companyid: this.currentCompanyid, factoryid: this.currentFactoryid, menuids: this.$refs.tree.getCheckedKeys() }
+            this.$api.Authority.save(param).then(res => {
+                if (res.data.code == 200) {
+                    // this.getCompany()
+                    let info = JSON.parse(sessionStorage.getItem('userInfo'))
+                    if (param.companyid == info.companyid && param.factoryid == info.factoryid) {
+                        location.reload()
+                    }
+                    this.$message.success('保存成功')
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取所有企业
+        getCompany() {
+            this.$api.Authority.getcompanys().then(res => {
+                if (res.data.code == 200) {
+                    // let arr = res.data.data
+                    let array = []
+                    let json = this.uniqArray(res.data.data)
+                    for (let i in json) {
+                        array.push(json[i])
+                    }
+                    this.companyList = array
+                    // 默认选择第一个角色
+                    this.selectCompany(this.companyList[0].childs[0], 0)
+                    this.CompanyExpandedArray = [this.companyList[0].childs[0].factoryid]
+                    this.one = true
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取有权限的菜单数组
+        getTreeCheckedArray(arr) {
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i].checked) {
+                    this.treeCheckedArray.push(arr[i].menuid)
+                }
+                if (Object.prototype.toString.call(arr[i].childs) === '[object Array]') {
+                    this.getTreeCheckedArray(arr[i].childs)
+                }
+            }
+        },
+        // <el-button size="small" class="del" on-click={() => this.removeCompany(store, data)}>删除</el-button>
+        // <el-button size="small" class="del" on-click={() => this.removeFactory(store, data)}>删除</el-button>
+        renderContent(h, { node, data, store }) {
+            if (node.level == 1) {
+                return (
+                    <span>
+                        <span>
+                            <span>{node.label}</span>
+                        </span>
+                        <span style="float: right; margin-right: 20px">
+                            <el-button size="small" on-click={() => this.appendFactory(store, data, event)}>添加</el-button>
+                            <el-button size="small" on-click={() => this.amendCompany(store, data)}>修改</el-button>
+                        </span>
+                    </span>)
+            } else {
+                if (data.factorystatus != 1) {
+                     return (
+                    <span>
+                        <span>
+                            <span>{node.label}</span>
+                        </span>
+                        <span style="float: right; margin-right: 20px">
+                            <el-button size="small" disabled on-click={() => this.forbid(store, data)}>已禁用</el-button>
+                        </span>
+                    </span>)
+                }
+                return (
+                    <span>
+                        <span>
+                            <span>{node.label}</span>
+                        </span>
+                        <span style="float: right; margin-right: 20px">
+                            <el-button size="small" on-click={() => this.amendFactory(store, data)}>修改</el-button>
+                            <el-button size="small" on-click={() => this.forbid(store, data)}>禁用</el-button>
+                        </span>
+                    </span>)
+            }
+        },
+        NodeClick(data) {
+            if (data.ischild) {
+                this.selectCompany(data)
+            } else {
+                this.treeData = []
+            }
+            this.isone = false
+        },
+        // 新增企业
+        appendCompany(store, data, event) {
+            this.dialogFormVisible = true
+            this.dialogTitle = '新增企业'
+            this.form.companyname = ''
+            this.form.companyid = ''
+            this.form.mobilenumber = ''
+
+            this.$util.stopBubble(event)
+        },
+        // 修改企业
+        amendCompany(store, data, event) {
+            this.dialogFormVisible = true
+            this.dialogTitle = '修改企业'
+
+            this.form.companyname = data.companyname
+            this.form.mobilenumber = data.companylinktelephone
+            this.form.companyid = data.companyid
+
+            this.$util.stopBubble(event)
+        },
+        // 删除企业
+        // removeCompany(store, data) {
+        // },
+        addConfirm() {
+            let _this = this
+            this.$refs['Form'].validate((valid) => {
+                if (valid) {
+                    let param = this.getCompanyParam()
+                    if (this.dialogTitle == '新增企业') {
+                        this.$api.Authority.companyAdd(param).then(res => {
+                            if (res.data.code == 200) {
+                                this.$message.success(this.dialogTitle)
+                                this.getCompany()
+                                this.dialogFormVisible = false
+                            } else {
+                                this.$util.isError(res.data)
+                            }
+                        })
+                    }
+                    if (this.dialogTitle == '修改企业') {
+                        this.$api.Authority.companyEdit(param).then(res => {
+                            if (res.data.code == 200) {
+                                this.$message.success(this.dialogTitle)
+                                this.getCompany()
+                                this.dialogFormVisible = false
+                            } else {
+                                this.$util.isError(res.data)
+                            }
+                        })
+                    }
+                    _this.dialogFormVisible = false
+                } else {
+
+                }
+            })
+        },
+        // 添加工厂
+        appendFactory(store, data, event) {
+            this.dialogFactoryVisible = true
+            this.dialogFactory = '新增工厂'
+            this.formFactory.companyid = data.companyid
+            this.formFactory.factoryname = ''
+            this.formFactory.mobilenumber = ''
+            this.formFactory.factoryid = ''
+
+             this.$util.stopBubble(event)
+        },
+        // 修改工厂
+        amendFactory(store, data, event) {
+            this.dialogFactoryVisible = true
+            this.dialogFactory = '修改工厂'
+
+            this.formFactory.factoryname = data.companyname
+            this.formFactory.mobilenumber = data.factorylinktelephone
+            this.formFactory.companyid = data.companyid
+            this.formFactory.factoryid = data.factoryid
+
+            this.$util.stopBubble(event)
+        },
+        // 删除工厂
+        removefactory(store, data) {
+
+        },
+        // 禁止工厂
+        forbid(store, data) {
+            let param = {
+                 companyid: data.companyid,
+                 factoryid: data.factoryid
+            }
+            this.$api.Authority.factoryDisable(param).then(res => {
+                if (res.data.code == 200) {
+                    this.getCompany()
+                    this.$message.success('禁用成功')
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        addConfirmFactory() {
+            this.$refs['FactoryForm'].validate((valid) => {
+                if (valid) {
+                    let param = this.getFactoryParam()
+                    if (this.dialogFactory == '新增工厂') {
+                        this.$api.Authority.factoryAdd(param).then(res => {
+                            if (res.data.code == 200) {
+                                this.$message.success(this.dialogFactory)
+                                this.getCompany()
+                                this.dialogFactoryVisible = false
+                            } else {
+                                this.$util.isError(res.data)
+                            }
+                        })
+                    }
+                    if (this.dialogFactory == '修改工厂') {
+                        this.$api.Authority.factoryEdit(param).then(res => {
+                            if (res.data.code == 200) {
+                                this.$message.success(this.dialogFactory)
+                                this.getCompany()
+                                this.dialogFactoryVisible = false
+                            } else {
+                                this.$util.isError(res.data)
+                            }
+                        })
+                    }
+                } else {
+
+                }
+            })
+        },
+        getCompanyParam() {
+            let param = {
+                companyid: this.form.companyid,
+                companyname: this.form.companyname,
+                parentid: '',
+                officeaddress: '',
+                regaddress: '',
+                linkman: '',
+                linktelephone: this.form.mobilenumber,
+                bossname: '',
+                bosstelephone: this.form.mobilenumber,
+                linkmail: '',
+                businesslicence: '',
+                createtime: ''
+            }
+            return param
+        },
+        getFactoryParam() {
+            let param = {
+                factoryid: this.formFactory.factoryid,
+                companyid: this.formFactory.companyid,
+                factoryname: this.formFactory.factoryname,
+                officeaddress: '',
+                regaddress: '',
+                linkman: '',
+                linktelephone: this.formFactory.mobilenumber,
+                createtime: ''
+            }
+            return param
+        },
+        uniqArray(arr) {
+            var res = []
+            var json = {}
+            for (var i = 0; i < arr.length; i++) {
+                if (!json[arr[i].companyid]) {
+                    res.push(arr[i])
+                    json[arr[i].companyid] = arr[i]
+                    json[arr[i].companyid].childs = [{
+                        companyname: json[arr[i].companyid].factoryname,
+                        factorylinktelephone: json[arr[i].companyid].factorylinktelephone,
+                        companyid: json[arr[i].companyid].companyid,
+                        factoryid: json[arr[i].companyid].factoryid,
+                        ischild: true,
+                        factorystatus: json[arr[i].companyid].factorystatus
+
+                    }]
+                } else {
+                    json[arr[i].companyid].childs.push({
+                        companyname: arr[i].factoryname,
+                        factorylinktelephone: arr[i].factorylinktelephone,
+                        companyid: arr[i].companyid,
+                        factoryid: arr[i].factoryid,
+                        ischild: true,
+                        factorystatus: arr[i].factorystatus
+                    })
+                }
+            }
+            return json
+        },
+        nodeExpand(data, node, self) {
+        }
+    }
+}
+</script>
+
+<style lang="stylus">
+   .enterprise-container
+      padding: 40px 30px
+      .el-button.del:hover      
+            color: #FF4949
+            border-color: #ff4949
+      .el-dialog
+          .el-input-number   
+             width: 100%   
+                
+           
+   .enterprise-content   
+      display: flex
+      width: 100%
+      min-height: 600px
+      border: 1px solid #e5e5e5
+   .enterprise-content-left
+      flex: 1
+      vertical-align: top 
+      border-right: 1px solid #e5e5e5
+      h4
+        height: 40px
+        line-height: 40px
+        border-bottom: 1px solid #e5e5e5
+        background-color: #eef1f6
+      li
+         height: 30px
+         line-height: 30px
+         &:hover
+           color: #2c3e50
+           background-color: #e4e8f1
+      li.active     
+           color: #fff
+           background-color: #20a0ff
+    //   .el-tree--highlight-current .el-tree-node.is-current>.el-tree-node__content
+    //      background: #20a0ff
+    //      color: #fff
+      .el-tree
+         border: none
+      .companyTable
+         >div:first-child .el-tree-node__children>div:first-child
+            background-color: #edf7ff 
+      .el-tree-node__content>span:last-child
+         padding-right: 150px     
+         > span:last-child
+           position: relative
+    .enterprise-content-right     
+       flex: 1
+       .el-tree
+          border: none
+       .el-tabs--border-card   
+          border: none
+          box-shadow: none
+       .el-tabs__header   
+          border: none
+       
+</style>

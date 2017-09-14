@@ -1,0 +1,287 @@
+<template>
+    <div class="roles-container">
+        <div class="mg-b30">
+            <el-button type="primary" class="button" :plain="true" @click="add">新增角色</el-button>
+            <el-button type="success" class="button" :plain="true" @click="amend">修改角色</el-button>
+            <el-button type="danger" class="button" :plain="true" @click="clear">删除角色</el-button>
+            <el-button type="primary" class="button" :plain="true" @click="save">保存</el-button>
+        </div>
+        <div class="roles-content">
+            <div class="roles-content-left text-center">
+                <h4>所有角色</h4>
+                <ul>
+                    <li v-for="(item, index) in rolesList" @click="selectRole(item, index)" class="pointer" :class="{active: index == roleActive}">{{item.rolename}}</li>
+                </ul>
+            </div>
+            <div class="roles-content-right">
+                <el-tabs type="border-card" :active-name="activeName" @tab-click="TabClick">
+                    <el-tab-pane label="菜单" name="menu"></el-tab-pane>
+                    <!-- <el-tab-pane label="用户" name="user"></el-tab-pane> -->
+                    <el-tree ref="tree" :data="treeData" show-checkbox node-key="menuid" :default-expand-all="true" :default-checked-keys="treeCheckedArray" :props="defaultProps">
+                    </el-tree>
+                </el-tabs>
+            </div>
+        </div>
+        <el-dialog :title="dialogTitle" :visible.sync="dialogFormVisible">
+            <el-form :model="form">
+                <el-form-item label="角色名称" :label-width="formLabelWidth">
+                    <el-input v-model="form.name" auto-complete="off" placeholder="请输入新增角色名称"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click="dialogFormVisible = false">取 消</el-button>
+                <el-button type="primary" @click="addConfirm">确 定</el-button>
+            </div>
+        </el-dialog>
+    </div>
+</template>
+
+<script>
+export default {
+    created() {
+        this.$store.state.adminleftnavnum = '/Authority/roles'
+        this.getRolesList()
+    },
+    data() {
+        return {
+            activeName: 'menu',
+            initMenuName: 'menu',
+            roleActive: 0,
+            currentRoleid: '',
+            currentRoleName: '',
+            currentCompanyid: '',
+            currentFactoryid: '',
+
+            rolesList: [],
+            treeData: [],
+            treeCheckedArray: [],
+            defaultProps: {
+                children: 'children',
+                label: 'menuname'
+            },
+            dialogFormVisible: false,
+            form: {
+                name: ''
+            },
+            formLabelWidth: '80px',
+            dialogTitle: ''
+            // exitRoles: []
+        }
+    },
+    methods: {
+        selectRole(item, index) {
+            // 当前所选是那个角色
+            this.roleActive = index
+            this.currentRoleid = item.roleid
+            this.currentRoleName = item.rolename
+            this.currentCompanyid = item.companyid
+            this.currentFactoryid = item.factoryid
+            this.activeName = this.initMenuName
+
+            this.treeCheckedArray = []
+            this.getMenu()
+        },
+        TabClick(obj) {
+            this.activeName = obj.name
+            if (obj.name == 'user') {
+                this.getUser()
+            }
+
+            if (obj.name == 'menu') {
+                this.getMenu()
+            }
+        },
+        add() {
+            this.dialogTitle = '新增角色'
+            this.form.name = ''
+            this.dialogFormVisible = true
+        },
+        amend() {
+            this.dialogTitle = '修改角色'
+            this.form.name = this.currentRoleName
+            this.dialogFormVisible = true
+        },
+        addConfirm() {
+            //  for (let i = 0; i < this.exitRoles.length; i++) {
+            //     if (this.exitRoles[i] == this.form.name) {
+            //         this.$message.error('该角色已存在,请重新输入')
+            //        return
+            //     }
+            // }
+            if (this.dialogTitle == '新增角色') {
+                let param = {
+                    rolename: this.form.name
+                }
+                this.addOrAmend(param, '新增成功')
+            }
+            if (this.dialogTitle == '修改角色') {
+                let param = {
+                    roleid: this.currentRoleid,
+                    rolename: this.form.name
+                }
+                this.addOrAmend(param, '修改成功')
+            }
+            this.dialogFormVisible = false
+        },
+        clear() {
+            this.$confirm('确认删除该角色？')
+                .then(_ => {
+                    let param = { roleid: this.currentRoleid }
+                    this.$api.Authority.delRoles(param).then(res => {
+                        if (res.data.code == 200) {
+                            this.$message.success('删除成功')
+                            this.getRolesList()
+                        } else {
+                            this.$util.isError(res.data)
+                        }
+                    })
+                })
+                .catch(_ => { })
+        },
+        save() {
+            let param = {
+                companyid: this.currentCompanyid,
+                factoryid: this.currentFactoryid,
+                roleid: this.currentRoleid,
+                menuids: this.$refs.tree.getCheckedKeys()
+            }
+            this.$api.Authority.saveRoleMenu(param).then(res => {
+                if (res.data.code == 200) {
+                    console.log(this.$store.state.user.roleid)
+                    if (param.roleid == this.$store.state.user.roleid) {
+                       location.reload()
+                    }
+                    this.$message.success('保存成功')
+                    // this.getRolesList()
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取相应菜单
+        getMenu() {
+            let param = { companyid: this.currentCompanyid, factoryid: this.currentFactoryid, roleid: this.currentRoleid }
+            this.$api.Authority.getRolemenuByRoleid(param).then(res => {
+                if (res.data.code == 200) {
+                    this.treeData = res.data.data
+                    this.getTreeCheckedArray(this.treeData)
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取相应用户
+        getUser() {
+            let param = { companyid: this.currentCompanyid, factoryid: this.currentFactoryid, roleid: this.currentRoleid }
+            this.$api.Authority.getUserRoleByRoleid(param).then(res => {
+                if (res.data.code == 200) {
+                    let data = res.data.data
+                    this.treeData = data
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取角色列表
+        getRolesList() {
+            this.$api.Authority.getAllRoles().then(res => {
+                if (res.data) {
+                    this.rolesList = res.data
+                    // const s = new Set()
+                    // this.rolesList.forEach(x => s.add(x.rolename))
+                    // this.exitRoles = [...s]
+                    // 默认选择第一个角色
+                    this.selectRole(this.rolesList[0], 0)
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 新增 修改角色
+        addOrAmend(param, successText) {
+            this.$api.Authority.saveRoles(param).then(res => {
+                if (res.data.code == 200) {
+                    this.$message.success(successText)
+                    this.getRolesList()
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取有权限的菜单数组
+        getTreeCheckedArray(arr) {
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i].checked) {
+                    this.treeCheckedArray.push(arr[i].menuid)
+                }
+                if (Object.prototype.toString.call(arr[i].children) === '[object Array]') {
+                    this.getTreeCheckedArray(arr[i].children)
+                }
+            }
+        },
+        // 显示模块
+        showPage(arr) {
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i].menupath && arr[i].checked == true) {
+                    this.$router.push({
+                        path: arr[i].menupath
+                    })
+                    break
+                }
+                if (i >= arr.length && arr[i].checked == false) {
+                    this.$router.push({
+                        path: '/Authority/roles'
+                    })
+                }
+            }
+        }
+
+    }
+
+}
+</script>
+
+<style lang="stylus">
+   .roles-container
+      padding: 40px 30px
+      .el-dialog--small
+         max-width:  620px
+         .el-form-item
+            margin-bottom: 0
+      .el-dialog--small      
+         max-width: 620px     
+   .roles-content   
+      display: table
+      width: 100%
+      min-height: 600px
+      border: 1px solid #e5e5e5
+   .roles-content-left
+      display: table-cell
+      vertical-align: top 
+      width: 20%
+      border-right: 1px solid #e5e5e5
+      h4
+        height: 40px
+        line-height: 40px
+        border-bottom: 1px solid #e5e5e5
+        background-color: #eef1f6
+      li
+         height: 30px
+         line-height: 30px
+         &:hover
+           color: #2c3e50
+           background-color: #e4e8f1
+      li.active     
+           color: #fff
+           background-color: #20a0ff 
+    .roles-content-right     
+       display: table-cell 
+       .el-tree
+          border: none
+       .el-tabs--border-card   
+          border: none
+          box-shadow: none
+       .el-tabs__header   
+          border: none
+    
+</style>

@@ -1,0 +1,144 @@
+<template>
+    <div class="roles-container">
+        <div class="mg-b30">
+            <el-button type="primary" class="button" :plain="true" @click="save">保存</el-button>
+            
+        </div>
+        <div class="roles-content">
+            <div class="roles-content-left  text-center">
+                <h4>所有企业</h4>
+                <ul>
+                    <li v-for="(item, index) in companyList" @click="selectCompany(item, index)" :class="{active: index == companyActive}" class="pointer">
+                        {{item.factoryname}}
+                    </li>
+                </ul>
+            </div>
+            <div class="roles-content-right">
+                <el-tabs type="border-card" :active-name="acyiveName">
+                    <el-tab-pane label="菜单" name="menu"></el-tab-pane>
+                    <el-tree ref="tree" :data="treeData" show-checkbox node-key="menuid" :default-expand-all="true" :default-checked-keys="treeCheckedArray" :props="defaultProps">
+                    </el-tree>
+                </el-tabs>
+
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+export default {
+    data() {
+        return {
+            acyiveName: 'menu',
+            companyActive: 0,
+            companyList: [],
+            treeData: [],
+            treeCheckedArray: [],
+            defaultProps: {
+                children: 'childs',
+                label: 'menuname'
+            }
+        }
+    },
+    created() {
+        this.$store.state.adminleftnavnum = '/Authority/enterprise'
+        this.getCompany()
+    },
+    methods: {
+        selectCompany(item, index) {
+            this.companyActive = index
+            this.currentCompanyid = item.companyid
+            this.currentFactoryid = item.factoryid
+
+            this.treeCheckedArray = []
+            this.getMenu()
+        },
+        // 获取菜单
+        getMenu() {
+            let param = { companyid: this.currentCompanyid, factoryid: this.currentFactoryid }
+            this.$api.Authority.getCompanyMenuByCompanyId(param).then(res => {
+                if (res.data.code == 200) {
+                    this.treeData = res.data.data
+                    this.getTreeCheckedArray(this.treeData)
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        save() {
+            let param = { companyid: this.currentCompanyid, factoryid: this.currentFactoryid, menuids: this.$refs.tree.getCheckedKeys() }
+            this.$api.Authority.save(param).then(res => {
+                if (res.data.code == 200) {
+                    this.getCompany()
+                    this.$message.success('保存成功')
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取所有企业
+        getCompany() {
+            this.$api.Authority.getcompanys().then(res => {
+                if (res.data.code == 200) {
+                    this.companyList = res.data.data
+                    // 默认选择第一个角色
+                    this.selectCompany(this.companyList[0], 0)
+                } else {
+                    this.$util.isError(res.data)
+                }
+            })
+        },
+        // 获取有权限的菜单数组
+        getTreeCheckedArray(arr) {
+            for (let i = 0; i < arr.length; i++) {
+                if (arr[i].checked) {
+                    this.treeCheckedArray.push(arr[i].menuid)
+                }
+                if (Object.prototype.toString.call(arr[i].childs) === '[object Array]') {
+                    this.getTreeCheckedArray(arr[i].childs)
+                }
+            }
+        }
+    }
+
+}
+</script>
+
+<style lang="stylus" scoped>
+   .roles-container
+      padding: 40px 30px
+   .roles-content   
+      display: table
+      width: 100%
+      min-height: 600px
+      border: 1px solid #e5e5e5
+   .roles-content-left
+      display: table-cell
+      vertical-align: top 
+      width: 25%
+      border-right: 1px solid #e5e5e5
+      h4
+        height: 40px
+        line-height: 40px
+        border-bottom: 1px solid #e5e5e5
+        background-color: #eef1f6
+      li
+         height: 30px
+         line-height: 30px
+         &:hover
+           color: #2c3e50
+           background-color: #e4e8f1
+      li.active     
+           color: #fff
+           background-color: #20a0ff
+    .roles-content-right     
+       display: table-cell 
+       width: 75%
+       .el-tree
+          border: none
+       .el-tabs--border-card   
+          border: none
+          box-shadow: none
+       .el-tabs__header   
+          border: none
+</style>

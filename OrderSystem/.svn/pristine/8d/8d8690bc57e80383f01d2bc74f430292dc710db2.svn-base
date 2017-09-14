@@ -1,0 +1,89 @@
+<template>
+    <div class="admin">
+        <div class="header">
+            <v-header :isadmin="true"></v-header>
+        </div>
+        <div class="body">
+            <el-menu default-active="/adminAuthority/menu" class="el-menu-vertical-demo" router @open="handleOpen" @close="handleClose" :collapse="isCollapse">
+                <el-menu-item index="/adminAuthority/menu"><i class="el-icon-menu"></i>菜单管理</el-menu-item>
+                <el-menu-item index="/adminAuthority/enterprise"><i class="el-icon-setting"></i>企业列表</el-menu-item>
+                <span class="icon-nav" @click="sidebar_btn">
+                    <i :class="[isCollapse ? 'el-icon-caret-right' : 'el-icon-caret-left' , 'icon-arrow-left']"></i>
+                </span>
+            </el-menu>
+            <div class="content">
+                <transition name="fade" mode="out-in">
+                    <router-view></router-view>
+                </transition>
+            </div>
+        </div>
+
+    </div>
+</template>
+
+<script>
+import header from '../../components/header/header.vue'
+export default {
+    data() {
+        return {
+            isCollapse: false
+        }
+    },
+    methods: {
+        handleOpen(key, keyPath) {
+            console.log(key, keyPath)
+        },
+        handleClose(key, keyPath) {
+            console.log(key, keyPath)
+        },
+        sidebar_btn() {
+            this.isCollapse = !this.isCollapse
+        }
+    },
+    components: {
+        'v-header': header
+    }
+}
+</script>
+
+<style lang="stylus">
+  .admin
+    display: table
+    height: 100%
+    width: 100%
+    .header
+       display: table-row
+       height: 60px
+    .body
+       display: table-row   
+    .el-menu
+       position: relative
+       display: table-cell
+       vertical-align: top
+    .el-menu-item   
+        font-size: 18px
+        border-bottom: 1px solid #eef1f6
+        text-align: left
+        background-color: #d1dbe5
+    .el-menu-item.is-active  
+        color: #fff
+        background-color: #20a0ff
+    .el-menu-vertical-demo:not(.el-menu--collapse)
+        width: 180px
+    .content
+      display: table-cell    
+    .icon-nav
+      position:absolute
+      top:50%
+      right:0
+      width:12px
+      height:100px
+      cursor:pointer
+      background-color:#20a0ff
+      text-align:center
+      line-height:100px
+      transition: all .2s ease-out
+      transform: translateY(-50%)
+      .icon-arrow-left
+        color: #fff  
+</style>

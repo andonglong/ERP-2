@@ -1,0 +1,446 @@
+<template>
+    <div class="equipmentList-container">
+        <div class="search-form">
+            <el-form :model="searchForm" ref="searchForm" label-width="100px" class="demo-ruleForm">
+                <div class="search-form-left inblock">
+                    <el-form-item label="设备类型" prop="devicetype">
+                        <el-select v-model="searchForm.devicetype" placeholder="请选择" class="width">
+                            <el-option v-for="item in  options.devicetype" :key="item.number" :label="item.name" :value="item.number"></el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="设备名称" prop="devicename">
+                        <el-select v-model="searchForm.devicename" placeholder="请选择" class="width">
+                            <el-option v-for="item in options.devicename" :key="item.number" :label="item.name" :value="item.number"></el-option>
+                        </el-select>
+                    </el-form-item>
+    
+                    <el-collapse-transition>
+                        <el-form-item label="供应商名称" prop="suppliername" v-show="open">
+                            <el-input v-model="searchForm.suppliername" class="width" placeholder="请输入"></el-input>
+                        </el-form-item>
+                    </el-collapse-transition>
+    
+                    <el-collapse-transition>
+                        <div v-show="open">
+    
+                            <el-form-item label="设备型号" prop="devicemodel">
+                                <el-input v-model="searchForm.devicemodel" class="width" placeholder="请输入"></el-input>
+                            </el-form-item>
+    
+                            <el-form-item label="设备品牌" prop="devicebrand">
+                                <el-input v-model="searchForm.devicebrand" class="width" placeholder="请输入"></el-input>
+                            </el-form-item>
+    
+                            <el-form-item label="设备精度" prop="deviceprecision">
+                                <el-select v-model="deviceprecision" multiple placeholder="请选择" class="width">
+                                    <el-option v-for="item in options.deviceprecision" :key="item.number" :label="item.name" :value="item.number"></el-option>
+                                </el-select>
+                            </el-form-item>
+    
+                            <el-form-item label="加工精密度" prop="deviceprecisiondegree">
+                                <el-select v-model="deviceprecisiondegree" multiple placeholder="请选择" class="width">
+                                    <el-option v-for="item in options.deviceprecisiondegree" :key="item.number" :label="item.name" :value="item.number"></el-option>
+                                </el-select>
+                            </el-form-item>
+    
+                            <el-form-item label="启用日期">
+                                <el-date-picker v-model="worktime" type="daterange" :editable="false" @change="changeWorktime" placeholder="选择日期范围" class="width"></el-date-picker>
+                            </el-form-item>
+    
+                        </div>
+                    </el-collapse-transition>
+                </div>
+    
+                <div class="search-form-right inblock va-top">
+    
+                    <el-form-item class="mg-b0 btnGroup">
+                        <el-button type="primary" @click="submitSearchForm()">
+                            <i class="el-icon-search"></i> 查询 </el-button>
+                        <el-button @click="resetSearchForm('searchForm')" v-show="open">重置</el-button>
+                        <el-button type="text" class="spreadbtn" @click="open = !open">展开
+                            <i class="el-icon-d-arrow-left icon-spread" :class="[open ? 'icon-arrow-up' : 'icon-arrow-down']"></i>
+                        </el-button>
+                    </el-form-item>
+    
+                </div>
+    
+            </el-form>
+        </div>
+        <div class="content mg-t30">
+    
+            <div class="mg-b30">
+                <el-button type="primary" class="button" @click="handRefresh">刷新</el-button>
+                <el-button class="button" @click="ClickExport">导出</el-button>
+            </div>
+    
+            <el-table class="content-table mg-r30" :data="tableData" border resizable style="width: 100%;min-height:594px" :row-class-name="rowBackground" highlight-current-row>
+                <!-- <el-table-column type="selection" min-width="36" align="center"></el-table-column> -->
+                <el-table-column type="index" label="序号" width="50" align="center" label-class-name="tableIndex" class-name="tableIndex">
+                    <template scope="scope">{{ scope.$index - currentPageSize + 1 + currentPage*currentPageSize }}</template>
+                </el-table-column>
+                <el-table-column prop="suppliername" label="供应商名称" min-width="214" align="center" class-name="flagColumn" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="devicetype" label="设备类型" min-width="118" align="center" show-overflow-tooltip></el-table-column>
+                <el-table-column prop="devicename" label="设备名称" min-width="148" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="devicemodel" label="设备型号" min-width="157" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="devicebrand" label="设备品牌" min-width="205" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="deviceqty" label="设备台数" min-width="118" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="deviceprecision" label="设备精度" min-width="187" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="deviceprecisiondegree" label="加工精密度" min-width="187" align="center" show-overflow-tooltip>
+                </el-table-column>
+                <el-table-column prop="worktime" label="启用时间" min-width="178" align="center" show-overflow-tooltip>
+                </el-table-column>
+            </el-table>
+    
+            <div class="page-style text-right">
+                <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage" :page-sizes="pageSizes" :page-size="currentPageSize" layout="prev, pager, next,sizes, jumper" :total="totalCount">
+                </el-pagination>
+            </div>
+    
+        </div>
+    </div>
+</template>
+
+<script>
+// import $util from 'common/js/util.js'
+import $util from 'common/js/util.js'
+export default {
+    data() {
+        return {
+            throttleVar: {
+                search: true
+            },
+            searchForm: {
+                devicetype: '',
+                devicename: '',
+                suppliername: '',
+                devicemodel: '',
+                devicebrand: '',
+                deviceprecision: '',
+                deviceprecisiondegree: '',
+                worktimestart: '',
+                worktimeend: ''
+            },
+            deviceprecision: [],
+            deviceprecisiondegree: [],
+            worktime: '',
+            options: {
+                devicetype: [{
+                    number: '',
+                    name: '全部'
+                }],
+                devicename: [{
+                    number: 'C',
+                    name: '已审核'
+                }],
+                suppliername: [{
+                    number: '',
+                    name: '全部'
+                }],
+                forbidstatus: [{
+                    number: '',
+                    name: '全部'
+                }],
+                deviceprecision: [{
+                    number: '',
+                    name: '全部'
+                }],
+                deviceprecisiondegree: [{
+                    number: '',
+                    name: '全部'
+                }]
+            },
+            activeName: '',
+            tableData: [
+                {
+                    number: 'number',
+                    id: '4848484'
+                }
+            ],
+            open: false,
+            filters: [{
+                value: '待报价',
+                text: '待报价'
+            }, {
+                value: '已报价',
+                text: '已报价'
+            }, {
+                value: '已询价',
+                text: '已询价'
+            }, {
+                value: '已作废',
+                text: '已作废'
+            }],
+            form: {
+                region: ''
+            },
+            ruleForm: {
+                name: '',
+                region: '',
+                date1: '',
+                date2: '',
+                delivery: false,
+                type: [],
+                resource: '',
+                desc: ''
+            },
+            // pagination param
+            currentPage: 1,
+            pageSizes: [10, 20, 30, 50, 100, 200, 500, 1000],
+            currentPageSize: 10,
+            totalCount: 10,
+            initPageIndex: 1,
+            initPageSize: 10,
+
+            throttles: {
+                search: true,
+                refresh: true,
+                export: true
+            }
+        }
+    },
+    beforeCreate() { },
+    created() {
+        this.$store.state.adminleftnavnum = '/List/equipmentList'
+        this.$api.equipment.addSupplierdevice().then(res => {
+            res.data = JSON.parse(res.data)
+            if (res.data.code == 200) {
+                res.data.deviceName.unshift({ name: '全部', number: '' })
+                this.options.devicename = res.data.deviceName
+
+                res.data.devicetype.unshift({ name: '全部', number: '' })
+                this.options.devicetype = res.data.devicetype
+
+                this.options.deviceprecision = res.data.devicePrecision
+
+                this.options.deviceprecisiondegree = res.data.machiningprecision
+            }
+        })
+        this.fetchData()
+    },
+    beforeUpdate() { },
+    updated() { },
+    beforeMount() { },
+    mounted() { },
+    filters: {},
+    methods: {
+        changeWorktime(val) {
+            let data = val.split(' - ')
+            this.searchForm.worktimestart = data[0]
+            this.searchForm.worktimeend = data[1]
+        },
+        rowBackground(row, index) {
+            if (row.statu === '已作废') {
+                return 'rowBgColor-d'
+            }
+            if (index % 2) {
+                return 'rowBgColor'
+            }
+        },
+        toCustomerDetail(id) {
+            this.$router.push({ path: '/Manage/Customer/CustomerDetail/' + id })
+        },
+        // pagination methods
+        handleSizeChange(val) {
+            this.currentPage = this.initPageIndex
+            this.currentPageSize = val
+            this.fetchData()
+        },
+        handleCurrentChange(val) {
+            this.currentPage = val
+            this.fetchData()
+        },
+        submitSearchForm() {
+            if (!this.throttles.search) { return }
+            this.throttles.search = false
+            this.$message.closeAll()
+            this.fetchData({ search: true })
+        },
+        resetSearchForm(formName) {
+            this.$refs[formName].resetFields()
+            this.worktime = ''
+            this.deviceprecision = []
+            this.deviceprecisiondegree = []
+        },
+        handRefresh() {
+            if (!this.throttles.refresh) { return }
+            this.throttles.refresh = false
+            this.$message.closeAll()
+            this.currentPage = this.initPageIndex
+            this.fetchData({ refresh: true })
+        },
+        ClickExport() {
+            if (!this.throttles.export) { return }
+            this.throttles.export = false
+            this.$message.closeAll()
+            let param = this.searchForm
+            this.$api.equipment.excelExp(param).then(res => {
+                if (res.data.code == 200) {
+                    location.href = res.data.code
+                } else {
+                    this.$message.error(res.data.data ? res.data.data : '服务端错误')
+                }
+                this.throttles.export = true
+            })
+        },
+        fetchData(obj) {
+            let param = this.searchForm
+            param.deviceprecision = this.deviceprecision.join(',')
+            param.deviceprecisiondegree = this.deviceprecisiondegree.join(',')
+            param.pageindex = this.currentPage
+            param.pagesize = this.currentPageSize
+            if (obj && obj.params) {
+                param = obj.params
+            }
+            this.$api.equipment.supplierdeviceList(param).then(res => {
+                if (res.data.code == 200) {
+                    for (let i = 0; i < res.data.datalist.length; i++) {
+                        res.data.datalist[i].worktime = res.data.datalist[i].worktime && $util.DateFormat(res.data.datalist[i].worktime, 'yyyy-MM-dd')
+                    }
+                    this.tableData = res.data.datalist
+                    this.totalCount = res.data.datasum
+
+                    if (obj && obj.search) {
+                        this.$message.success('查询成功')
+                    }
+                    if (obj && obj.refresh) {
+                        this.$message.success('刷新成功')
+                    }
+                } else {
+                    console.log(res)
+                    this.$message.error(res.data.data ? res.data.data : '服务端错误')
+                }
+                this.throttles.search = true
+                this.throttles.refresh = true
+            })
+        }
+    },
+    computed: {},
+    watch: {}
+}
+</script>
+
+<style lang="stylus">
+  .equipmentList-container
+    box-sizing: border-box
+    padding: 40px 30px 30px 30px
+    background-color: #fff
+    
+    .w400
+      label
+        width: 135px!important
+    .flag
+      width: 13px
+      height: 14px 
+      background: url('/static/icon/purpleflag.png') 0 0 no-repeat
+      // &:hover
+      //   background-image: url('/static/icon/redflag.png')
+    .redflag
+      background-image: url('/static/icon/redflag.png')  
+
+    .search-form
+        &:after
+          content: "";
+          display: block;
+          height: 0;
+          clear: both;
+          visibility: hidden;
+        .search-form-left
+            min-width: 750px
+            max-width: 1160px
+        .el-form-item
+            display: inline-block
+            .width
+              width: 260px
+            .spreadbtn
+              margin-left:20px
+            .icon-spread
+              margin-left:5px
+            .icon-arrow-up
+              transform: rotateZ(90deg)
+            .icon-arrow-down
+              transform: rotateZ(-90deg)
+        .search-form-right
+          .btnGroup
+             .el-form-item__content
+                margin-left: 0 !important
+    .content
+        .el-table__body-wrapper
+            min-height: 540px
+        .content-table tr
+            height: 54px
+        .flagColumn
+          &:hover
+            span
+              display: block
+            
+        .el-tabs__item
+            width: 130px
+            text-align: center
+            span
+              position: relative
+              font-size: 16px
+              .icon-message
+                background-color: #ff4949
+                border-radius: 10px
+                color: #fff
+                font-size: 12px
+                display: inline-block
+                font-style: inherit
+                height: 18px
+                line-height: 18px
+                padding:0 6px
+                text-align:center
+                white-space: nowrap
+                border: 1px solid #fff
+                vertical-align: top
+                margin-left: -5px
+        .tableIndex
+           > .cell
+             padding: 0
+        .el-table--enable-row-hover .el-table__body tr:hover>td
+            background-color: #fff9ed
+        .urgent
+          font-size: 12px
+          width: 32px
+          height: 22px
+          line-height: 22px
+          border-radius: 5px
+          color: #999
+          background-color: #ececec
+          // &:hover
+          //   color: #fff
+          //   background-color: #FF4949 
+
+        .urgent-A
+          color: #fff
+          background-color: #FF4949
+       
+        .rowBgColor
+            background-color: #f8f8f8
+        .rowBgColor-d
+            background-color: #e9e9e9
+        .icon-dot
+            &:before
+                content:''
+                display:inline-block
+                width:7px
+                height:7px
+                border-radius:50%
+                margin-right:7px
+        .icon-statu-a:before
+            background-color:#ff4949
+        .icon-statu-b:before
+            background-color:#13ce66
+        .icon-statu-c:before
+            background-color:#20a0ff
+        .icon-statu-d:before
+            background-color:#999999
+        .el-pagination__sizes
+            margin-left: 15px
+</style>

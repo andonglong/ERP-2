@@ -1,0 +1,449 @@
+<template>
+  <div class="enquirySheet-container">
+    <div class="search-form">
+      <el-form :model="searchForm" ref="searchForm" label-width="100px" class="demo-ruleForm">
+        <div class="search-form-left inblock">
+          <el-form-item label="询价单号" prop="a">
+            <el-input v-model="searchForm.inquiryorderid" class="enquiryNumber" placeholder="请输入"></el-input>
+          </el-form-item>
+          <el-form-item label="日期">
+            <el-date-picker v-model="enquiryDate" type="daterange" :editable='false' @change="changeDate" placeholder="选择日期范围" class="Date"></el-date-picker>
+          </el-form-item>
+          <el-collapse-transition>
+            <div v-show="open">
+              <el-form-item label="状态" class="mg-b0">
+                <el-select v-model="searchForm.orderstatus" placeholder="请输入" class="status">
+                  <el-option label="全部" value=""></el-option>
+                  <el-option label="待报价" value="0"></el-option>
+                  <el-option label="已报价" value="1"></el-option>
+                  <el-option label="已作废" value="2"></el-option>
+                </el-select>
+              </el-form-item>
+              <el-form-item label="联系人" class="mg-b0">
+                <el-input v-model="searchForm.linkname" class="man" placeholder="请输入"></el-input>
+              </el-form-item>
+            </div>
+          </el-collapse-transition>
+        </div>
+  
+        <div class="search-form-right inblock va-top">
+          <el-form-item class="mg-b0 btnGroup">
+            <el-button type="primary" @click="submitSearchForm()">
+              <i class="el-icon-search"></i> 查询 </el-button>
+            <el-button @click="resetSearchForm('searchForm')" v-show="open">重置</el-button>
+            <el-button type="text" class="spreadbtn" @click="open = !open">{{open ? '收起' : '展开' }}
+              <i class="el-icon-d-arrow-left icon-spread" :class="[open ? 'icon-arrow-up' : 'icon-arrow-down']"></i>
+            </el-button>
+          </el-form-item>
+        </div>
+      </el-form>
+    </div>
+  
+    <div class="content mg-t30">
+      <el-tabs v-model="activeName" @tab-click="handleClickTabs">
+        <el-tab-pane name="all">
+          <span slot="label">全部</span>
+        </el-tab-pane>
+        <el-tab-pane name="0">
+          <span slot="label">待报价
+            <i class="icon-message" v-if="waitQuoteNum > 0">{{waitQuoteNum}}</i>
+          </span>
+        </el-tab-pane>
+        <el-tab-pane name="1">
+          <span slot="label">已报价
+            <i class="icon-message" v-if="QuotedNum > 0">{{QuotedNum}}</i>
+          </span>
+        </el-tab-pane>
+      </el-tabs>
+  
+      <p class="pd-t25 pd-b30 c5e6d82">共搜索到 {{total}} 条数据</p>
+      <el-button type="primary" class="handRefresh" @click="handRefresh">刷新</el-button>
+  
+      <el-table class="content-table mg-r30" style="min-height:610px" :data="tableData" border resizable :row-class-name="rowBackground" highlight-current-row>
+        <el-table-column prop="amount0" label="" min-width="64" align="center" class-name="flagColumn">
+          <template scope="scope">
+            <div class="flagDiv jc-center ai-center ">
+              <div class="text-center jc-center" style="width:40%">
+                <el-tooltip class="item" effect="dark" :content="parseInt(scope.row.ismark) ? '取消红旗' : '设为红旗' " placement="top">
+                  <span :class="{'flag': true, 'none': !parseInt(scope.row.ismark), 'redflag': parseInt(scope.row.ismark)}" @click="ClickMark(scope.$index,scope.row)"></span>
+                </el-tooltip>
+              </div>
+              <div style="width:60%">
+                <div :class="{'pointer urgent': true, 'none':!parseInt(scope.row.isurgent),  'urgent-A': parseInt(scope.row.isurgent)}">加急</div>
+              </div>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="inquiryorderid" sortable label="询价单号" min-width="208" align="center" show-overflow-tooltip>
+          <template scope="scope">
+            <span class="font-color" @click="toquotationDetail(scope.row.inquiryorderid, scope.row.isread)">{{scope.row.inquiryorderid}}</span>
+            <span class="icon-dot icon-statu icon-statu-a inblock va-top mg-t10 lh1" style="width:8px;height:8px;" v-show="!parseInt(scope.row.isread)"></span>
+          </template>
+  
+        </el-table-column>
+        <el-table-column prop="creattime" sortable label="询价时间" min-width="196" align="center">
+           <template scope="scope">
+                {{scope.row.creattime ? scope.row.creattime : '--'}}
+          </template>
+        </el-table-column>
+        <el-table-column prop="orderstatus" label="状态" min-width="150" align="center" :filters="filters" :filter-method="filterTag" filter-placement="bottom" :filter-multiple="false">
+          <template scope="scope">
+            <span class="icon-dot icon-statu" :class="quotedStatu(scope.row.orderstatus)">{{checkedStatu(scope.row.orderstatus)}}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="asktime" sortable label="要求报价时间" min-width="196" align="center">
+           <template scope="scope">
+                {{scope.row.asktime ? scope.row.asktime : '--'}}
+           </template>
+        </el-table-column>
+        <el-table-column prop="linkname" sortable label="联系人" min-width="171" align="center" show-overflow-tooltip>
+          <template scope="scope">
+                {{scope.row.linkname ? scope.row.linkname : '--'}}
+           </template>
+        </el-table-column>
+        <el-table-column prop="telephone" label="联系电话" min-width="196" align="center">
+           <template scope="scope">
+                {{scope.row.telephone ? scope.row.telephone : '--'}}
+           </template>
+        </el-table-column>
+        <el-table-column prop="facktime" label="实际报价时间" min-width="196" align="center">
+          <template scope="scope">
+                {{scope.row.facktime ? scope.row.facktime : '--'}}
+           </template>
+        </el-table-column>
+      </el-table>
+  
+      <div class="page-style text-right">
+        <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="searchForm.pageindex" :page-sizes="pageSizes" :page-size="searchForm.pagesize" layout="prev, pager, next, sizes, jumper" :total="total">
+        </el-pagination>
+      </div>
+  
+    </div>
+  </div>
+</template>
+
+<script>
+import api from 'api/request.js'
+import $util from 'common/js/util.js'
+
+export default {
+  data() {
+    return {
+      enquiryDate: '',
+      searchForm: {
+        inquiryorderid: '',
+        startcreattime: '',
+        endcreattime: '',
+        orderstatus: '',
+        linkname: '',
+        pageindex: 1,
+        pagesize: 20
+      },
+      waitQuoteNum: 0,
+      QuotedNum: 0,
+      activeName: 'all',
+      tableData: [],
+      open: false,
+      filters: [{
+        value: '0',
+        text: '待报价'
+      }, {
+        value: '1',
+        text: '已报价'
+      }, {
+        value: '2',
+        text: '已作废'
+      }],
+      // pagination param
+      pageSizes: [10, 20, 30, 50, 100, 200, 500, 1000],
+      total: 0,
+      throttles: {
+        search: true,
+        refresh: true
+      }
+    }
+  },
+  beforeCreate() { },
+  created() {
+    // 左侧导航
+    this.$store.state.adminleftnavnum = '/EnquirySheet/enquirySheet'
+    this.fetchData()
+  },
+  beforeUpdate() { },
+  updated() { },
+  beforeMount() { },
+  mounted() { },
+  filters: {},
+  computed: {},
+  methods: {
+    changeDate(val) {
+      let data = val.split(' - ')
+      this.searchForm.startcreattime = data[0]
+      this.searchForm.endcreattime = data[1]
+    },
+    rowBackground(row, index) {
+      if (row.statu === '已作废') {
+        return 'rowBgColor-d'
+      }
+      if (index % 2) {
+        return 'rowBgColor'
+      }
+    },
+    filterTag(value, row) {
+      return row.orderstatus === value
+    },
+    quotedStatu(satau) {
+      if (satau === '0') {
+        return 'icon-statu-a'
+      } else if (satau === '1') {
+        return 'icon-statu-b'
+      } else if (satau === '2') {
+        return 'icon-statu-c'
+      } else {
+        return 'icon-statu-d'
+      }
+    },
+    checkedStatu(satau) {
+      if (satau === '0') {
+        return '待报价'
+      } else if (satau === '1') {
+        return '已报价'
+      } else if (satau === '2') {
+        return '已作废'
+      }
+    },
+    // pagination methods
+    handleSizeChange(val) {
+      this.searchForm.pageindex = 1
+      this.searchForm.pagesize = val
+      this.fetchData()
+    },
+    handleCurrentChange(val) {
+      this.searchForm.pageindex = val
+      this.fetchData()
+    },
+    ClickMark(index, row) {
+      let param = { inquiryorderid: row.inquiryorderid }
+      if (!parseInt(row.ismark)) {
+        api.inquiryorder.markbyid(param).then(res => {
+          this.tableData[index].ismark = 1
+          // this.fetchData()
+        })
+      } else {
+        api.inquiryorder.unmarkbyid(param).then(res => {
+          this.tableData[index].ismark = 0
+          // this.fetchData()
+        })
+      }
+    },
+    // ClickUrgent(index, isurgent) {
+    //   this.tableData[index].isurgent = !isurgent
+    // },
+    toquotationDetail(id, isread) {
+      this.$router.push({
+        path: '/EnquirySheet/EnquirySheetDetail/' + id,
+        query: { isread: isread }
+      })
+    },
+    submitSearchForm() {
+      if (!this.throttles.search) { return }
+      this.throttles.search = false
+      this.$message.closeAll()
+
+      this.fetchData({ search: true })
+    },
+    resetSearchForm(formName) {
+      this.enquiryDate = ''
+      this.searchForm = {
+        inquiryorderid: '',
+        startcreattime: '',
+        endcreattime: '',
+        orderstatus: '',
+        linkname: '',
+        isread: '',
+        pageindex: 1,
+        pagesize: 20
+      }
+    },
+    handleClickTabs(tabs) {
+      if (tabs.name == 'all') {
+        this.searchForm.orderstatus = ''
+      } else {
+        this.searchForm.orderstatus = tabs.name
+      }
+
+      this.searchForm.pageindex = 1
+      this.fetchData()
+    },
+    handRefresh() {
+      if (!this.throttles.refresh) { return }
+      this.throttles.refresh = false
+      this.$message.closeAll()
+      this.fetchData({ refresh: true })
+    },
+    fetchData(obj) {
+      let param = this.searchForm
+      if (obj && obj.data) {
+        param = obj.data
+      }
+      api.inquiryorder.getinquiryorders(param).then(res => {
+        let data = res.data
+        if (data.code) {
+          if (data.datalist) {
+            for (let i = 0; i < data.datalist.length; i++) {
+              data.datalist[i].creattime = data.datalist[i].creattime && $util.DateFormat(data.datalist[i].creattime, 'yyyy-MM-dd  hh:mm:ss')
+              data.datalist[i].asktime = data.datalist[i].asktime && $util.DateFormat(data.datalist[i].asktime, 'yyyy-MM-dd  hh:mm:ss')
+              data.datalist[i].facktime = data.datalist[i].facktime && $util.DateFormat(data.datalist[i].facktime, 'yyyy-MM-dd  hh:mm:ss')
+            }
+            this.tableData = data.datalist
+            this.total = data.datacount
+            this.waitQuoteNum = data.unreadcount
+            if (obj && obj.search) {
+              if (param.orderstatus === '0') {
+                this.activeName = '0'
+              } else if (param.orderstatus === '1') {
+                this.activeName = '1'
+              } else {
+                this.activeName = 'all'
+              }
+              this.$message.success('查询成功')
+            }
+            if (obj && obj.refresh) {
+              this.$message.success('刷新成功')
+            }
+          }
+        } else {
+          this.$message.error('服务端错误')
+        }
+        this.throttles.search = true
+        this.throttles.refresh = true
+      })
+    }
+  },
+  watch: {}
+}
+</script>
+
+<style lang="stylus">
+  .enquirySheet-container
+    padding: 40px 30px 30px 30px
+    background-color: #fff
+
+    .search-form
+        &:after
+          content: "";
+          display: block;
+          height: 0;
+          clear: both;
+          visibility: hidden;
+        .search-form-left
+            width: 750px
+        .el-form-item
+            display: inline-block
+            .enquiryNumber
+            .Date
+            .status
+            .man
+              width: 260px
+            .spreadbtn
+              margin-left:20px
+            .icon-spread
+              margin-left:5px
+            .icon-arrow-up
+              transform: rotateZ(90deg)
+            .icon-arrow-down
+              transform: rotateZ(-90deg)
+        .search-form-right
+          .btnGroup
+             .el-form-item__content
+                margin-left: 0 !important
+    .content
+        .el-table__body-wrapper
+          min-height: 540px
+        .font-color
+          color: #20a0ff
+          cursor: pointer
+        .flagColumn
+          &:hover
+            span
+              display: block
+            
+        .el-tabs__item
+            font-size:16px
+            text-align: center
+            span
+              position: relative
+              font-size: 16px
+              .icon-message
+                background-color: #ff4949
+                border-radius: 10px
+                color: #fff
+                font-size: 12px
+                display: inline-block
+                font-style: inherit
+                height: 18px
+                line-height: 18px
+                padding:0 6px
+                text-align:center
+                white-space: nowrap
+                border: 1px solid #fff
+                vertical-align: top
+                margin-left: -5px
+        .handRefresh
+            height: 30px
+            line-height: 30px
+            width: 80px
+            padding: 0
+            margin-bottom: 30px
+            text-align: center
+        thead
+            line-height: 68px
+        tbody
+            >tr>td:first-child
+              >div
+                padding: 0
+        .el-table .cell
+            line-height: 54px
+        .el-table--enable-row-hover .el-table__body tr:hover>td
+            background-color: #fff9ed
+        .urgent
+          font-size: 12px
+          width: 32px
+          height: 22px
+          line-height: 22px
+          border-radius: 5px
+          color: #999
+          background-color: #ececec
+          // &:hover
+          //   color: #fff
+          //   background-color: #FF4949 
+
+        .urgent-A
+          color: #fff
+          background-color: #FF4949
+       
+        .rowBgColor
+            background-color: #f8f8f8
+        .rowBgColor-d
+            background-color: #e9e9e9
+        .icon-dot
+            &:before
+                content:''
+                display:inline-block
+                width:7px
+                height:7px
+                border-radius:50%
+                margin-right:7px
+        .icon-statu-a:before
+            background-color:#ff4949
+        .icon-statu-b:before
+            background-color:#13ce66
+        .icon-statu-c:before
+            background-color:#20a0ff
+        .icon-statu-d:before
+            background-color:#999999
+        .el-pagination__sizes
+            margin-left: 15px
+            
+        
+</style>

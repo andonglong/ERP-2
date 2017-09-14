@@ -1,0 +1,239 @@
+<template>
+  <div class="nav-box">
+    <el-row class="tac">
+      <el-col :span="24">
+        <el-menu :default-active="navselected" router class="el-menu-vertical-demo" @select="selectItems" @open="handleOpen" @close="handleClose">
+          <!-- <el-menu-item :index="item.url" v-for="item in Authoritys" :key="item.url">
+                          <el-tooltip class="item" effect="dark" :content="item.authorityname" :disabled="sidebar" placement="right">
+                            <i class="icon iconfont icon-xunjiacheliang"></i>
+                          </el-tooltip>
+                          <span>{{item.authorityname}}</span>
+                        </el-menu-item> -->
+          <!-- v-if="enquirySheet" -->
+          <el-menu-item index="/EnquirySheet/enquirySheet" v-if="enquirysheet">
+            <el-tooltip class="item" effect="dark" content="询价单" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-xunjiacheliang"></i>
+            </el-tooltip>
+            询价单
+          </el-menu-item>
+          <!-- v-if="quotation" -->
+          <el-menu-item index="/Quotation/quotation" v-if="quotation">
+            <el-tooltip class="item" effect="dark" content="报价需求单" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-baojiadan1"></i>
+            </el-tooltip>
+            报价需求单
+          </el-menu-item>
+          <!-- v-if="order" -->
+          <el-menu-item index="/Track/order" v-if="order">
+            <el-tooltip class="item" effect="dark" content="订单跟踪" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-dingdangenzong"></i>
+            </el-tooltip>
+            订单跟踪
+          </el-menu-item>
+          <!-- v-if="employee" -->
+          <el-menu-item index="/Manage/Employee" v-if="employee">
+            <el-tooltip class="item" effect="dark" content="员工管理" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-administrators"></i>
+            </el-tooltip>
+            员工管理
+          </el-menu-item>
+          <!-- v-if="Profile" -->
+          <el-menu-item index="/company/Profile" v-if="profile">
+            <el-tooltip class="item" effect="dark" content="公司资料" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-ziliao"></i>
+            </el-tooltip>
+            公司资料
+          </el-menu-item>
+          <!-- v-if="Customer" -->
+          <el-menu-item index="/Manage/Customer" v-if="customer">
+            <el-tooltip class="item" effect="dark" content="客户管理" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-kehu"></i>
+            </el-tooltip>
+            客户列表
+          </el-menu-item>
+          <!-- v-if="SupplierList" -->
+          <el-menu-item index="/Supplier/SupplierList" v-if="supplierlist">
+            <el-tooltip class="item" effect="dark" content="供应商列表" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-client-list"></i>
+            </el-tooltip>
+            供应商列表
+          </el-menu-item>
+          <!-- v-if="equipment" -->
+          <el-menu-item index="/Manage/equipment" v-if="equipment">
+            <el-tooltip class="item" effect="dark" content="设备管理" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-form-setting"></i>
+            </el-tooltip>
+            我的设备
+          </el-menu-item>
+          </el-menu-item>
+          <!-- v-if="equipmentList" -->
+          <el-menu-item index="/List/equipmentList" v-if="equipmentlist">
+            <el-tooltip class="item" effect="dark" content="设备列表" :disabled="sidebar" placement="right">
+              <i class="icon iconfont icon-form-setting"></i>
+            </el-tooltip>
+            供应商设备
+          </el-menu-item>
+          <!-- v-if="authority || issystemuser" -->
+          <el-submenu index="1" v-if="issystemuser">
+            <template slot="title">
+              <div class="text-left fs18">
+                <el-tooltip class="item" effect="dark" content="账号管理" :disabled="sidebar" placement="right">
+                  <i class="el-icon-edit"></i>
+                </el-tooltip>
+                账号管理
+              </div>
+            </template>
+            <!-- v-if="authority && roles" -->
+            <el-menu-item index="/Authority/roles" class="subitem" v-if="roles">角色管理</el-menu-item>
+            <!-- <el-menu-item index="/Authority/staff" class="subitem" v-if="authority && staff">人员列表</el-menu-item> -->
+            <el-menu-item index="/Authority/menu" class="subitem">菜单管理</el-menu-item>
+            <el-menu-item index="/Authority/enterprise" class="subitem">企业列表</el-menu-item>
+          </el-submenu>
+        </el-menu>
+      </el-col>
+    </el-row>
+    <span class="icon-nav" @click="sidebar_btn">
+      <i :class="[sidebar ? 'el-icon-caret-left' : 'el-icon-caret-right' , 'icon-arrow-left']"></i>
+    </span>
+  </div>
+</template>
+
+<script>
+import api from '../../api/request'
+export default {
+  props: {
+    sidebar: {
+      type: Boolean
+    }
+  },
+  data() {
+    return {
+      navselected: '/Track/order',
+      iconList: [],
+      Authoritys: [],
+      enquirysheet: false,
+      quotation: false,
+      order: false,
+      employee: false,
+      profile: false,
+      customer: false,
+      supplierlist: false,
+      equipment: false,
+      equipmentlist: false,
+      authority: false,
+      roles: false,
+      staff: false,
+      issystemuser: false
+    }
+  },
+  // computed: {
+  //   navselected() {
+  //     let defaultUrl = this.order == 1 ? '/Track/order' : '/EnquirySheet/enquirySheet'
+  //     return defaultUrl
+  //   }
+  // },
+  methods: {
+    handleOpen(key, keyPath) {
+      // console.log(key, keyPath)
+    },
+    handleClose(key, keyPath) {
+      // console.log(key, keyPath)
+    },
+    getNavType() {
+      this.navselected = this.$store.state.adminleftnavnum
+      // store.state.adminleftnavnum里值变化的时候，设置navselected
+    },
+    selectItems(index) {
+      this.$store.state.adminleftnavnum = index
+      // 按钮选中之后设置当前的index为store里的值。
+    },
+    sidebar_btn() {
+      let bool = !this.sidebar
+      this.$emit('listenSidebar', bool)
+    },
+    checkAuthoritys(arr) {
+      this.issystemuser = JSON.parse(sessionStorage.getItem('userInfo')).issystemuser
+
+      this.foreachArray(arr)
+    },
+    // 遍历数组
+    foreachArray(arr) {
+      for (let i = 0; i < arr.length; i++) {
+        let key = arr[i].menupath.split('/')[2] && arr[i].menupath.split('/')[2].toLowerCase()
+        if (!key) { key = arr[i].menupath.split('/')[1] && arr[i].menupath.split('/')[1].toLowerCase() }
+        this[key] = arr[i].checked
+        if (arr[i].children && arr[i].children.length) {
+          this.foreachArray(arr[i].children)
+        }
+      }
+    }
+  },
+  watch: {
+    // 监测store.state
+    '$store.state.adminleftnavnum': 'getNavType'
+  },
+  created() {
+    if (this.$store.state.Authoritys.length == 0) {
+      // 获取权限
+      api.user.getAuthoritys().then(res => {
+        if (res.data.code == 200) {
+          let list = res.data.data
+          this.$store.state.Authoritys = list
+          this.Authoritys = list
+          this.checkAuthoritys(list)
+        }
+      })
+    } else {
+      let list = this.$store.state.Authoritys
+      this.checkAuthoritys(list)
+    }
+  }
+}
+</script>
+
+<style lang="stylus">
+    .tac
+      text-align: center
+      color:#333
+      .el-menu-vertical-demo
+        background-color: #d1dbe5
+      .el-menu-item.subitem
+          font-size: 14px
+          text-align: center
+          height: 40px
+          line-height: 40px 
+          &:hover
+            color: #fff
+            background-color: #20a0ff
+      .el-menu-item
+        font-size:18px
+        border-bottom:1px solid #eef1f6
+        text-align:left
+        &:last-child
+          border-bottom:0
+      .icon
+        font-size:20px
+        margin-right:8px
+    .el-menu--horizontal.el-menu--dark .el-submenu .el-menu-item.is-active, .el-menu-item.is-active
+      color:#fff
+      background-color:#20a0ff
+    .nav-box
+      position:relative
+      height:850px
+      overflow:hidden
+      background-color: #eef1f6
+    .icon-nav
+      position:absolute
+      top:50%
+      right:0
+      width:12px
+      height:100px
+      cursor:pointer
+      background-color:#20a0ff
+      text-align:center
+      line-height:100px
+      transition: all .2s ease-out
+      transform: translateY(-50%)
+      .icon-arrow-left
+        color: #fff
+</style>
